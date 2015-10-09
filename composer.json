@@ -2,7 +2,7 @@
     "name": "grithin/phpbase",
     "description": "PHP Base Tools.",
     "keywords": ["php tools"],
-    "license": "Apache License, Version 2.0",
+    "license": "Apache-2.0",
     "homepage": "http://devtools.grithin.com",
     "authors": [
         {

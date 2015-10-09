@@ -29,7 +29,7 @@ class Http{
 	@param	specialSyntax	whether to parse the string using php rules (where [] marks an array) in addition to "standard" rules
 	*/
 	static function parseQuery($string,$specialSyntax = false){
-		$parts = Tool::explode('&',$string);
+		$parts = \Grithin\Strings::explode('&',$string);
 		$array = array();
 		foreach($parts as $part){
 			list($key,$value) = explode('=',$part);
@@ -199,7 +199,7 @@ class Http{
 		}else{
 			$pathParts = explode('/',$match[2]);
 		}
-		$path = Tool::absolutePath($pathParts);
+		$path = \Grithin\Files::absolutePath($pathParts);
 		$url = $match[1].$path;
 		if($query){
 			$url .= '?'.$query;
@@ -288,5 +288,54 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		}
 		return $protocol;
 	}
+
+	///end script with xml
+	static function endXml($content){
+		header('Content-type: text/xml; charset=utf-8');
+		echo '<?xml version="1.0" encoding="UTF-8"?>';
+		echo $content; exit;
+	}
+	///end script with json
+	static function endJson($content,$encode=true){
+		header('Content-type: application/json');
+		if($encode){
+			echo \Grithin\Tool::json_encode($content);
+		}else{
+			echo $content;
+		}
+		exit;
+	}
+
+	//it appears the browser parses once, then operating system, leading to the need to double escape the file name.  Use double quotes to encapsulate name
+	static function escapeFilename($name){
+		return \Grithin\Strings::slashEscape(\Grithin\Strings::slashEscape($name));
+	}
+	///send an actual file on the system via http protocol
+	static function sendFile($path,$saveAs=null,$exit=true){
+		//Might potentially remove ".." from path, but it has already been removed by the time the request gets here by server or browser.  Still removing for precaution
+		$path = \Grithin\Files::removeRelative($path);
+		if(is_file($path)){
+			$mime = \Grithin\Files::mime($path);
+
+			header('Content-Type: '.$mime);
+			if($saveAs){
+				header('Content-Description: File Transfer');
+				if(strlen($saveAs) > 1){
+					$fileName = $saveAs;
+				}else{
+					$fileName = array_pop(explode('/',$path));
+				}
+				header('Content-Disposition: attachment; filename="'.self::escapeFilename($fileName).'"');
+			}
+
+			echo file_get_contents($path);
+		}else{
+			throw new \Exception('Request handler encountered unresolvable file.  Searched at '.$path);
+		}
+		if($exit){
+			exit;
+		}
+	}
+
 }
 Http::configure();

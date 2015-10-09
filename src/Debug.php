@@ -23,7 +23,7 @@ class Debug{
 		$env = Arrays::merge(['mode'=>'dev','debug.detail'=>2,'debug.stackExclusions'=>[],'useShortcuts'=>true], $_ENV, $env);
 
 		if(!$env['abbreviations']){
-			$firstFile = array_pop(debug_backtrace())['file'];
+			$firstFile = \Grithin\Reflection::firstFileExecuted();
 			$env['abbreviations'] = ['base'=>dirname($firstFile).'/'];	}
 		if(!$env['log.file']){
 			$env['log.file'] = $env['baseFolder'].'log';	}
@@ -43,6 +43,11 @@ class Debug{
 		trigger_error($error, $type);
 	}
 	///throws variable class exception
+	/**
+	Useful if you eitherr want a variable-new-class exception, or if you want a non-scalar message
+
+	@note	if message is not a scalar, it is JSON encoded
+	*/
 	static function toss($message=null,$type='',$code=0,$previous=null){
 		if($type){
 			if(!class_exists($type,false)){
@@ -50,6 +55,9 @@ class Debug{
 			}
 		}else{
 			$type='Exception';
+		}
+		if(!is_scalar($message)){
+			$message = json_encode($message);
 		}
 		throw new $type($message,$code,$previous);
 	}

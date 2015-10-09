@@ -277,6 +277,9 @@ class Arrays{
 	@param	array	the array to be modified
 	*/
 	static function remove(&$array,$value = false,$strict = false){
+		if(!is_array($array)){
+			throw new \Exception('Parameter must be an array');
+		}
 		$existingKey = array_search($value,$array);
 		while($existingKey !== false){
 			unset($array[$existingKey]);

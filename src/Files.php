@@ -18,8 +18,8 @@ class Files{
 				'vars'=>$arguments[2],
 				'type'=>$name
 			);
-		if(method_exists('Files',$name)){
-			return call_user_func_array(array('self',$name),$arguments);
+		if(method_exists(__CLASS__,$name)){
+			return call_user_func_array(array(__CLASS__,$name),$arguments);
 		}else{
 			Debug::toss('No such method');
 		}
@@ -266,6 +266,46 @@ class Files{
 		}
 		file_put_contents($location,$content);
 	}
+
+	///get the size of a directory
+	/**
+	@param	dir	path to a directory
+	*/
+	static function dirSize($dir){//directory size
+		if(is_array($subs=scandir($dir))){
+			$size = 0;
+			$subs=array_slice($subs,2,count($subs)-2);
+			if($sub_count=count($subs)){
+				for($i=0;$i<$sub_count;$i++){
+					$temp_sub=$dir.'/'.$subs[$i];
+					if(is_dir($temp_sub)){
+						$size+=self::dirSize($temp_sub);
+					}else{
+						$size+=filesize($temp_sub);
+					}
+				}
+			}
+			return $size;
+		}
+	}
+
+	///does not care whether relative folders exist (unlike file include functions).  Does not work when |relative-to object| not given
+	///Found here b/c can be applied to HTTP paths, not just file paths
+	static function absolutePath($pathParts){
+		if(!is_array($pathParts)){
+			$pathParts = explode('/',$pathParts);
+		}
+		$absParts = array();
+		foreach($pathParts as $pathPart){
+			if($pathPart == '..'){
+				array_pop($absParts);
+			}elseif($pathPart != '.'){
+				$absParts[] = $pathPart;
+			}
+		}
+		return implode('/',$absParts);
+	}
+
 }
 
 
