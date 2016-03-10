@@ -6,24 +6,41 @@ class Reflection{
 	static function firstFileExecuted(){
 		return array_pop(debug_backtrace())['file'];
 	}
-	/// get the backtrace array for the caller existing outside the called class method
+	/// attempt to get the backtrace array for the caller existing outside the called class method
+	/**
+	The backtrace does not include whether the code point is within a class, so this function only flags as outside if either:
+		1.	class of frame does not match origin class
+		2.	file does not match origin file
+	*/
 	static function externalCaller(){
 		$backtrace = debug_backtrace();
 
-		$class = $backtrace[0]['class'];
-		if(!$class){
+		for($i=0;$i<5;$i++){
+			$origin_class = $backtrace[$i]['class'];
+			if($origin_class != 'Grithin\Reflection'){
+				break;
+			}
+		}
+		if(!$origin_class){
 			throw new \Exception('No origin class');	}
+
+		$origin_file = $backtrace[$i]['file'];
 
 		$count = count($backtrace);
 		$found = [];
-		for($i=1; $i < $count; $i++){
-			if($backtrace[$i]['class'] == $class){
+		for($i=$i+1; $i < $count; $i++){
+			if($backtrace[$i]['class'] == $origin_class && $backtrace[$i]['file'] == $origin_file){
 				$found = [];
 				continue;	}
 
+			# call_* functions can be inside or outside, not enough frame information to tell, so have to wait until the next frame
 			if(!$backtrace[$i]['class'] && ($backtrace[$i]['function'] == 'call_user_func' || $backtrace[$i]['function'] == 'call_user_func_array')){
 				$found = $backtrace[$i];
 				continue;	}
+
+			if($found){
+				return $found;
+			}
 			return $backtrace[$i];	}
 
 		return $found;
