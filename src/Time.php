@@ -103,6 +103,10 @@ class Time extends \DateTime{
 	function setZone($zone){
 		return parent::setTimezone($this->getZone($zone));
 	}
+	/// see instance_diff
+	function diff($time,$zone=null,$absolute=null){
+		return $this->instance_diff($time,$zone,$absolute);
+	}
 	///get DateInterval object based on current Time instance.
 	/**
 	@param	time	see Time::__construct()
