@@ -1,7 +1,9 @@
 <?
 namespace Grithin;
-use Grithin\Tool;
-use Grithin\Arrays;
+use \Grithin\Tool;
+use \Grithin\Arrays;
+use \Grithin\Time;
+use \Grithin\Strings;
 
 /// used for basic debuging
 /** For people other than me, things don't always go perfectly.  As such, this class is exclusively for you.  Measure things.  Find new and unexpected features.  Explore the error messages*/
@@ -9,24 +11,21 @@ class Debug{
 	static $env;
 	/**
 	@param	env	{
-		mode:<name>
-		'debug.detail':<int>
-		'debug.stackExclusions':[<regex>,<regex>,...]
-		projectName:
-		'log.file':
-		'log.folder':
-		'log.size':<size in bytes>
-		'abbreviations':<paths to abbreviate> {name:match}
+		mode: < string against which log calls with mode is regex matched, Ex: "debug info error" >
+		error_detail: <int>
+		stack_exclusion:[<regex>,<regex>,...]
+		log_file: < log file path >
+		err_file: < err file path >
+		max_file_size: < max size of log and err files.  ex "3m", "2g" >
+		abbreviations:<paths to abbreviate> {name: <regex pattern>, ...}
 	}
 	*/
 	static function configure($env=[]){
-		$env = Arrays::merge(['mode'=>'dev','debug.detail'=>2,'debug.stackExclusions'=>[],'useShortcuts'=>true], $_ENV, $env);
+		$env = Arrays::merge(['mode'=>'dev debug info error warning notice','error_detail'=>2,'stack_exclusion'=>[], 'abbreviations'=>[]], $env);
 
-		if(!$env['abbreviations']){
-			$firstFile = \Grithin\Reflection::firstFileExecuted();
-			$env['abbreviations'] = ['base'=>dirname($firstFile).'/'];	}
-		if(!$env['log.file']){
-			$env['log.file'] = $env['baseFolder'].'log';	}
+		if(!$env['log_file'] || !$env['err_file']){
+			throw new \Exception('Must specify both log_file and err_file');
+		}
 		self::$env = $env;
 	}
 
@@ -135,20 +134,20 @@ class Debug{
 			if(!preg_match('@'.$options['mode'].'@i',self::$env['mode'])){
 				return;
 			}
-			$title .= '^'.$options['mode'];
+			$title .= '['.$options['mode'].']';
 		}
 		if(!self::$runId){
-			self::$runId = \Tool::randomString(10);	}
+			self::$runId = Strings::random(10);	}
 		if($options['file']){
 			$fh = fopen($options['file'],'a+');
 		}else{
-			$fh = self::open(false);	}
+			$fh = self::open(self::$env['log_file']);	}
 		$title = $title ? ' | '.$title : '';
 
 		$trace = self::getTraceItem();
 		$file = self::abbreviateFilePath($trace['file']);
 		$line = $trace['line'];
-		fwrite($fh,"+=+=+=+ ".date("Y-m-d H:i:s").' | '.self::$env['projectName']." | RID ".self::$runId." PID ".getmypid()." | ".$file.':'.$line.$title." +=+=+=+\n".self::toString($var)."\n");
+		fwrite($fh,"+=+=+=+ ".(new Time)." | RID ".self::$runId." PID ".getmypid()." | ".$file.':'.$line.$title." +=+=+=+\n".self::toString($var)."\n");
 		fclose($fh);
 	}
 	///get a line from a file
@@ -181,10 +180,10 @@ class Debug{
 		$code = self::getLine($eFile,$eLine);
 		$eFile = self::abbreviateFilePath($eFile);
 		$eFile = preg_replace('@'.PR.'@','',$eFile);
-		$header = "+=+=+=+ ".date("Y-m-d H:i:s").' | '.self::$env['projectName']." | $type | ".self::abbreviateFilePath($eFile).":$eLine +=+=+=+\n$eStr\n";
+		$header = "+=+=+=+ ".date("Y-m-d H:i:s")." | $type | ".self::abbreviateFilePath($eFile).":$eLine +=+=+=+\n$eStr\n";
 
 		$err= '';
-		if(self::$env['debug.detail'] > 0){
+		if(self::$env['error_detail'] > 0){
 			if(!$bTrace){
 				$bTrace = debug_backtrace();
 			}
@@ -197,7 +196,7 @@ class Debug{
 			//remove undesired stack points, and non-named points stemming from
 			foreach($bTrace as $k=>&$v){
 				$v['shortName'] = self::abbreviateFilePath($v['file']);
-				foreach(self::$env['debug.stackExclusions'] as $exclusionPattern){
+				foreach(self::$env['stack_exclusion'] as $exclusionPattern){
 					if(!$v['file']){
 						$unnamed++;
 					}else{
@@ -219,7 +218,7 @@ class Debug{
 				if($code){
 					$err .= "\t".'Line: '.$code."\n";
 				}
-				if($v['args'] && self::$env['debug.detail'] > 1){
+				if($v['args'] && self::$env['error_detail'] > 1){
 					$err .= "\t".'Arguments: '."\n";
 					$args = self::toString($v['args']);
 					$err .= substr($args,2,-2)."\n";
@@ -230,7 +229,7 @@ class Debug{
 							$args)."\n";*/
 				}
 			}
-			if(self::$env['debug.detail'] > 2){
+			if(self::$env['error_detail'] > 2){
 				$err.= "\nServer Var:\n:".self::toString($_SERVER);
 				$err.= "\nRequest-----\nUri:".$_SERVER['REQUEST_URI']."\nVar:".self::toString($_REQUEST);
 				$err.= "\n\nFile includes:\n".self::toString(Files::getIncluded());
@@ -242,7 +241,7 @@ class Debug{
 		$header = 'Error Id: '.$errorHash."\n".$header;
 		$err = $header.$err;
 
-		$fh = self::open();
+		$fh = self::open(self::$env['err_file']);
 		fwrite($fh,$err);
 
 		if(ini_get('display_errors')){
@@ -344,24 +343,18 @@ class Debug{
 			echo '<pre>'.$output.'</pre>';
 		}
 	}
-	static function open($limitSize=true){
-		if(self::$env['log.file']){
-			$file = self::$env['log.file'];
-		}else{
-			$file = self::$env['log.folder'].date('Ymd').'.log';
-		}
+	static function open($file){
 		if(!is_file($file)){
 			touch($file);
 			chmod($file,0777);
 			clearstatcache();
 		}
 		$mode = 'a+';
-		if($limitSize){
-			if(!file_exists($file) || self::$env['log.size'] && filesize($file)>Tool::byteSize(self::$env['log.size'])){
+		if(self::$env['max_file_size']){
+			if(!file_exists($file) || self::$env['max_file_size'] && filesize($file)>Tool::byteSize(self::$env['max_file_size'])){
 				$mode = 'w';
 			}
 		}
 		return fopen($file,$mode);
 	}
 }
-Debug::configure();

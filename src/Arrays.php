@@ -287,6 +287,13 @@ class Arrays{
 		}
 		return $array;
 	}
+	# ensure a value is in array.  If not, append array.
+	static function ensure(&$array, $value){
+		if(array_search($value, $array) === false){
+			$array[] = $value;
+		}
+		return $array;
+	}
 	///separate certain keys from an array and put them into another, returned array
 	static function separate($keys,&$array){
 		$separated = array();

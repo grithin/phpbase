@@ -252,6 +252,15 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		}
 		exit;
 	}
+	# like redirect, but forces http
+	static function redirectHttp($location){
+		Http::redirect("http://$_SERVER[HTTP_HOST]".$location);
+	}
+	# like redirect, but forces https
+	static function redirectHttps($location){
+		Http::redirect("https://$_SERVER[HTTP_HOST]".$location);
+	}
+
 	static $ip;
 	///Get the ip at a given point in either HTTP_X_FORWARDED_FOR or just REMOTE_ADDR
 	/**
@@ -336,6 +345,9 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 			exit;
 		}
 	}
-
+	static function isAjax(){
+		# general set by framework (jquery) submitting the ajax
+		return (bool)$_SERVER['HTTP_X_REQUESTED_WITH'] || (bool)$_GET['_ajax'];
+	}
 }
 Http::configure();

@@ -2,9 +2,11 @@
 namespace Grithin;
 use Grithin\Tool;
 ///Supplementing language time functions
-class Time extends \DateTime{
+class Time extends \DateTime implements \JsonSerializable{
 	///creates a DateTime object with some additional functionality
 	/**
+
+
 	@param	time	various forms:
 		- DateTime object
 		- relative time ("-1 day")
@@ -15,7 +17,11 @@ class Time extends \DateTime{
 	function __construct($time=null,$zone=null,$relativeTo=null){
 		$zone = $this->getZone($zone);
 		if($relativeTo !== null){
+			if($relativeTo[0] == '-' || $relativeTo[0] == '+'){
+				throw new \Exception('Expecting "$relativeTo" to be absolute time, not offset expression');
+			}
 			$return = parent::__construct($this->getTime($relativeTo,$zone),$zone);
+
 			$this->modify($time);
 			return $return;
 		}
@@ -29,6 +35,9 @@ class Time extends \DateTime{
 		if(method_exists($this,$name)){
 			return $this->$name();
 		}
+	}
+	function jsonSerialize(){
+		return $this->datetime();
 	}
 	///creates a DateTimeZone object based on variable input
 	/**
@@ -190,6 +199,16 @@ class Time extends \DateTime{
 			return true;
 		}
 		return false;
+	}
+	# For a date object, edit the hour:minute part of the date, keeping the day the same
+	/*
+	@param	clock	"HH:MM:SS"
+	*/
+	function setClock($clock){
+		$parts = explode(':', $clock);
+		$start = $this->dayStart(true);
+		$seconds_offset = $parts[0]*60*60 + $parts[1]*60 + $parts[2];
+		return $start->relative('+ '.$seconds_offset.' seconds');
 	}
 	///Get Diff object comparing current object ot current time
 	function age(){
