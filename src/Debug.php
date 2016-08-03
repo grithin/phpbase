@@ -8,7 +8,7 @@ use \Grithin\Strings;
 /// used for basic debuging
 /** For people other than me, things don't always go perfectly.  As such, this class is exclusively for you.  Measure things.  Find new and unexpected features.  Explore the error messages*/
 class Debug{
-	static $env;
+	static $env = ['mode'=>'dev debug info error warning notice','error_detail'=>2,'stack_exclusion'=>[], 'abbreviations'=>[]];
 	/**
 	@param	env	{
 		mode: < string against which log calls with mode is regex matched, Ex: "debug info error" >
@@ -21,12 +21,11 @@ class Debug{
 	}
 	*/
 	static function configure($env=[]){
-		$env = Arrays::merge(['mode'=>'dev debug info error warning notice','error_detail'=>2,'stack_exclusion'=>[], 'abbreviations'=>[]], $env);
+		self::$env = Arrays::merge(self::$env, $env);
 
-		if(!$env['log_file'] || !$env['err_file']){
+		if(!self::$env['log_file'] || !self::$env['err_file']){
 			throw new \Exception('Must specify both log_file and err_file');
 		}
-		self::$env = $env;
 	}
 
 	///provided for convenience to place various user debugging related values
@@ -283,8 +282,11 @@ class Debug{
 		}
 	}
 	static function abbreviateFilePath($path){
-		foreach(self::$env['abbreviations'] as $name=>$abbr)
-		return preg_replace('@'.$abbr.'@',$name.':',$path);
+		foreach(self::$env['abbreviations'] as $name=>$abbr){
+			$path = preg_replace('@'.$abbr.'@',$name.':',$path);
+		}
+		return $path;
+
 	}
 	///print a variable to self::toString and quit
 	/** Clears butter, outputs variable without context
