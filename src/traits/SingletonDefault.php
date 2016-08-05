@@ -3,12 +3,17 @@ namespace Grithin;
 use Grithin\Debug;
 use Grithin\testCall;
 
-/**
+/*
 The convenience of acting like there is just one, with the ability to handle multiple
 Static calls default to primary instance.  If no primary instance, attempt to create one.
 
-@note	__construct can not be protected because the RelfectionClass call to it is not considered a relative
-@note __call doesn't take arguments by reference (and func_get_args() doesn't return references), so don't apply to classes requiring reference args (unless php introduces pointers)
+@NOTE	__construct can not be protected because the RelfectionClass call to it is not considered a relative
+@NOTE __call doesn't take arguments by reference (and func_get_args() doesn't return references), so don't apply to classes requiring reference args (unless php introduces pointers)
+
+Ex, named instance
+	Db::init('instance name', $config)
+Ex, name defaulted instance
+	Db::singleton($config)
 */
 trait SingletonDefault{
 	use testCall;
@@ -21,8 +26,12 @@ trait SingletonDefault{
 	/// array of named instances
 	static $instances = array();
 	static $affix = '';
-	static function &init($instanceName=null){
-		$instanceName = $instanceName !== null ? $instanceName : 0;
+	static $i = 0; #< default instance name incrementer
+	/*
+	@param	instanceName	if set to null, will increment starting with 0 for each init call.
+	*/
+	static function init($instanceName=null){
+		$instanceName = $instanceName !== null ? $instanceName : self::$i++;
 		if(!isset(static::$instances[$instanceName])){
 			$class = new \ReflectionClass(static::className(get_called_class()));
 			$instance = $class->newInstanceArgs(array_slice(func_get_args(),1));
@@ -35,6 +44,11 @@ trait SingletonDefault{
 			}
 		}
 		return static::$instances[$instanceName];
+	}
+	/// get a singleton with the default incremented name
+	static function singleton(){
+		$args = array_merge([null], (array)func_get_args());
+		return call_user_func_array([self,'init'], $args);
 	}
 	/// overwrite any existing primary with new construct
 	static function &resetPrimary($instanceName=null){
@@ -49,6 +63,7 @@ trait SingletonDefault{
 	}
 	/// sets primary to some named instance
 	static function setPrimary($instanceName){
+		$instanceName = $instanceName === null ? 0 : $instanceName;
 		static::$primaryName = $instanceName;
 	}
 	/// overwrite existing instance with provided instance
