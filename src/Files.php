@@ -26,18 +26,46 @@ class Files{
 
 	}
 	///include a file
-	/**
-	@param	file	file path
-	@param	globalize	list of strings representing variables to globalize for the included file
-	@param	vars	variables to extract for use by the file
-	@param	extract	variables to extract from the included file to be returned
-	@return	true or extracted varaibles if file successfully included, else false
+	/*
+	@param	_file	file path
+	@param	_vars	[ < name > : < value >, ...]  < array of keyed variables to extract into the file >
+	@param	_options	[
+			extract: < variables to extract from the file context >
+			globals: < string-names of variables to introduce to the file as global variables >
+		]
+
+	@return
+		if successful
+			if _options['extract']
+				keyed extracted variable array
+			else
+				value from the inclusion function (generally `1` if the file does not explicitly use a return statement)
+		if not successful
+			false
+
+
+	@Example
+		File `bob.php`:
+			<?
+			$bill = [$bob]
+			$bill[] = 'monkey'
+			return 'blue'
+		Use
+			Files::inc('bob.php')
+			#< 'blue'
+
+			Files::inc('bob.php',['bob'=>'sue'], ['extract'=>['bill']])
+			#< ['sue', 'monkey']
+
+
+
 	*/
-	private static function inc($_file,$_globalize=null,$_vars=null,$_extract=null){
+	private static function inc($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::logIncluded(true);
-			if($_globalize){
-				foreach($_globalize as $_global){
+
+			if($_options['globals']){
+				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
 			}
@@ -45,15 +73,16 @@ class Files{
 				extract($_vars,EXTR_SKIP);#don't overwrite existing
 			}
 
-			include($_file);
+			$_return = include($_file);
 
-			if($_extract){
-				foreach($_extract as $_var){
+			if($_options['extract']){
+				$_return = [];
+				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
 				return $_return;
 			}
-			return true;
+			return $_return;
 		}
 		self::logIncluded(false);
 		return false;
@@ -66,11 +95,11 @@ class Files{
 	@param	extract	variables to extract from the included file to be returned
 	@return	true or extracted varaibles if file successfully included, else false
 	*/
-	private static function incOnce($_file,$_globalize=null,$_vars=null,$_extract=null){
+	private static function incOnce($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::logIncluded(true);
-			if($_globalize){
-				foreach($_globalize as $_global){
+			if($_options['globals']){
+				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
 			}
@@ -78,32 +107,30 @@ class Files{
 				extract($_vars,EXTR_SKIP);#don't overwrite existing
 			}
 
-			include_once($_file);
+			$_return = include_once($_file);
 
-			if($_extract){
-				foreach($_extract as $_var){
+			if($_options['extract']){
+				$_return = [];
+				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
 				return $_return;
 			}
-			return true;
+			return $_return;
 		}
 		self::logIncluded(false);
 		return false;
 	}
 	///require a file
 	/**
-	@param	file	file path
-	@param	globalize	list of strings representing variables to globalize for the included file
-	@param	vars	variables to extract for use by the file
-	@param	extract	variables to extract from the included file to be returned
-	@return	true or extracted varaibles if file successfully included, else false
+	see self::inc
+	@return	on failure, runs Debug::toss
 	*/
-	private static function req($_file,$_globalize=null,$_vars=null,$_extract=null){
+	private static function req($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::logIncluded(true);
-			if($_globalize){
-				foreach($_globalize as $_global){
+			if($_options['globals']){
+				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
 			}
@@ -111,32 +138,30 @@ class Files{
 				extract($_vars,EXTR_SKIP);#don't overwrite existing
 			}
 
-			include($_file);
+			$_return = include($_file);
 
-			if($_extract){
-				foreach($_extract as $_var){
+			if($_options['extract']){
+				$_return = [];
+				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
 				return $_return;
 			}
-			return true;
+			return $_return;
 		}
 		self::logIncluded(false);
 		Debug::toss('Could not include file "'.$_file.'"');
 	}
 	///require a file once
 	/**
-	@param	file	file path
-	@param	globalize	list of strings representing variables to globalize for the included file
-	@param	vars	variables to extract for use by the file
-	@param	extract	variables to extract from the included file to be returned
-	@return	true or extracted varaibles if file successfully included, else false
+	see self::inc
+	@return	on failure, runs Debug::toss
 	*/
-	private static function reqOnce($_file,$_globalize=null,$_vars=null,$_extract=null){
+	private static function reqOnce($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::logIncluded(true);
-			if($_globalize){
-				foreach($_globalize as $_global){
+			if($_options['globals']){
+				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
 			}
@@ -144,15 +169,16 @@ class Files{
 				extract($_vars,EXTR_SKIP);#don't overwrite existing
 			}
 
-			include_once($_file);
+			$_return = include_once($_file);
 
-			if($_extract){
-				foreach($_extract as $_var){
+			if($_options['extract']){
+				$_return = [];
+				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
 				return $_return;
 			}
-			return true;
+			return $_return;
 		}
 		self::logIncluded(false);
 		Debug::toss('Could not include file "'.$_file.'"');
