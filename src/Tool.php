@@ -53,17 +53,63 @@ class Tool{
 		return true;
 	}
 	///will encode to utf8 on failing for bad encoding
-	static function json_encode($x){
-		$json = json_encode($x);
+	static function json_encode($x, $options =0, $depth = 512){
+		$json = json_encode($x, $options, $depth);
 		if($json === false){
 			if(json_last_error() == JSON_ERROR_UTF8){
 				self::utf8_encode($x);
-				$json = json_encode($x);	}	}
+				$json = json_encode($x, $options, $depth);	}	}
 		if(json_last_error() != JSON_ERROR_NONE){
-			\Debug::toss('JSON encode error: '.json_last_error());	}
+			$types = [
+				JSON_ERROR_NONE=>'JSON_ERROR_NONE',
+				JSON_ERROR_DEPTH=>'JSON_ERROR_DEPTH',
+				JSON_ERROR_STATE_MISMATCH=>'JSON_ERROR_STATE_MISMATCH',
+				JSON_ERROR_CTRL_CHAR=>'JSON_ERROR_CTRL_CHAR',
+				JSON_ERROR_SYNTAX=>'JSON_ERROR_SYNTAX',
+				JSON_ERROR_UTF8=>'JSON_ERROR_UTF8',
+				JSON_ERROR_RECURSION=>'JSON_ERROR_RECURSION',
+				JSON_ERROR_INF_OR_NAN=>'JSON_ERROR_INF_OR_NAN',
+				JSON_ERROR_UNSUPPORTED_TYPE=>'JSON_ERROR_UNSUPPORTED_TYPE'];
+			Debug::toss('JSON encode error: '.$types[json_last_error()]);	}
 
 		return $json;
 	}
+	/// remove circular references
+	static function flat_json_encode($v, $options=0, $depth=512){
+		if(is_object($v)){
+			try{
+				return self::json_encode($v, $options, $depth);
+			}catch(\Exception $e){
+				self::flat_json_encode(get_object_vars($v), $options, $depth);
+			}
+		}elseif(is_array($v)){
+			try{
+				return self::json_encode($v, $options, $depth);
+			}catch(\Exception $e){
+				$acceptable = [];
+				foreach($v as $k=>$v2){
+					try{
+						self::json_encode($v2, $options, $depth);
+						$acceptable[$k] = $v2;
+					}catch(\Exception $e){
+						$acceptable[$k] = [];
+					}
+				}
+				return self::json_encode($acceptable, $options, $depth);
+			}
+		}else{
+			return self::json_encode($v, $options, $depth);
+		}
+	}
+	static function to_jsonable($v){
+		if(is_scalar($v)){
+			return $v;
+		}else{
+			return json_decode(self::flat_json_encode($v), true);
+		}
+	}
+
+
 	///utf encode variably deep array
 	static function &utf8_encode(&$x){
 		if(!is_array($x)){
@@ -78,4 +124,5 @@ class Tool{
 	static function &reference($v){
 		return $v;
 	}
+
 }
