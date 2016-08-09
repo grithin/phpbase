@@ -1,5 +1,6 @@
 <?
 namespace Grithin;
+
 /// Useful array related functions I didn't, at one time, find in php
 class Arrays{
 	///turns var into an array
@@ -58,7 +59,7 @@ class Arrays{
 					return null;
 				}
 			}else{
-				throw new Exception('Part is not a traverseable structure');
+				throw new \Exception('Part is not a traverseable structure');
 			}
 		}
 		return $collection;
