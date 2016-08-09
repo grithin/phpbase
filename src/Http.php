@@ -345,9 +345,25 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 			exit;
 		}
 	}
+	# Use standard HTTP Header indicator or _GET['_ajax'] to determine if request is ajax based
 	static function isAjax(){
 		# general set by framework (jquery) submitting the ajax
 		return (bool)$_SERVER['HTTP_X_REQUESTED_WITH'] || (bool)$_GET['_ajax'];
+	}
+
+	# Respond to an http request, but don't end the script
+	static function respondWith($response){
+		ignore_user_abort(true); # Set whether a client disconnect should abort script execution
+		set_time_limit(0); # allow script to run forever
+
+		ob_start();
+		echo $response;
+		header('Connection: close');
+		header("Content-Encoding: none"); # if compressed, content size will be smaller, and requester will continue waiting
+		header('Content-Length: '.ob_get_length());
+		ob_end_flush(); # flush inner layer
+		ob_flush(); # flush all layers
+		flush(); # push to browser
 	}
 }
 Http::configure();
