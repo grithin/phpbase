@@ -43,6 +43,25 @@ class Arrays{
 
 	/// lodash get.  Works with arrays and objects.  Specially handling for part which is a obj.method
 	function get($collection, $path){
+		try{
+			$value = Arrays::got($collection, $path);
+			return $value;
+		}catch(\Exception $e){
+			return null;
+		}
+	}
+	/// lodash has
+	function has($collection, $path){
+		try{
+			Arrays::got($collection, $path);
+			return true;
+		}catch(\Exception $e){
+			return false;
+		}
+	}
+
+	# lodash get, with exception upon not found
+	function got($collection, $path){
 		foreach(explode('.', $path) as $part){
 			if(is_object($collection)){
 				if(isset($collection->$part)){
@@ -50,16 +69,16 @@ class Arrays{
 				}elseif(is_callable([$collection, $part])){
 					$collection = [$collection, $part]; # turn it into a callable form
 				}else{
-					return null;
+					throw new \Exception('not found');
 				}
 			}elseif(is_array($collection)){
 				if(isset($collection[$part])){
 					$collection = $collection[$part];
 				}else{
-					return null;
+					throw new \Exception('not found');
 				}
 			}else{
-				throw new \Exception('Part is not a traverseable structure');
+				throw new \Exception('not found');
 			}
 		}
 		return $collection;
