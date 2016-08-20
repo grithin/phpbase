@@ -80,7 +80,7 @@ class Tool{
 			try{
 				return self::json_encode($v, $options, $depth);
 			}catch(\Exception $e){
-				self::flat_json_encode(get_object_vars($v), $options, $depth);
+				return self::flat_json_encode(get_object_vars($v), $options, $depth);
 			}
 		}elseif(is_array($v)){
 			try{
