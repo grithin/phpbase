@@ -231,7 +231,7 @@ class Files{
 						$newOptions['maxDepth']--;
 					}
 					$newFiles = self::scan($realPath.$v,$newOptions);
-					Arrays::mergeInto($files,$newFiles);
+					$files = Arrays::merge($files,$newFiles);
 				}else{
 					if(!$options['filter'] || $options['filter']($options['prefix'].$v)){
 						$files[] = $options['prefix'].$v;
