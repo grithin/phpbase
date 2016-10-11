@@ -2,6 +2,9 @@
 namespace Grithin;
 
 /// Useful array related functions I didn't, at one time, find in php
+/*
+@NOTE	on parameter order: Following lodash wherein the operatee, the source array, is the first parameter.  To be applied to all new functions with such an operatee
+*/
 class Arrays{
 	///turns var into an array
 	/**
@@ -20,15 +23,57 @@ class Arrays{
 		}
 		return (array)$var;
 	}
-	/// lodash pick
+	/// extract, if present, specified keys
 	static function pick($src, $props){
-		$props = self::toArray($props);
+		$props = Arrays::toArray($props);
 		$dest = [];
 		foreach($props as $prop){
-			$dest[$prop] = $src[$prop];
+			if(self::is_set($src, $prop)){
+				$dest[$prop] = $src[$prop];
+			}
 		}
 		return $dest;
 	}
+	/// extract specified keys, filling with default if not present
+	static function pick_default($src, $props, $default=null){
+		$src = self::ensure_keys($src, $props, $default); # First to ensure key order upon pick
+		return self::pick($src, $props);
+	}
+	/// ensure, by adding if necessary, keys are within an array
+	static function ensure_keys($src, $props, $fill_on_missing=null){
+		$props = Arrays::toArray($props);
+		foreach($props as $prop){
+			if(!self::is_set($src, $prop)){
+				$src[$prop] = $fill_on_missing;
+			}
+		}
+		return $src;
+	}
+	/// `isset` fails on nulls, however, is faster than `array_key_exists`.  So, combine.
+	//@NOTE	upon benchmarking, making this into a function instead of applying `isset` and `array_key_exists` directly adds insignificant overhead
+	static function is_set($src, $key){
+		if(isset($src[$key]) || array_key_exists($key, $src)){
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	Copy array, mapping some columns to different columns
+	@NOTE if src contains key collision with map, map will overwrite
+	*/
+	static function map_with($src, $map){
+		$result = [];
+		foreach($src as $k=>$v){
+			if(self::is_set($map, $k)){
+				$result[$map[$k]] = $v;
+			}elseif(!self::is_set($result, $k)){
+				$result[$k] = $v;
+			}
+		}
+		return $result;
+	}
+
 	/// lodash omit
 	static function omit($src, $props){
 		$props = self::toArray($props);
@@ -42,7 +87,7 @@ class Arrays{
 	}
 
 	/// lodash get.  Works with arrays and objects.  Specially handling for part which is a obj.method
-	function get($collection, $path){
+	static function get($collection, $path){
 		try{
 			$value = Arrays::got($collection, $path);
 			return $value;
@@ -51,7 +96,7 @@ class Arrays{
 		}
 	}
 	/// lodash has
-	function has($collection, $path){
+	static function has($collection, $path){
 		try{
 			Arrays::got($collection, $path);
 			return true;
@@ -61,7 +106,7 @@ class Arrays{
 	}
 
 	# lodash get, with exception upon not found
-	function got($collection, $path){
+	static function got($collection, $path){
 		foreach(explode('.', $path) as $part){
 			if(is_object($collection)){
 				if(isset($collection->$part)){
@@ -72,7 +117,7 @@ class Arrays{
 					throw new \Exception('not found');
 				}
 			}elseif(is_array($collection)){
-				if(isset($collection[$part])){
+				if(self::is_set($collection, $part)){
 					$collection = $collection[$part];
 				}else{
 					throw new \Exception('not found');
@@ -115,6 +160,15 @@ class Arrays{
 		return $array;
 	}
 
+	static function ensure_values(&$array, $values){
+		foreach($values as $value){
+			self::ensure($array, $value);
+		}
+		return $array;
+	}
+	static function ensure_value(&$array, $value){
+		return self::ensure($array, $value);
+	}
 	# ensure a value is in array.  If not, append array.
 	static function ensure(&$array, $value){
 		if(array_search($value, $array) === false){
@@ -221,7 +275,7 @@ class Arrays{
 		$keys = self::toArray($keys);
 		$lastKey = array_pop($keys);
 		$array = self::getElement($keys,$array);
-		return isset($array[$lastKey]);
+		return self::is_set($array, $lastKey);
 	}
 
 	/// Gets an element of an arbitrarily deep array using list of keys for levels
@@ -233,7 +287,7 @@ class Arrays{
 	static function getElement($keys,$array,$force=false){
 		$keys = self::toArray($keys);
 		foreach($keys as $key){
-			if(!isset($array[$key])){
+			if(!self::is_set($array, $key)){
 				if(!$force){
 					return;
 				}
@@ -247,7 +301,7 @@ class Arrays{
 	/**
 	@param	keys array comma separated list of keys to traverse
 	@param	array	array	The array which is parsed for the element
-	@param	force	string	determines whetehr to create parts of depth if they don't exist
+	@param	force	string	determines whether to create parts of depth if they don't exist
 	*/
 	static function &getElementReference($keys,&$array,$force=false){
 		$keys = self::toArray($keys);
@@ -255,7 +309,7 @@ class Arrays{
 			if(!is_array($array)){
 				$array = array();
 				$array[$key] = array();
-			}elseif(!isset($array[$key])){
+			}elseif(!self::is_set($array, $key)){
 				if(!$force){
 					return;
 				}
@@ -418,7 +472,7 @@ class Arrays{
 	*/
 	static function addOnKey($key,$value,&$array,$append=false){
 		if($key !== null && $key !== false){
-			if($append && isset($array[$key])){
+			if($append && self::is_set($array, $key)){
 				if(is_array($array[$key])){
 					$array[$key][] = $value;
 				}else{
