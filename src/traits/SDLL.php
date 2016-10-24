@@ -15,20 +15,19 @@ trait SDLL{
 		$this->constructArgs = func_get_args();
 	}
 	function &__get($name){
-		//load if not loaded
-		if(!$this->loaded){
-			call_user_func_array(array($this,'load'),(array)$this->constructArgs);
-			$this->loaded = true;
-		}
+		$this->load_once();
 		return $this->$name;
 	}
 	function __call($fnName,$args){
+		$this->load_once();
+		return $this->__testCall($fnName,$args);
+	}
+	abstract function load();
+	function load_once(){
 		//load if not loaded
 		if(!$this->loaded){
 			call_user_func_array(array($this,'load'),(array)$this->constructArgs);
 			$this->loaded = true;
 		}
-		return $this->__testCall($fnName,$args);
 	}
-	abstract function load();
 }
