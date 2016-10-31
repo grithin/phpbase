@@ -268,4 +268,41 @@ class Time extends \DateTime implements \JsonSerializable{
 		);
 		return array('city' => $cityBased, 'standard'=>$standard);
 	}
+
+	# offset by actual months, accounting for variable days in each month, and cutting down the date day-part if necessary
+	function offset_months($months){
+		return new Time(self::offset_date_by_months($this->unix, $months));
+	}
+	 static function offset_date_by_months($initial_date, $months){
+		$start_year = date('Y',$initial_date);
+		$start_month = date('m',$initial_date);
+		$start_day = date('d',$initial_date);
+
+		if($months > 0){
+			$years = floor($months / 12);
+		}else{
+			$years = -floor(-$months / 12);
+		}
+		$end_year = $start_year + $years;
+		$months = $months % 12;
+
+		$end_month = $months + $start_month;
+		if($end_month > 12){
+			$end_year++;
+			$end_month = $end_month - 12;
+		}elseif($end_month < 1){
+			$end_year--;
+			$end_month = $end_month + 12;
+		}
+
+		$max_day = date('t',strtotime($end_year.'-'.$end_month.'-1'));
+
+		if($max_day < $start_day){
+			$date = $end_year.'-'.$end_month.'-'.$max_day;
+		}else{
+			$date = $end_year.'-'.$end_month.'-'.$start_day;
+		}
+
+		return strtotime($date.' '.date('H:i:s',$initial_date));
+	}
 }
