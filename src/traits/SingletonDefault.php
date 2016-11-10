@@ -33,14 +33,15 @@ trait SingletonDefault{
 	static function init($instanceName=null){
 		$instanceName = $instanceName !== null ? $instanceName : self::$i++;
 		if(!isset(static::$instances[$instanceName])){
-			$class = new \ReflectionClass(static::className(get_called_class()));
+			$className = static::className(get_called_class());#< use of `static` to allow for override on which class is instantiated
+			$class = new \ReflectionClass($className);
 			$instance = $class->newInstanceArgs(array_slice(func_get_args(),1));
 			static::$instances[$instanceName] = $instance;
 			static::$instances[$instanceName]->name = $instanceName;
 
 			//set primary if no instances except this one
 			if(count(static::$instances) == 1){
-				static::setPrimary($instanceName,$className);
+				static::setPrimary($instanceName,$className);#< use of `static` a,d `$className` override and custom handling
 			}
 		}
 		return static::$instances[$instanceName];
