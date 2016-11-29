@@ -8,40 +8,14 @@ use \Grithin\Strings;
 /// used for basic debuging
 /** For people other than me, things don't always go perfectly.  As such, this class is exclusively for you.  Measure things.  Find new and unexpected features.  Explore the error messages*/
 class Debug{
-	static $env = ['mode'=>'dev debug info error warning notice','error_detail'=>2,'stack_exclusion'=>[], 'abbreviations'=>[], 'pretty'=>true];
-	/**
-	@param	env	{
-		mode: < string against which log calls with mode is regex matched, Ex: "debug info error" >
-		error_detail: <int>
-		stack_exclusion:[<regex>,<regex>,...]
-		log_file: < log file path >
-		err_file: < err file path >
-		max_file_size: < max size of log and err files.  ex "3m", "2g" >
-		abbreviations:<paths to abbreviate> {name: <regex pattern>, ...}
-		pretty: < whether to pretty print json in logs >
-	}
-	*/
-	static function configure($env=[]){
-		self::$env = Arrays::merge(self::$env, $env);
-	}
-
-	///provided for convenience to place various user debugging related values
-	static $x;
-	///allows for the decision to throw or trigger error based on the config
-	/**
-	@param	error	error string
-	@param	throw	whether to throw the error (true) or trigger it (false)
-	@param	type	either level of the error or the exception class to use
-	*/
-	static function error($error,$type=null){
-		$type = $type ? $type : E_USER_ERROR;
-		trigger_error($error, $type);
-	}
 	///throws variable class exception
 	/**
 	Useful if you eitherr want a variable-new-class exception, or if you want a non-scalar message
 
+
 	@note	if message is not a scalar, it is JSON encoded
+
+	@note	on performance, eval is approximately twice as long as directly throwing a pre-defined exception class.
 	*/
 	static function toss($message=null,$type='',$code=0,$previous=null){
 		if($type){
@@ -57,96 +31,14 @@ class Debug{
 		throw new $type($message,$code,$previous);
 	}
 
-	# Attempts to find where the log folder is.  Will use $_ENV['root_folder'] is available, otherwise will use the folder of the entry script
-	static function getLogFolder(){
-		$file = self::$env['log_file'];
-
-		if(!$file){
-			if($_ENV['root_folder']){
-				$root_folder = $_ENV['root_folder'];
-			}else{
-				$root_folder = dirname($_SERVER['SCRIPT_NAME']).'/';
-			}
-		}
-
-		if(is_dir($root_folder.'log')){
-			return $root_folder.'log/';
-		}
-		return $root_folder;
-	}
-	static function getLogFilename(){
-		if(self::$env['log_file']){
-			return self::$env['log_file'];
-		}
-		return self::getLogFolder().'log';
-	}
-	static function getErrFilename(){
-		if(self::$env['err_file']){
-			return self::$env['err_file'];
-		}
-		return self::getLogFolder().'err';
-	}
-
-	static $runId;
+	# in multithreading, the fork will have a separate process id.  It can be helpful to know if two separate process ids are within the same run id in logs
 	static function getRunId(){
-		if(!self::$runId){
-			self::$runId = Strings::random(10);
+		if(!$GLOBALS['_run_id']){
+			$GLOBALS['_run_id'] = Strings::random(10);
 		}
-		return self::$runId;
+		return $GLOBALS['_run_id'];
 	}
 
-	///put variable into the log file for review
-	/** Sometimes printing out the value of a variable to the screen isn't an option.  As such, this function can be useful.
-	@param	var	variable to print out to file
-	@param	mode	< regex mode to match that determines whether to log >
-	@param	options	{
-			file:<file to log to>,
-		}
-
-	*/
-	static function log($var,$mode='', $options=null){
-		$log = [];
-		if($mode){
-			if(self::$env['mode']){
-				//see if matching mode, else don't log
-				if(!preg_match('@'.$mode.'@i',self::$env['mode'])){
-					return;
-				}
-			}
-			$log['mode'] = $mode;
-		}
-
-		$log['rid'] = self::getRunId();
-		$log['pid'] = getmypid();
-		$log['time'] = date("Y-m-d H:i:s");
-
-		if($options['file']){
-			$fh = fopen($options['file'],'a+');
-		}else{
-			$filename = self::getLogFilename();
-			$fh = self::open($filename);	}
-
-		$trace = self::getExternalStack(debug_backtrace())[0];
-
-		$log['file'] = self::abbreviateFilePath($trace['file']);
-		$log['line'] = $trace['line'];
-		$log['value'] = Tool::to_jsonable($var);
-
-		self::write($fh,$log);
-		fclose($fh);
-	}
-	static function getExternalStack($stack){
-		$skip = 0;
-		foreach($stack as $item){
-			if(!$item['file'] || $item['file'] == __FILE__){
-				$skip++;
-			}else{
-				break;
-			}
-		}
-		return array_slice($stack,$skip);
-
-	}
 	///get a line from a file
 	/**
 	@param	file	file path
@@ -159,9 +51,97 @@ class Debug{
 			return preg_replace('@^\s*@','',$code);
 		}
 	}
-	static function handleException($exception){
-		self::handleError(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),null,$exception->getTrace(),'EXCEPTION: '.get_class($exception));
+
+
+	static function conform_backtrace_item($v){
+		$stackItem = [];
+
+		$stackItem['file'] = preg_replace('@^'.preg_quote($_SERVER['DOCUMENT_ROOT']).'@', '', $v['file']);
+		$stackItem['line'] = $v['line'];
+		if($v['class']){
+			$stackItem['class'] = $v['class'].$v['type'];
+		}
+		$stackItem['function'] = $v['function'];
+		$line_string = self::getLine($v['file'],$v['line']);
+		if($line_string){
+			$stackItem['line_string'] = $line_string;
+		}
+
+		if($v['args']){
+			$stackItem['args'] = Tool::to_jsonable($v['args']);
+		}
+		return $stackItem;
 	}
+	static function conform_backtrace($backtrace){
+		$conformed = [];
+		foreach($backtrace as $v){
+			$conformed[] = self::conform_backtrace_item($v);
+		}
+		return $conformed;
+	}
+	static function context(){
+		$context = [
+			'rid'=>$log['rid'] = self::getRunId(),
+			'pid'=>getmypid(),
+			'time'=>self::time(), # date functions will return .000000 as microtime, so can't rely on them
+			'$_SERVER'=> Tool::to_jsonable($_SERVER),
+			'$_POST' => Tool::to_jsonable($_POST),
+			'$_GET' => Tool::to_jsonable($_GET),
+		];
+		return $context;
+	}
+	static function time(){
+		return date(sprintf('Y-m-d\TH:i:s%sP', substr(microtime(), 1, 8)));
+	}
+
+	static function caller(){
+		return self::conform_backtrace_item(debug_backtrace(null,2)[1]);
+	}
+	static function backtrace(){
+		return array_slice(self::conform_backtrace(debug_backtrace()), 1);
+	}
+
+	function error_level($level_code){
+			switch($level_code)
+				{
+				case E_ERROR: // 1 //
+					return 'E_ERROR';
+				case E_WARNING: // 2 //
+					return 'E_WARNING';
+				case E_PARSE: // 4 //
+					return 'E_PARSE';
+				case E_NOTICE: // 8 //
+					return 'E_NOTICE';
+				case E_CORE_ERROR: // 16 //
+					return 'E_CORE_ERROR';
+				case E_CORE_WARNING: // 32 //
+					return 'E_CORE_WARNING';
+				case E_CORE_ERROR: // 64 //
+					return 'E_COMPILE_ERROR';
+				case E_CORE_WARNING: // 128 //
+					return 'E_COMPILE_WARNING';
+				case E_USER_ERROR: // 256 //
+					return 'E_USER_ERROR';
+				case E_USER_WARNING: // 512 //
+					return 'E_USER_WARNING';
+				case E_USER_NOTICE: // 1024 //
+					return 'E_USER_NOTICE';
+				case E_STRICT: // 2048 //
+					return 'E_STRICT';
+				case E_RECOVERABLE_ERROR: // 4096 //
+					return 'E_RECOVERABLE_ERROR';
+				case E_DEPRECATED: // 8192 //
+					return 'E_DEPRECATED';
+				case E_USER_DEPRECATED: // 16384 //
+					return 'E_USER_DEPRECATED';
+				}
+			return $level_code;
+		}
+
+	static function conform_exception($exception){
+		return self::conform_error(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),$exception->getTrace());
+	}
+
 	///print a boatload of information to the load so that even your grandma could fix that bug
 	/**
 	@param	eLevel	error level
@@ -169,158 +149,82 @@ class Debug{
 	@param	eFile	error file
 	@param	eLine	error line
 	*/
-	static function handleError($eLevel,$eStr,$eFile,$eLine,$context=null,$bTrace=null,$type='ERROR'){
-		if(ini_get('error_reporting') == 0){# @ Error control operator used
-			return;
-		}
-
-		$err = [];
-
-		$err['message'] = $eStr;
-		$err['file'] = self::abbreviateFilePath($eFile);
-		$err['type'] = $type;
-		$err['line'] = $eLine;
-
-		$err['rid'] = self::getRunId();
-		$err['pid'] = getmypid();
-		$err['time'] = date("Y-m-d H:i:s");
-
-		if(self::$env['error_detail'] > 0){
-			if(!$bTrace){
-				$bTrace = debug_backtrace();
-			}
-
-			$bTrace = self::getExternalStack($bTrace);
-
-			//remove undesired stack points
-			foreach($bTrace as $k=>&$v){
-				$v['shortName'] = self::abbreviateFilePath($v['file']);
-				foreach(self::$env['stack_exclusion'] as $exclusionPattern){
-					if(!$v['file']){
-						$unnamed++; # Skip the no-file stack items leading up to an excluded file
-					}else{
-						if($found = preg_match($exclusionPattern,$v['shortName'])){
-							array_splice($bTrace,$k - $unnamed, 1 + $unnamed);
-						}
-						$unnamed = 0;
-					}
-				}
-			}
-
-			$err['stack'] = [];
-			foreach($bTrace as $v){
-				$stackItem = [];
-				$stackItem['line'] = $v['line'];
-				$stackItem['file'] = $v['shortName'];
-				if($v['class']){
-					$stackItem['class'] = $v['class'].$v['type'];
-				}
-				$stackItem['function'] = $v['function'];
-				$line_string = self::getLine($v['file'],$v['line']);
-				if($line_string){
-					$stackItem['line_string'] = $line_string;
-				}
-
-				if($v['args'] && self::$env['error_detail'] > 1){
-					$stackItem['args'] = Tool::to_jsonable($v['args']);
-				}
-				$err['stack'][] = $stackItem;
-			}
-
-			if(self::$env['error_detail'] > 2){
-				$err['server'] = Tool::to_jsonable($_SERVER);
-				$err['Files::'] = Files::getIncluded();
-			}
-		}
-		//identify error
-		$err['id'] = sha1($err['time'].$err['rid'].$err['message']);
-
-
-		$filename = self::getErrFilename();
-		$fh = self::open($filename);
-		self::write($fh, $err);
-
-		if(ini_get('display_errors')){
-			self::sendout(json_encode($err, JSON_PRETTY_PRINT));
-		}
-
-		exit;
-	}
-
-	static $out;
-	static $usleepOut = 0;///< usleep each out call
-	///print a variable with file and line context, along with count
-	/**
-	@param	var	any type of var that print_r prints
-	*/
-	static function out(){
-		self::$out['i']++;
-
-		$trace = self::getExternalStack(debug_backtrace())[0];
-
-		$args = func_get_args();
-		foreach($args as $var){
-			self::sendout(
-			[
-				'file'=>self::abbreviateFilePath($trace['file']),
-				'line'=>$trace['line'],
-				'i'=>self::$out['i'],
-				'value'=> $var
-			]);
-		}
-		if(self::$usleepOut){
-			usleep(self::$usleepOut);
-		}
-	}
-	///exists after using self::out on inputs
-	static function quit(){
-		$args = func_get_args();
-		call_user_func_array(array(self,'out'),$args);
-		exit;
-	}
-	///Encapsulates in <pre> if determined script not being run on console (ie, is being run on web)
-	static function sendout($output){
-		if(!is_scalar($output)){
-			$output = Tool::flat_json_encode($output, JSON_PRETTY_PRINT);
-		}
-		if(php_sapi_name() === 'cli'){
-			echo $output;
+	static function conform_error($eLevel,$eStr,$eFile,$eLine,$backtrace=null){
+		if($backtrace === null){
+			$backtrace = self::backtrace();
 		}else{
-			echo '<pre>'.$output.'</pre>';
+			$backtrace = self::conform_backtrace($backtrace);
 		}
-	}
-	static function abbreviateFilePath($path){
-		foreach(self::$env['abbreviations'] as $name=>$abbr){
-			$path = preg_replace('@'.$abbr.'@',$name.':',$path);
+
+		$error = [
+			'level' => self::error_level($eLevel),
+			'message' => $eStr,
+			'file' => $eFile,
+			'line' => $eLine,
+
+
+		];
+		if($eFile && $eLine){
+			$error['line_string'] = self::getLine($eFile, $eLine);
 		}
-		return $path;
+		$error['backtrace'] = $backtrace;
+		$error['context'] = self::context();
 
+		return $error;
 	}
 
 
-	/*
-	-	make file if necessary
-	-	erase file if over self::$env['max_file_size']
+	/* Can reimplement data formatting functions for better access:
+	function pp($data){
+		$caller = \Grithin\Debug::caller();
+		\Grithin\Debug::out($data, $caller);
+	}
+
+	function ppe($data){
+		$caller = \Grithin\Debug::caller();
+		\Grithin\Debug::exit($data, $caller);
+	}
 	*/
-	static function open($file){
-		if(!is_file($file)){
-			touch($file);
-			chmod($file,0777);
-			clearstatcache();
+
+
+	static function exit($data, $caller=false){
+		if(!$caller){
+			$caller = self::caller();
 		}
-		$mode = 'a+';
-		if(self::$env['max_file_size']){
-			if(!file_exists($file) || self::$env['max_file_size'] && filesize($file)>Tool::byteSize(self::$env['max_file_size'])){
-				$mode = 'w';
-			}
-		}
-		return fopen($file,$mode);
+		self::out($data, $caller);
+		exit; # don't really use die, since it will consider parameter exit code
 	}
-	static function write($fh, $var){
-		if(self::$env['pretty']){
-			fwrite($fh, json_encode($var, JSON_PRETTY_PRINT)."\n");
-		}else{
-			fwrite($fh, json_encode($var)."\n");
+	static function out($data, $caller=false){
+		if(!$caller){
+			$caller = self::caller();
 		}
+
+		echo "\n".self::pretty($data, $caller);
+	}
+	static $pretty_increment = 0;
+	# data as a pretty, identifying string
+	static function pretty($data, $caller=false){
+		if(!$caller){
+			$caller = self::caller();
+		}
+		$string = '['.$caller['file'].':'.$caller['line'].'](#'.self::$pretty_increment.') : ';
+		if(!is_string($data)){
+			#JSON_PRETTY_PRINT, JSON_UNESCAPED_SLASHES, and JSON_UNESCAPED_UNICODE options were added.
+			$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
+			$start_bracket = '[\[\{]+';
+			$end_bracket = '[\]\}]+';
+			$start_line = '(?<=\n|^)';
+			$end_line = '(?=\n|$)';
+			# condense start brackets
+			$json = preg_replace('@'.$start_line.'(\s*'.$start_bracket.')\n\s*@','$1', $json);
+			# condense end brackets
+			$json = preg_replace('@\n\s*('.$end_bracket.',?)'.$end_line.'@','$1', $json);
+
+			$string .= $json;
+		}else{
+			$string .= $data;
+		}
+		self::$pretty_increment++;
+		return $string;
 	}
 }

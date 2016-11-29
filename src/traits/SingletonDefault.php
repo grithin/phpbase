@@ -46,9 +46,9 @@ trait SingletonDefault{
 		}
 		return static::$instances[$instanceName];
 	}
-	/// get a singleton with the default incremented name
+	/// use the default name of `0` and call init
 	static function singleton(){
-		$args = array_merge([null], (array)func_get_args());
+		$args = array_merge([0], (array)func_get_args());
 		return call_user_func_array([self,'init'], $args);
 	}
 	/// overwrite any existing primary with new construct
