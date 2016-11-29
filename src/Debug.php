@@ -182,12 +182,12 @@ class Debug{
 
 	function ppe($data){
 		$caller = \Grithin\Debug::caller();
-		\Grithin\Debug::exit($data, $caller);
+		\Grithin\Debug::quit($data, $caller);
 	}
 	*/
 
 
-	static function exit($data, $caller=false){
+	static function quit($data, $caller=false){
 		if(!$caller){
 			$caller = self::caller();
 		}
