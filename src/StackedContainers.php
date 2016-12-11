@@ -42,11 +42,15 @@ $stacked->wrap($container, $contained);
 
 /* Example: use within code that does not accept a $stacked parameter
 
-function stacked($name=null){
-	if($name === null){
+function stacked($name=null, $fn=null){
+	$count = func_num_args();
+	if($count === 0){
 		return \Grithin\StackedContainers::singleton();
+	}elseif($count === 1){
+		return \Grithin\StackedContainers::singleton()->get($name);
+	}elseif($count === 2){
+		return \Grithin\StackedContainers::singleton()->set($name, $fn);
 	}
-	return \Grithin\StackedContainers::singleton()->get($name);
 }
 
 
@@ -90,6 +94,7 @@ class StackedContainers{
 		$callable($this);
 		array_pop($this->stack);
 	}
+	# get position of first container in stack that has key
 	function at($name){
 		$current = count($this->stack) - 1;
 		for($i = $current; $i >= 0; $i--){
@@ -99,6 +104,7 @@ class StackedContainers{
 		}
 		return false;
 	}
+	# get first container containing key
 	function at_container($name){
 		$i = $this->at($name);
 		if($i !== false){
@@ -122,6 +128,9 @@ class StackedContainers{
 			return $container->get($name);
 		}
 		return $this->current_container()->get($name);
+	}
+	function set($name, $fn){
+		return $this->current_container()->set($name, $fn);
 	}
 	function has($name){
 		return $this->at($name) === false ? false : true;
