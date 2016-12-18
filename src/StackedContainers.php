@@ -115,6 +115,9 @@ class StackedContainers{
 	function has_current_container(){
 		return count($this->stack) > 0;
 	}
+	function current(){
+		return $this->current_container();
+	}
 	function current_container(){
 		$current = count($this->stack) - 1;
 		if($current < 0){

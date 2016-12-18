@@ -17,9 +17,12 @@ class Time extends \DateTime implements \JsonSerializable{
 	function __construct($time=null,$zone=null,$relativeTo=null){
 		$zone = $this->getZone($zone);
 		if($relativeTo !== null){
-			if($relativeTo[0] == '-' || $relativeTo[0] == '+'){
-				throw new \Exception('Expecting "$relativeTo" to be absolute time, not offset expression');
+			if(is_string($relativeTo)){ # Check for common misuse
+				if($relativeTo[0] == '-' || $relativeTo[0] == '+'){
+					throw new \Exception('Expecting "$relativeTo" to be absolute time, not offset expression');
+				}
 			}
+			
 			$return = parent::__construct($this->getTime($relativeTo,$zone),$zone);
 
 			$this->modify($time);
