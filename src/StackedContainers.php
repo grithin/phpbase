@@ -88,8 +88,28 @@ stacked()->wrap($container, $contained);
 class StackedContainers{
 	use Singleton;
 
-	public $stack = [];
+	protected $stack = [];
+
+	static function check_container_conformance($container){
+		$required_methods = ['get','has','set'];
+		foreach($required_methods as $required_method){
+			if(!method_exists($container, $required_method)){
+				throw new \Exception('Missing required container method : "'.$required_method.'"');
+			}
+		}
+	}
+
+	function push($container){
+		self::check_container_conformance($container);
+		$this->stack[] = $container;
+	}
+	function pop(){
+		array_pop($this->stack);
+	}
+
+
 	function wrap($container, $callable){
+		self::check_container_conformance($container);
 		$this->stack[] = $container;
 		$callable($this);
 		array_pop($this->stack);
