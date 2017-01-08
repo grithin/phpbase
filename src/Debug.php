@@ -174,19 +174,6 @@ class Debug{
 	}
 
 
-	/* Can reimplement data formatting functions for better access:
-	function pp($data){
-		$caller = \Grithin\Debug::caller();
-		\Grithin\Debug::out($data, $caller);
-	}
-
-	function ppe($data){
-		$caller = \Grithin\Debug::caller();
-		\Grithin\Debug::quit($data, $caller);
-	}
-	*/
-
-
 	static function quit($data, $caller=false){
 		if(!$caller){
 			$caller = self::caller();
@@ -198,8 +185,13 @@ class Debug{
 		if(!$caller){
 			$caller = self::caller();
 		}
-
-		echo "\n".self::pretty($data, $caller);
+		$output = "\n".self::pretty($data, $caller);
+		$is_cli = php_sapi_name() === 'cli';
+		if(!$is_cli){
+			echo '<pre>'.$output.'</pre>';
+		}else{
+			echo $output;
+		}
 	}
 	static $pretty_increment = 0;
 	# data as a pretty, identifying string
