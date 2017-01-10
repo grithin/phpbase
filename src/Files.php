@@ -226,12 +226,14 @@ class Files{
 		foreach(scandir($realPath) as $v){
 			if($v != '.' && $v != '..'){
 				if(is_dir($realPath.$v)){
-					$newOptions = array_merge($options,['prefix'=>$options['prefix'].$v.'/']);
-					if(isset($newOptions['maxDepth'])){
-						$newOptions['maxDepth']--;
+					if(!$options['filter_folder'] || $options['filter_folder']($options['prefix'].$v)){
+						$newOptions = array_merge($options,['prefix'=>$options['prefix'].$v.'/']);
+						if(isset($newOptions['maxDepth'])){
+							$newOptions['maxDepth']--;
+						}
+						$newFiles = self::scan($realPath.$v,$newOptions);
+						$files = Arrays::merge($files,$newFiles);
 					}
-					$newFiles = self::scan($realPath.$v,$newOptions);
-					$files = Arrays::merge($files,$newFiles);
 				}else{
 					if(!$options['filter'] || $options['filter']($options['prefix'].$v)){
 						$files[] = $options['prefix'].$v;
