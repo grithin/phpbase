@@ -11,79 +11,67 @@ class Time extends \DateTime implements \JsonSerializable{
 		- DateTime object
 		- relative time ("-1 day")
 		- variously formatted date ("2011-04-04 01:01:01")
-	@param	zone	zone as accepted by Time::getZone
-	@param	relative	a time which the first time parameter is relative to.  If not specified, a relative first time is considered relative to current time.  Has the same forms as "time" parameter.
-	*/
-	function __construct($time=null,$zone=null,$relativeTo=null){
-		$zone = $this->getZone($zone);
-		if($relativeTo !== null){
-			if(is_string($relativeTo)){ # Check for common misuse
-				if($relativeTo[0] == '-' || $relativeTo[0] == '+'){
-					throw new \Exception('Expecting "$relativeTo" to be absolute time, not offset expression');
-				}
-			}
-			
-			$return = parent::__construct($this->getTime($relativeTo,$zone),$zone);
+	@param	zone	zone as accepted by Time::makeZone
 
-			$this->modify($time);
-			return $return;
-		}
-		return parent::__construct($this->getTime($time,$zone),$zone);
+	*/
+	public function __construct($time=null,$zone=null){
+		# DateTime::__construct will not interpret zones, so must interpret it here
+		$zone = self::makeZone($zone);
+
+		# DateTime::__construct does not accept DateTime objects, or ints, so need to construct a string it will accept
+		return parent::__construct(self::getDateTimeString($time,$zone),$zone);
 	}
-	function __toString(){
+	public function __toString(){
 		return $this->datetime();
 	}
 	///many functions do not require parameters.  These functions may just as well be dynamically generated attributes, so let them be.
-	function __get($name){
+	public function __get($name){
 		if(method_exists($this,$name)){
 			return $this->$name();
 		}
 	}
-	function jsonSerialize(){
+	public function jsonSerialize(){
 		return $this->datetime();
 	}
 	///creates a DateTimeZone object based on variable input
 	/**
 	@param	zone	various forms:
 		- DateTimeZone objects; will just return the object
-		- =false; will use date_default_timezone_get
-		- !=false; will pass to DateTimeZone constructor and return result
+		- = false; will use date_default_timezone_get
+		- != false; will pass to DateTimeZone constructor and return result
 	*/
-	function getZone($zone){
+	static function makeZone($zone){
 		if(!is_a($zone,'DateTimeZone')){
 			$zone = $zone ? new \DateTimeZone($zone) : new \DateTimeZone(date_default_timezone_get());
 		}
 		return $zone;
 	}
-	///used to conform a variable time and timezone to something DateTime::__construct will accept
-	function getTime($time,$zone=null){
-		$Date = $this->getDateTime($time,$zone);
-		return $Date->format('Y-m-d H:i:s.u');
+	# Get a string DateTime will accept from variable parameters
+	static function getDateTimeString($time,$zone=null){
+		$Date = self::getDateTime($time,$zone);
+		return $Date->format('Y-m-d H:i:s.u'); # seems only time format with microtime.  Implementer must use same timezone as was passed in for this to work (since timezone is not in string)
 	}
-	///used to get DateTime object based on non-DateTime::__construct-conforming input parameters
-	function getDateTime($time,$zone=null){
+	# used to get DateTime object based on variable parameters
+	static function getDateTime($time,$zone=null){
 		if(is_a($time,'DateTime')){
 			return $time;
 		}
-		$zone = $this->getZone($zone);
+		$zone = self::makeZone($zone);
 		if(Tool::isInt($time)){
+			# create DateTime with same zone used for later interpretation
 			$Date = new \DateTime(null,$zone);
 			$Date->setTimestamp($time);
 			return $Date;
 		}
+		# normal interpretation
 		return new \DateTime($time,$zone);
 	}
 	///Used to get format of current Time object using relative times
 	/**
 	@param	format	DateTime::format() format
 	@param	zone	The zone of the output time
-	@param	relation	see php relative times; ex "-1 day".
 	*/
-	function format($format,$zone=null,$relation=null){
-		if($relation){
-			$newDate = new Time($relation,$this->getTimezone(),$this);
-			return $newDate->format($format,$zone);
-		}
+	public function format($format,$zone=null){
 		if($zone){
 			$currentZone = $this->getTimezone();
 			$this->setZone($zone);
@@ -93,39 +81,30 @@ class Time extends \DateTime implements \JsonSerializable{
 		}else{
 			return parent::format($format);
 		}
-
-
 	}
 	///Get the common dateTime format "Y-m-d H:i:s"
-	/**
-	@param	zone	The zone of the output time
-	@param	relation	see Time::format()
-	*/
-	function datetime($zone=null,$relation=null){
-		return $this->format("Y-m-d H:i:s",$zone,$relation);
+	public function datetime(){
+		return parent::format("Y-m-d H:i:s");
 	}
 	///Get the common date format "Y-m-d"
-	/**
-	@param	zone	The zone of the output time
-	@param	relation	see Time::format()
-	*/
-	function date($zone=null,$relation=null){
-		return $this->format("Y-m-d",$zone,$relation);
+	public function date(){
+		return parent::format("Y-m-d");
 	}
-	function setZone($zone){
-		return parent::setTimezone($this->getZone($zone));
+	# interpret zone and set it
+	public function setZone($zone){
+		return parent::setTimezone(self::makeZone($zone));
 	}
-	/// see instance_diff
-	function diff($time,$zone=null,$absolute=null){
+	/// alias for instance_diff
+	public function diff($time,$zone=null,$absolute=null){
 		return $this->instance_diff($time,$zone,$absolute);
 	}
 	///get DateInterval object based on current Time instance.
 	/**
 	@param	time	see Time::__construct()
 	@param	zone	see Time::__construct(); defaults to current instance timezone
-	@param	absolute	see DateTime::diff() "absolute" param
+	@param	absolute? (positive value)
 	*/
-	function instance_diff($time,$zone=null,$absolute=null){
+	public function instance_diff($time,$zone=null,$absolute=null){
 		if(is_a($time,'\DateTime')){
 			$absolute = $zone;
 		}else{
@@ -140,7 +119,7 @@ class Time extends \DateTime implements \JsonSerializable{
 	@param	time2	see Time::__construct()
 	@param	timeZone1	timezone corresponding to time1; see Time::__construct()
 	@param	timeZone2	timezone corresponding to time2; see Time::__construct()
-	@param	absolute	see DateTime::diff() "absolute" param
+	@param	absolute? (positive value)
 	*/
 	static function static_diff($time1, $time2=null, $timeZone1 = null, $timeZone2 = null, $absolute = null){
 		$class = __class__;
@@ -148,27 +127,15 @@ class Time extends \DateTime implements \JsonSerializable{
 		$Time2 = new $class($time2,$timeZone2);
 		return $Time1->diff($Time2,$absolute);
 	}
-	///Get the start of the day.
-	/**
-	@param	newTimeObject	whether to return a new Time object or just a datetime string
-	*/
-	function dayStart($newTimeObject=false){
+	# get new Time instance of day start
+	function dayStart(){
 		$datetime = $this->format('Y-m-d 00:00:00');
-		if($newTimeObject){
-			return new Time($datetime,$this->getTimezone());
-		}
-		return $datetime;
+		return new Time($datetime,$this->getTimezone());
 	}
-	///Get the end of the day.
-	/**
-	@param	newTimeObject	whether to return a new Time object or just a datetime string
-	*/
-	function dayEnd($newTimeObject=false){
+	# get new Time instance of day end
+	function dayEnd(){
 		$datetime = $this->format('Y-m-d 23:59:59');
-		if($newTimeObject){
-			return new Time($datetime,$this->getTimezone());
-		}
-		return $datetime;
+		return new Time($datetime,$this->getTimezone());
 	}
 	///Date validator
 	/**
@@ -203,32 +170,25 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 		return false;
 	}
-	# For a date object, edit the hour:minute part of the date, keeping the day the same
+	# setTime accepting different format
 	/*
 	@param	clock	"HH:MM:SS"
 	*/
 	function setClock($clock){
 		$parts = explode(':', $clock);
-		$start = $this->dayStart(true);
-		$seconds_offset = $parts[0]*60*60 + $parts[1]*60 + $parts[2];
-		return $start->relative('+ '.$seconds_offset.' seconds');
+		$this->setTime($parts[0],$parts[1],$parts2[2]);
 	}
 	///Get Diff object comparing current object ot current time
 	function age(){
 		return $this->diff(Datetime());
 	}
-	///Date validator
-	/**
-	@param	micro	true to return time + micro time in TIME.MICROTIME format
-	*/
-	function unix($micro=false){
-		if($micro){
-			return $this->format('U.u');
-		}else{
-			return $this->format('U');
-		}
+	function unix(){
+		return $this->format('U');
 	}
-	///Date validator
+	function unix_micro(){
+		return $this->format('U.u');
+	}
+
 	/**
 	@param	relative	string to apply as relative to current time object without modifying current time object
 	*/
@@ -257,17 +217,17 @@ class Time extends \DateTime implements \JsonSerializable{
 
 		// US TimeZones according to DateTime's official  "List of Supported Timezones"
 		$cityBased = array(
-		  'America/Puerto_Rico'=>'AST',
-		  'America/New_York'=>'EDT',
-		  'America/Chicago'=>'CDT',
-		  'America/Boise'=>'MDT',
-		  'America/Phoenix'=>'MST',
-		  'America/Los_Angeles'=>'PDT',
-		  'America/Juneau'=>'AKDT',
-		  'Pacific/Honolulu'=>'HST',
-		  'Pacific/Guam'=>'ChST',
-		  'Pacific/Samoa'=>'SST',
-		  'Pacific/Wake'=>'WAKT',
+			'America/Puerto_Rico'=>'AST',
+			'America/New_York'=>'EDT',
+			'America/Chicago'=>'CDT',
+			'America/Boise'=>'MDT',
+			'America/Phoenix'=>'MST',
+			'America/Los_Angeles'=>'PDT',
+			'America/Juneau'=>'AKDT',
+			'Pacific/Honolulu'=>'HST',
+			'Pacific/Guam'=>'ChST',
+			'Pacific/Samoa'=>'SST',
+			'Pacific/Wake'=>'WAKT',
 		);
 		return array('city' => $cityBased, 'standard'=>$standard);
 	}

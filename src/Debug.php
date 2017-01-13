@@ -179,6 +179,7 @@ class Debug{
 			$caller = self::caller();
 		}
 		self::out($data, $caller);
+		echo "\n";
 		exit; # don't really use die, since it will consider parameter exit code
 	}
 	static function out($data, $caller=false){
