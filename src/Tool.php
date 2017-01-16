@@ -125,4 +125,23 @@ class Tool{
 		return $v;
 	}
 
+
+	#+	MaterializedPaths {
+	#< @NOTE	this expects collation to something that uses case sensitivity, like `alter table licenses change path path varchar(250) default '' collate latin1_bin;`
+	/* Example
+	$x = Tool::hierarchy_to_path([5,23,1,49]);
+	$x = Tool::path_to_hierarchy($x);
+	*/
+
+	static function hierarchy_to_path($parents){
+		$fn = function($v){ return Number::from_10_to_base($v); };
+		return implode('/', array_map($fn, $parents));
+	}
+	static function path_to_hierarchy($path){
+		$parents = explode('/', $path);
+		$fn = function($v){ return Number::from_base_to_10($v); };
+		return array_map($fn, $parents);
+	}
+	#+	}
+
 }
