@@ -144,4 +144,13 @@ class Tool{
 	}
 	#+	}
 
+
+	function password_hash($password){
+		return password_hash($password, PASSWORD_BCRYPT);
+
+	}
+	function password_verify($password, $hash){
+		return password_verify($password, $hash);
+	}
+
 }
