@@ -46,6 +46,13 @@ trait SingletonDefault{
 		}
 		return static::$instances[$instanceName];
 	}
+	/// get named instance from $instance dictionary - convenience of expectation
+	static function instance($name){
+		if(!self::$instances[$name]){
+			throw new \Exception('No instance of name "'.$name.'"');
+		}
+		return self::$instances[$name];
+	}
 	/// use the default name of `0` and call init
 	static function singleton(){
 		$args = array_merge([0], (array)func_get_args());

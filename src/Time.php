@@ -129,13 +129,17 @@ class Time extends \DateTime implements \JsonSerializable{
 	}
 	# get new Time instance of day start
 	function dayStart(){
-		$datetime = $this->format('Y-m-d 00:00:00');
-		return new Time($datetime,$this->getTimezone());
+		return $this->relative('now 00:00:00');
+	}
+	function day_start(){
+		return call_user_func_array([$this,'dayStart'], func_get_args());
 	}
 	# get new Time instance of day end
 	function dayEnd(){
-		$datetime = $this->format('Y-m-d 23:59:59');
-		return new Time($datetime,$this->getTimezone());
+		return $this->relative('now 23:59:59');
+	}
+	function day_end(){
+		return call_user_func_array([$this,'day_end'], func_get_args());
 	}
 	///Date validator
 	/**

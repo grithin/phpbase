@@ -4,7 +4,7 @@ namespace Grithin;
 /*
 For handling static and instance based convenient memoizing (by __call and __callStatic function name matching).  Allows handling sub-memoize calls (`static_caller_requested_memoized`), and allows re-making (`static_call_and_memoize`).
 
-Methods are intended to be overriden as disired (like to change the memoize get functions to use redis)
+Methods are intended to be overriden as desired (ex: change the memoize get functions to use redis instead of local copy)
 */
 
 use Exception;
@@ -63,7 +63,7 @@ trait Memoized{
 
 	/*
 	There is a situation in which a function can be memoized, and can also call a memoized function (ex: `get_name()` can be memoized, and can call `get()` which can also be memoized)
-	In such a situation, whether to use the memoized sub-function depends on whether the top function was requested as a memoized function.  This function indicate whether it was.
+	In such a situation, whether to use the memoized sub-function depends on whether the top function was requested as a memoized function.  This function indicates whether it was.
 	*/
 	public function static_caller_requested_memoized(){
 		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);

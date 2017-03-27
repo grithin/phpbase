@@ -90,34 +90,6 @@ If run within a web server, it will enclose with `<pre>`
 
 
 
-### Logging
-
-You can configure the log and err file paths, or allow them to be automatically determined.  The names will be `log` and `err`, and the folder will be determined upon:
--	if `$_ENV['root_path']`
-	-	if	`$_ENV['root_path'].'.log/'`, use
-	-	else use `$_ENV['root_path']`
--	else
-	-	if `dirname($_SERVER['SCRIPT_NAME'])`, use
-	-	else use `dirname($_SERVER['SCRIPT_NAME'])`
-
-Errors are automatically logged.  You can separately log information using:
-```php
-Debug::log('BOB');
-```
-
-By default, this will be JSON pretty printed. You can turn that off with
-```php
-Debug::configure(['pretty'=>false]);
-```
-
-You can also determine what gets logged.  The second parameter is used in a regex max against the configured mode
-```php
-Debug::configure(['mode'=>'error debug']);
-
-Debug::log('BOB','error');#< will log
-Debug::log('BOB1','error|debug');#< will log
-Debug::log('BOB2','info'); #< will not log
-```
 
 
 
