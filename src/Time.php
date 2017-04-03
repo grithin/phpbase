@@ -131,6 +131,7 @@ class Time extends \DateTime implements \JsonSerializable{
 	function dayStart(){
 		return $this->relative('now 00:00:00');
 	}
+	# alias
 	function day_start(){
 		return call_user_func_array([$this,'dayStart'], func_get_args());
 	}
@@ -138,6 +139,7 @@ class Time extends \DateTime implements \JsonSerializable{
 	function dayEnd(){
 		return $this->relative('now 23:59:59');
 	}
+	# alias
 	function day_end(){
 		return call_user_func_array([$this,'day_end'], func_get_args());
 	}

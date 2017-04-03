@@ -6,6 +6,15 @@ namespace Grithin;
 @NOTE	on parameter order: Following lodash wherein the operatee, the source array, is the first parameter.  To be applied to all new functions with such an operatee
 */
 class Arrays{
+	# use __toArray if exists on object
+	static function from($x){
+		if(is_object($x)){
+			if(method_exists($x, '__toArray')){ # hopefully PHP adds this at some point
+				return $x->__toArray();
+			}
+		}
+		return (array)$x;
+	}
 	///turns var into an array
 	/**
 		@note	if it is a string, will attempt to explode it using divider, unless divider is not set
@@ -439,13 +448,18 @@ class Arrays{
 			return $y;	}
 	}
 
-	///merges if two arrays, else returns the existing array.  $y overwrites $x on matching keys
+	# merges objects/arrays.  Ignores scalars.  Later parameters take precedence
 	static function merge($x,$y){
 		$arrays = func_get_args();
 		$result = [];
 		foreach($arrays as $array){
+			if(is_object($array)){
+				$array = self::from($array);
+			}
 			if(is_array($array)){
-				$result = array_merge($result,$array);	}	}
+				$result = array_merge($result,$array);
+			}
+		}
 		return $result;
 	}
 	///for an incremented key array, find first gap in key numbers, or use end of array

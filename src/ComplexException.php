@@ -19,4 +19,8 @@ class ComplexException extends \Exception{
 	public function getDetails(){
 		return $this->details;
 	}
+	# alias
+	public function get_details(){
+		return call_user_func_array([$this,'day_end'], func_get_args());
+	}
 }

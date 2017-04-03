@@ -1,9 +1,15 @@
 <?
 namespace Grithin;
 
+use \Exception;
+
 use Grithin\Debug;
 ///General tools for use anywhere, either contexted by Tool or not (see bottom of file)
 class Tool{
+	# only consider array and objects non-scalars
+	static function is_scalar($x){
+		return !(is_array($x) || is_object($x));
+	}
 	///determines if string is a float
 	static function isFloat($x){
 		if((string)(float)$x == $x){
@@ -59,6 +65,17 @@ class Tool{
 			if(json_last_error() == JSON_ERROR_UTF8){
 				self::utf8_encode($x);
 				$json = json_encode($x, $options, $depth);	}	}
+		self::json_throw_on_error();
+
+		return $json;
+	}
+	# return data array of json string, throwing error if failure
+	static function json_decode($x){
+		$data = json_decude($true);
+		self::json_throw_on_error();
+		return $data;
+	}
+	static function json_throw_on_error(){
 		if(json_last_error() != JSON_ERROR_NONE){
 			$types = [
 				JSON_ERROR_NONE=>'JSON_ERROR_NONE',
@@ -70,28 +87,27 @@ class Tool{
 				JSON_ERROR_RECURSION=>'JSON_ERROR_RECURSION',
 				JSON_ERROR_INF_OR_NAN=>'JSON_ERROR_INF_OR_NAN',
 				JSON_ERROR_UNSUPPORTED_TYPE=>'JSON_ERROR_UNSUPPORTED_TYPE'];
-			Debug::toss('JSON encode error: '.$types[json_last_error()]);	}
-
-		return $json;
+			throw new Exception('JSON encode error: '.$types[json_last_error()]);
+		}
 	}
 	/// remove circular references
 	static function flat_json_encode($v, $options=0, $depth=512){
 		if(is_object($v)){
 			try{
 				return self::json_encode($v, $options, $depth);
-			}catch(\Exception $e){
+			}catch(Exception $e){
 				return self::flat_json_encode(get_object_vars($v), $options, $depth);
 			}
 		}elseif(is_array($v)){
 			try{
 				return self::json_encode($v, $options, $depth);
-			}catch(\Exception $e){
+			}catch(Exception $e){
 				$acceptable = [];
 				foreach($v as $k=>$v2){
 					try{
 						self::json_encode($v2, $options, $depth);
 						$acceptable[$k] = $v2;
-					}catch(\Exception $e){
+					}catch(Exception $e){
 						$acceptable[$k] = [];
 					}
 				}

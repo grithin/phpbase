@@ -63,6 +63,7 @@ trait LocalCopy{
 			return $this->local_get_by_string($type, $thing);
 		}
 	}
+	# get copy with string as id, or string as `name` field
 	public function local_get_by_string($type, $string){
 		if(Tool::isInt($string)){
 			return $this->local_get_by_id($type, $string);
@@ -70,6 +71,7 @@ trait LocalCopy{
 			return $this->local_get_by_map($type, ['name'=>$string]);
 		}
 	}
+	# match a local copy with all fields contained in $map, wherein, if an don't match, it is not a correct copy
 	public function local_get_by_map($type, $map){
 		foreach((array)$this->local_copies[$type] as $copy){
 			foreach($map as $k=>$v){

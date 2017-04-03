@@ -6,6 +6,12 @@ In cases with `id_from_object`, there is no need to call an outside function, an
 In cases with `id_from_string`, if the string is numeric, it is considered the id, otherwise `id_from_name` is called, which then calls a implementer defined function $table.'_id_by_name';
 In the case of `item_by_thing`, if the thing is not a scalar, it is considered the thing desired; otherwise, `item_by_string` is called. which will call either `item_by_id` or  `item_by_name`. and the respective implementer defined functions would be $table.'_by_id' and $table.'_by_name';
 
+
+Notes
+-	run on multiple: array_map([$this,'item_by_thing'], $things);
+
+@TODO
+-	add `ids_by_things` style methods for the other by_* methods
 */
 namespace Grithin;
 
@@ -16,12 +22,23 @@ trait VariedParameter{
 		if(method_exists($class, $function)){
 			$result = call_user_func_array([$class, $function], $args);
 			if($result === false){
-				throw new Exception('id not found '.json_encode(array_slice(func_get_args(),1)));
+				throw new Exception('identity not found '.json_encode(array_slice(func_get_args(),1)));
 			}
 			return $result;
 		}else{
-			throw new Exception('function not found '.json_encode(array_slice(func_get_args(),1)));
+			throw new Exception('function not found "'.$function.'" with args:  '.json_encode(array_slice(func_get_args(),1)));
 		}
+	}
+
+
+	#+++++++++++++++     Static Versions     +++++++++++++++ {
+
+	# assuming the thing is either the id or contains it
+	static function static_id_from_inside_thing($thing, $id_column='id'){
+		if(!Tool::is_scalar($thing)){
+			return self::static_id_from_object($thing, $id_column);
+		}
+		return $thing;
 	}
 
 	/*
@@ -40,11 +57,12 @@ trait VariedParameter{
 			}
 			return false;
 		}
-		return $thing;
+		return false;
 	}
+
 	static function static_id_from_object_or_error($thing, $id_column='id'){
 		if(is_array($thing)){
-			if(isset($thing[$id_column])){
+			if(array_key_exists($id_column, $thing)){
 				return $thing[$id_column];
 			}
 			throw new Exception('id column not defined');
@@ -55,15 +73,19 @@ trait VariedParameter{
 			}
 			throw new Exception('id column not defined');
 		}
-		return $thing;
+		throw new Exception('thing was not object');
 	}
+
+
+
+
 	static function static_id_from_string($table, $string){
 		if(Tool::isInt($string)){
 			return $string;
 		}
 		$id = self::static_id_by_name($table, $string);
 		if($id === false){
-			throw new Exception('id not fround from '.json_encode(func_get_args()));
+			throw new Exception('id not found from '.json_encode(func_get_args()));
 		}
 		return $id;
 	}
@@ -77,57 +99,27 @@ trait VariedParameter{
 			}
 			return $result;
 		}else{
-			throw new Exception('function not found '.json_encode(func_get_args()));
+			throw new Exception('function not found "'.$function.'" with args: '.json_encode(func_get_args()));
 		}
 	}
-	static function static_id_by_name_from_db($table, $name){
-		if(property_exists(__CLASS__, 'db')){
-			$id_by_name_get_rules = self::static_id_by_name_get_rules();
-			if($id_by_name_get_rules[$table]){
-				$column = $id_by_name_get_rules[$table];
-			}else{
-				$column = 'name'; # default to 'name' column
-			}
-
-			return self::$db->as_value('select id from '.$table.' where '.$column.' = ?',[$name]);
-		}else{
-			throw new Exception('No method for finding id from name');
-		}
-	}
-	# expects `static $id_by_name_get_rules = [];`
-	# will use `$id_by_name_rules`, such as `public $id_by_name_rules = [	'user_role'=>'name', ];` if present
-	static function static_id_by_name_get_rules(){
-		if(property_exists(__CLASS__, 'id_by_name_get_rules')){
-			return self::$id_by_name_get_rules;
-		}
-		return [];
-	}
-
-	# convenience function
-	static function static_item_by_name_from_db($table, $name){
-		if(property_exists(__CLASS__, 'db')){
-			$id_by_name_get_rules = self::static_id_by_name_get_rules();
-			if($id_by_name_get_rules[$table]){
-				$column = $id_by_name_get_rules[$table];
-			}else{
-				$column = 'name'; # default to 'name' column
-			}
-
-			return self::$db->as_row('select id from '.$table.' where '.$column.' = ?',[$name]);
-		}else{
-			throw new Exception('No method for finding id from name');
-		}
-	}
-
 	/*	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	static function static_id_by_thing($table, $thing, $options=[]){
 		$options = array_merge(['id_column'=>'id'], $options);
-		$id = self::static_id_from_object_or_error($thing, $options['id_column']);
-		$id = self::static_id_from_string($table, $id);
-		return $id;
+		if(!Tool::is_scalar($thing)){
+			return self::static_id_from_object_or_error($thing, $options['id_column']);
+		}
+		return self::static_id_from_string($table, $thing);
 	}
+	public function static_ids_by_things($table, $things, $options=[]){
+		$map = function ($x) use ($table, $options){
+			return self::static_id_by_thing($table, $x, $options); };
+		return array_map($map, $things);
+	}
+
+
+
 
 	static function static_item_by_string($table, $string){
 		$item = false;
@@ -143,7 +135,7 @@ trait VariedParameter{
 	}
 
 	static function static_item_by_thing($thing, $table){
-		if(!is_scalar($thing)){ # the thing is already an item
+		if(!Tool::is_scalar($thing)){ # the thing is already an item
 			return $thing;
 		}
 		return self::static_item_by_string($thing, $table);
@@ -158,12 +150,16 @@ trait VariedParameter{
 		return self::guaranteed_call(__CLASS__, $function, [$id]);
 	}
 
+	#+++++++++++++++          +++++++++++++++ }
 
 
+	#+++++++++++++++     Instance Versions     +++++++++++++++ {
 
-
+	public function id_from_inside_thing($thing, $id_column='id'){
+		return self::static_id_from_inside_thing($thing, $id_column);
+	}
 	public function id_from_object($thing, $id_column='id'){
-		return self::id_from_object($thing, $id_column);
+		return self::static_id_from_object($thing, $id_column);
 	}
 	public function id_from_object_or_error($thing, $id_column='id'){
 		return self::static_id_from_object_or_error($thing, $id_column);
@@ -179,13 +175,11 @@ trait VariedParameter{
 		}
 		$id = $this->id_by_name($table, $string);
 		if($id === false){
-			throw new Exception('id not fround from '.json_encode(func_get_args()));
+			throw new Exception('id not found from '.json_encode(func_get_args()));
 		}
 		return $id;
 	}
 
-	# will use a instance function of `$this->$table.'_id_by_name'` if available
-	# otherwise, will use $this->id_by_name_from_db
 	public function id_by_name($table, $name){
 		$function = $table.'_id_by_name';
 		return self::guaranteed_call($this, $function, [$name]);
@@ -195,9 +189,15 @@ trait VariedParameter{
 	*/
 	public function id_by_thing($table, $thing, $options=[]){
 		$options = array_merge(['id_column'=>'id'], $options);
-		$id = $this->id_from_object_or_error($thing, $options['id_column']);
-		$id = $this->id_from_string($table, $id);
-		return $id;
+		if(!Tool::is_scalar($thing)){
+			return $this->id_from_object_or_error($thing, $options['id_column']);
+		}
+		return $this->id_from_string($table, $thing);
+	}
+	public function ids_by_things($table, $things, $options=[]){
+		$map = function ($x) use ($table, $options){
+			return $this->id_by_thing($table, $x, $options); };
+		return array_map($map, $things);
 	}
 
 
@@ -210,13 +210,13 @@ trait VariedParameter{
 			$item = $this->item_by_name($table, $string);
 		}
 		if($item === false){
-			throw new Exception('id not fround from '.json_encode(func_get_args()));
+			throw new Exception('id not found from '.json_encode(func_get_args()));
 		}
 		return $item;
 	}
 
 	public function item_by_thing($table, $thing){
-		if(!is_scalar($thing)){ # the thing is already an item
+		if(!Tool::is_scalar($thing)){ # the thing is already an item
 			return $thing;
 		}
 		return $this->item_by_string($table, $thing);
@@ -229,6 +229,8 @@ trait VariedParameter{
 		$function = $table.'_by_id';
 		return self::guaranteed_call($this, $function, [$id]);
 	}
+
+	#+++++++++++++++          +++++++++++++++ }
 }
 
 
