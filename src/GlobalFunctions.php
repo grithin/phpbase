@@ -22,7 +22,7 @@ if(!function_exists('pp')){
 	}
 }
 if(!function_exists('ppe')){
-	function ppe($data){
+	function ppe($data=''){
 		$caller = \Grithin\Debug::caller();
 		\Grithin\Debug::quit($data, $caller);
 	}

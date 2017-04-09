@@ -64,14 +64,16 @@ class Tool{
 		if($json === false){
 			if(json_last_error() == JSON_ERROR_UTF8){
 				self::utf8_encode($x);
-				$json = json_encode($x, $options, $depth);	}	}
+				$json = json_encode($x, $options, $depth);
+			}
+		}
 		self::json_throw_on_error();
 
 		return $json;
 	}
 	# return data array of json string, throwing error if failure
-	static function json_decode($x){
-		$data = json_decode($true);
+	static function json_decode($x, $options){
+		$data = json_decode($x, $options);
 		self::json_throw_on_error();
 		return $data;
 	}

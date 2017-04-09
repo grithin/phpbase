@@ -1,6 +1,8 @@
 <?
 namespace Grithin;
 
+use \ArrayObject;
+
 /// Useful array related functions I didn't, at one time, find in php
 /*
 @NOTE	on parameter order: Following lodash wherein the operatee, the source array, is the first parameter.  To be applied to all new functions with such an operatee
@@ -135,6 +137,47 @@ class Arrays{
 				throw new \Exception('not found');
 			}
 		}
+		return $collection;
+	}
+
+	# see self::get.  Sets at path and returns collection
+
+	/* Example, set existing
+	$x = ['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
+	$x = Arrays::set('bill.moe', '123', $x);
+
+	$x = (object)['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
+	$x = Arrays::set('bill.moe', '123', $x);
+	*/
+
+	/* Example, set new
+	$x = ['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
+	$x = Arrays::set('bill.new1.new2', '123', $x);
+
+	$x = (object)['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
+	$x = Arrays::set('moe.mill', '123', $x);
+	*/
+	static function set($path, $value, $collection=[]){
+		$reference_to_last =& $collection;
+		foreach(explode('.', $path) as $part){
+			if(is_object($reference_to_last)){
+				if(isset($reference_to_last->$part)){
+					$reference_to_last =& $reference_to_last->$part;
+				}elseif(is_callable([$reference_to_last, $part])){
+					$reference_to_last =& [$reference_to_last, $part](); # turn it into a callable form
+				}else{
+					$reference_to_last =& $reference_to_last->$part; # attempt to create attribute
+				}
+			}elseif(is_array($reference_to_last)){
+				$reference_to_last =& $reference_to_last[$part]; # will either find or create at key
+			}elseif(is_null($reference_to_last)){
+				# PHP will turn the null into an array, and then create they accessed key for referencing
+				$reference_to_last =& $reference_to_last[$part];
+			}else{
+				throw new \Exception('Can not expand into path at "'.$part.'" with "'.$path.'"');
+			}
+		}
+		$reference_to_last = $value;
 		return $collection;
 	}
 
@@ -457,11 +500,17 @@ class Arrays{
 				$array = self::from($array);
 			}
 			if(is_array($array)){
-				$result = array_merge($result,$array);
+				$result = array_replace($result,$array);
 			}
 		}
 		return $result;
 	}
+	# alias for `merge` -  what it should have  been called to start with
+	static function replace($x, $y){
+		return call_user_func_array([self,'merge'], func_get_args());
+	}
+
+
 	///for an incremented key array, find first gap in key numbers, or use end of array
 	static function firstAvailableKey($array){
 		if(!is_array($array)){
@@ -653,5 +702,90 @@ class Arrays{
 		}else{
 			return $variable;
 		}
+	}
+
+	# same as self::merge, but uses array_replace_recursive
+	static function replace_recursive($x,$y){
+		$arrays = func_get_args();
+		$result = [];
+		foreach($arrays as $array){
+			if(is_object($array)){
+				$array = self::from($array);
+			}
+			if(is_array($array)){
+				$result = array_replace_recursive($result,$array);
+			}
+		}
+		return $result;
+	}
+
+
+	# get ArrayObject representing diff between two arrays/objects, wherein items in $target are different than in $base, but not vice versa (existing $base items may not exist in $target)
+	/* Examples
+	self(['bob'=>'sue'], ['bob'=>'sue', 'bill'=>'joe']);
+	#> {}
+	self(['bob'=>'suesss', 'noes'=>'bees'], ['bob'=>'sue', 'bill'=>'joe']);
+	#> {"bob": "suesss", "noes": "bees"}
+	*/
+	static function diff($target, $base) {
+		$aArray1 = Arrays::from($target);
+		$aArray2 = Arrays::from($base);
+		$aReturn = [];
+
+		$missing_keys = array_diff(array_keys($aArray2), array_keys($aArray1));
+		foreach($missing_keys as $key){
+			$aReturn[$key] = new MissingValue;
+		}
+
+		foreach ($aArray1 as $mKey => $mValue) {
+			if (array_key_exists($mKey, $aArray2)) {
+				if(!Tool::is_scalar($mValue)) {
+					$aRecursiveDiff = self::diff($mValue, $aArray2[$mKey]);
+					if(count($aRecursiveDiff)){
+						$aReturn[$mKey] = $aRecursiveDiff;
+					}
+				} else {
+					if((string)$mValue !== (string)$aArray2[$mKey]){
+						$aReturn[$mKey] = $mValue;
+					}
+				}
+			} else {
+				$aReturn[$mKey] = $mValue;
+			}
+		}
+		return $aReturn;
+	}
+	static function diff_apply($target, $diff){
+		$result = Arrays::replace_recursive($target, $diff);
+
+		return MissingValue::remove($result);
+	}
+	# filter($key,$value){ return true||false; }
+	function filter_deep($array, $allow){
+		$result = [];
+		foreach($array as $k=>$v){
+			if($allow($k,$v) !== false){
+				if(is_array($v) || ($v instanceof \Iterator)){
+					$v = self::filter_deep($v, $allow);
+				}
+				$result[$k] = $v;
+			}
+		}
+		return $result;
+	}
+	static function iterator_to_array_deep($iterator, $use_keys = true) {
+		$array = array();
+		foreach ($iterator as $key => $value) {
+			if(is_array($value) || ($value instanceof \Iterator)){
+				$value = self::iterator_to_array_deep($value, $use_keys);
+				pp([$key, $value]);
+			}
+			if ($use_keys) {
+				$array[$key] = $value;
+			} else {
+				$array[] = $value;
+			}
+		}
+		return $array;
 	}
 }

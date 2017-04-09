@@ -16,16 +16,24 @@ Listener can mutate record upon a `update, before` event prior to the setter bei
 See Grithin\phpdb\StandardRecord for example use
 
 Similar to SplSubject, but because SplSubject uses pointless SplObserver, SplSubject is not imlemented
+
+@important:	don't use unset().  It is not detected as a change.  Consequently, if you want to unset a child of a non-scalar, re-set the entire toplevel value. Ex:
+	-	$record['json'] = ['bob'=>'sue', 'phil'=>'jones'];
+	-	$record['json'] = ['bob'=>'sue']
+	instead of
+	-	unset($record['json']['phil'])
 */
 
 use \Grithin\Arrays;
 use \Grithin\Tool;
+use \Grithin\SubRecordHolder;
 
 use \Exception;
 use \ArrayObject;
 
-class Record implements \ArrayAccess, \IteratorAggregate {
+class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSerializable {
 	public $stored_record; # the last known record state from the getter
+	public $local_record; # the current record state, with potential changes
 	public $record; # the current record state, with potential changes
 
 	const EVENT_UPDATE = 1;
@@ -52,7 +60,7 @@ class Record implements \ArrayAccess, \IteratorAggregate {
 
 		$this->options = array_merge($options, ['getter'=>$getter, 'setter'=>$setter]);
 
-		if($this->options['initial_record']){
+		if(array_key_exists('initial_record', $this->options)){
 			$this->stored_record = $this->record = $this->options['initial_record'];
 		}else{
 			$this->stored_record = $this->record = $this->options['getter']($this);
@@ -62,17 +70,21 @@ class Record implements \ArrayAccess, \IteratorAggregate {
 			throw new Exception('record must be an array');
 		}
 	}
+	public function count(){
+		return count($this->record);
+	}
 	public function getIterator() {
 		return new \ArrayIterator($this->record);
 	}
 
-	public function newKey($offset, $value){
-		$this->notify(self::EVENT_NEW_KEY, [$offset=>$value]);
-		$this->record[$offset] = null;
-		$this[$offset] = $value;
+	/* update stored and local without notifying listeners */
+	public function bypass_set($changes){
+		$this->record = Arrays::merge($this->record, $changes);
+		$this->local_record = $this->record;
+		$this->stored_record = Arrays::merge($this->stored_record, $changes);
 	}
 	public function offsetSet($offset, $value) {
-		$this->update_local([$offset=>$value]);
+		$this->update_local_with_changes([$offset=>$value]);
 	}
 
 	public function offsetExists($offset) {
@@ -80,26 +92,45 @@ class Record implements \ArrayAccess, \IteratorAggregate {
 	}
 
 	public function offsetUnset($offset) {
-		unset($this->record[$offset]);
+		$this->update_local_with_changes([$offset=>(new \Grithin\MissingValue)]);
 	}
 
 	public function offsetGet($offset) {
-		return isset($this->record[$offset]) ? $this->record[$offset] : null;
+		if(is_array($this->record[$offset])){
+			return new SubRecordHolder($this, $offset, $this->record[$offset]);
+		}
+
+		return $this->record[$offset];
 	}
 
-
+	# only json encode non-null values
+	static function static_json_decode_value($v){
+		if($v === null){
+			return null;
+		}
+		return Tool::json_decode($v, true);
+	}
 	static function static_json_decode($record){
 		foreach($record as $k=>$v){
 			if(substr($k, -6) == '__json'){
-				$record[$k] = (array)json_decode($v, true);
+				$record[$k] = self::static_json_decode_value($v);
 			}
 		}
 		return $record;
 	}
+	/*
+	JSON column will only ever store something that is non-scalar (it would be pointless otherwise)
+	*/
+	static function static_json_encode_value($v){
+		if(Tool::is_scalar($v)){
+			return null;
+		}
+		return Tool::json_encode($v);
+	}
 	static function static_json_encode($record){
 		foreach($record as $k=>$v){
 			if(substr($k, -6) == '__json'){
-				$record[$k] = \Grithin\Tool::json_encode($v);
+				$record[$k] = self::static_json_encode_value($v);
 			}
 		}
 		return $record;
@@ -172,64 +203,55 @@ class Record implements \ArrayAccess, \IteratorAggregate {
 	}
 	# does not apply changes, just calculates potential
 	public function calculate_changes($target){
-		return self::static_calculate_changes($target, $this->record);
-	}
-	# get ArrayObject representing diff between two arrays/objects, wherein items in $target are different than in $base, but not vice versa (existing $base items may not exist in $target)
-	/* Examples
-	self(['bob'=>'sue'], ['bob'=>'sue', 'bill'=>'joe']);
-	#> {}
-	self(['bob'=>'suesss', 'noes'=>'bees'], ['bob'=>'sue', 'bill'=>'joe']);
-	#> {"bob": "suesss", "noes": "bees"}
-	*/
-	static function static_calculate_changes($target, $base){
-		return new ArrayObject(array_udiff_assoc((array)$target, (array)$base, [self,'compare_record_column_values']));
+		return Arrays::diff($target, $this->record);
 	}
 
-	static function compare_record_column_values($target, $base){
-		if(Tool::is_scalar($target)){
-			return ((string)$target === (string)$base) ? 0 : 1;
-		}
-		return count(array_udiff_assoc(Arrays::from($target), Arrays::from($base), [self,'compare_record_column_values']));
-	}
 	public function stored_record_calculate_changes(){
-
-		return self::static_calculate_changes($this->record, $this->stored_record);
+		return Arrays::diff($this->record, $this->stored_record);
 	}
 	# alias `stored_record_calculate_changes`
 	public function changes(){
 		return call_user_func_array([$this, 'stored_record_calculate_changes'], func_get_args());
 	}
 
-
 	public $stored_record_previous;
 	public function apply(){
 		$this->stored_record_previous = $this->stored_record;
-		$calculated_changes = $this->stored_record_calculate_changes();
-		if(count($calculated_changes)){
-			$this->notify(self::EVENT_UPDATE_BEFORE, $calculated_changes);
-			if(count($calculated_changes)){ # may have been mutated to nothing
-				$this->stored_record = $this->record = $this->options['setter']($this, $calculated_changes);
-				$this->notify(self::EVENT_UPDATE_AFTER, $calculated_changes);
+		$diff = new ArrayObject(Arrays::diff($this->record, $this->stored_record));
+		if(count($diff)){
+			$this->notify(self::EVENT_UPDATE_BEFORE, $diff);
+			if(count($diff)){ # may have been mutated to nothing
+				$this->stored_record = $this->record = $this->options['setter']($this, $diff);
+				$this->notify(self::EVENT_UPDATE_AFTER, $diff);
 			}
 		}
 		return $changes;
 	}
 
+	public function update_local_with_changes($changes){
+		$new_record = Arrays::replace($this->record, $changes);
+		return $this->update_local($new_record);
+	}
+
 	public $record_previous; # the $this->record prior to changes; potentially used by event handlers interested in the previous unsaved changes
-	public function update_local($changes){
+	public function update_local($new_record){
 		$this->record_previous = $this->record;
-		$calculated_changes = self::static_calculate_changes($changes, $this->record);
-		if(count($calculated_changes)){
-			$this->notify(self::EVENT_CHANGE_BEFORE, $calculated_changes);
-			self::static_calculate_changes($calculated_changes, $this->record);
-			if(count($calculated_changes)){ # may have been mutated to nothing
-				$this->record = Arrays::merge($this->record, $calculated_changes);
-				$this->notify(self::EVENT_CHANGE_AFTER, $calculated_changes);
+		$diff = new ArrayObject(Arrays::diff($new_record, $this->record));
+		if(count($diff)){
+			$this->notify(self::EVENT_CHANGE_BEFORE, $diff);
+			if(count($diff)){ # may have been mutated to nothing
+				$this->record = Arrays::diff_apply($this->record, $diff);
+				$this->notify(self::EVENT_CHANGE_AFTER, $diff);
 			}
 		}
 	}
-	public function update($changes){
-		$this->update_local($changes);
+	public function update($new_record){
+		$this->update_local($new_record);
+		$changes = $this->apply();
+		return $changes;
+	}
+	public function update_with_changes($changes){
+		$this->update_local_with_changes($changes);
 		$changes = $this->apply();
 		return $changes;
 	}
