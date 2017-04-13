@@ -72,7 +72,7 @@ class Tool{
 		return $json;
 	}
 	# return data array of json string, throwing error if failure
-	static function json_decode($x, $options){
+	static function json_decode($x, $options=true){
 		$data = json_decode($x, $options);
 		self::json_throw_on_error();
 		return $data;
