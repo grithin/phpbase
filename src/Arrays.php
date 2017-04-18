@@ -2,6 +2,7 @@
 namespace Grithin;
 
 use \ArrayObject;
+use \Exception;
 
 /// Useful array related functions I didn't, at one time, find in php
 /*
@@ -597,6 +598,7 @@ class Arrays{
 	@param	name	value to be used in the output array.  If not specified, the value defaults to the rest of the array apart from the key
 	@return	key to name mapped array
 	*/
+	#**deprecated** use key_on_sub_key_to_remaining
 	static function subsOnKey($array,$key = 'id',$name=null){
 		if(is_array($array)){
 			$newArray = array();
@@ -618,6 +620,7 @@ class Arrays{
 		return array();
 	}
 	/// same as subsOnKey, but combines duplicate keys into arrays; keyed value is always and array
+	#**deprecated** use key_on_sub_key_to_compiled_remaining
 	static function compileSubsOnKey($array,$key = 'id',$name=null){
 		if(is_array($array)){
 			$newArray = array();
@@ -637,6 +640,107 @@ class Arrays{
 			return $newArray;
 		}
 		return array();
+	}
+
+	static function key_on_sub_key_to_compiled_remaining($arrays, $sub_key='id', $options=[]){
+		$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
+			if(is_array($previous_value) && self::is_numeric($previous_value)){
+				$previous_value[] = $new_value;
+				return $previous_value;
+			}else{
+				return [$previous_value, $new_value];
+			}
+		};
+		return self::key_on_sub_key_to_remaining($arrays, $sub_key, $options);
+	}
+
+	static function is_numeric($array){
+		return self::is_numerically_keyed($array);
+	}
+	static function is_numerically_keyed($array){
+		foreach($array as $k=>$v){
+			if(!is_int($k)){
+				return false;
+			}
+		}
+		return true;
+	}
+	# like `key_on_sub_key`, but exclude key value from sub array
+	static function key_on_sub_key_to_remaining($arrays, $sub_key='id', $options=[]){
+		$arrays = (array)$arrays;
+		$new_arrays = [];
+
+		if(!$options['collision_handler']){
+			$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
+				throw new Exception('Keys have collided with '.json_encode(func_get_args()));
+			};
+		}
+
+		if($options['name']){
+			foreach($arrays as $array){
+				$sub_key_value = $array[$sub_key];
+				$value = $array[$options['name']];
+				if(array_key_exists($sub_key_value, $new_arrays)){
+					$value = $options['collision_handler']($sub_key_value, $new_arrays[$sub_key_value], $value);
+				}
+				$new_arrays[$sub_key_value] = $value;
+			}
+		}else{
+			reset($arrays);
+			$sub_element_count = count(current($arrays));
+			if($sub_element_count == 2){
+				foreach($arrays as $array){
+					$sub_key_value = $array[$sub_key];
+					unset($array[$sub_key]);
+					$value = array_pop($array);
+					if(array_key_exists($sub_key_value, $new_arrays)){
+						$value = $options['collision_handler']($sub_key_value, $new_arrays[$sub_key_value], $value);
+					}
+					$new_arrays[$sub_key_value] = $value;
+				}
+			}else{
+				foreach($arrays as $array){
+					$sub_key_value = $array[$sub_key];
+					unset($array[$sub_key]);
+					$value = $array;
+					if(array_key_exists($sub_key_value, $new_arrays)){
+						$value = $options['collision_handler']($sub_key_value, $new_arrays[$sub_key_value], $value);
+					}
+					$new_arrays[$sub_key_value] = $value;
+				}
+			}
+		}
+		return $new_arrays;
+	}
+	static function key_on_sub_key_to_compiled($arrays, $sub_key='id', $options=[]){
+		$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
+			if(is_array($previous_value) && self::is_numeric($previous_value)){
+				$previous_value[] = $new_value;
+				return $previous_value;
+			}else{
+				return [$previous_value, $new_value];
+			}
+		};
+		return self::key_on_sub_key($arrays, $sub_key, $options);
+	}
+	static function key_on_sub_key($arrays, $sub_key='id', $options=[]){
+		$new_arrays = [];
+
+		if(!$options['collision_handler']){
+			$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
+				throw new Exception('Keys have collided with '.json_encode(func_get_args()));
+			};
+		}
+
+		foreach($arrays as $array){
+			$sub_key_value = $array[$sub_key];
+			$value = $array;
+			if(array_key_exists($sub_key_value, $new_arrays)){
+				$value = $options['collision_handler']($sub_key_value, $new_arrays[$sub_key_value], $value);
+			}
+			$new_arrays[$sub_key_value] = $value;
+		}
+		return $new_arrays;
 	}
 
 	///like the normal implode but ignores empty values
