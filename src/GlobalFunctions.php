@@ -14,32 +14,37 @@ namespace{
 
 #++ useful debugging output functions {
 use \Grithin\Debug;
+use \Grithin\Tool;
 
 if(!function_exists('pp')){
 	function pp($data){
-		$caller = \Grithin\Debug::caller();
-		\Grithin\Debug::out($data, $caller);
+		$caller = Debug::caller();
+		Debug::out($data, $caller);
 	}
 }
 if(!function_exists('ppe')){
 	function ppe($data=''){
-		$caller = \Grithin\Debug::caller();
-		\Grithin\Debug::quit($data, $caller);
+		$caller = Debug::caller();
+		Debug::quit($data, $caller);
 	}
 }
 if(!function_exists('pretty')){
 	function pretty($data){
-		return \Grithin\Debug::pretty($data);
+		return Debug::pretty($data);
 	}
 }
 if(!function_exists('text')){
 	function text($data){
-		return htmlspecialchars($data);
+		if(!Tool::is_scalar($data)){
+			return htmlspecialchars(Tool::flat_json_encode($data));
+		}else{
+			return htmlspecialchars($data);
+		}
 	}
 }
 if(!function_exists('encode')){
 	function encode($data){
-		return \Grithin\Tool::flat_json_encode($data);
+		return Tool::flat_json_encode($data);
 	}
 }
 #++ }

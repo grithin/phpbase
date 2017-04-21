@@ -201,7 +201,7 @@ class Debug{
 			$caller = self::caller();
 		}
 		$string = '['.$caller['file'].':'.$caller['line'].'](#'.self::$pretty_increment.') : ';
-		if(!is_string($data)){
+		if(!Tool::is_scalar($data)){
 			#JSON_PRETTY_PRINT, JSON_UNESCAPED_SLASHES, and JSON_UNESCAPED_UNICODE options were added.
 			$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
 			$start_bracket = '[\[\{]+';

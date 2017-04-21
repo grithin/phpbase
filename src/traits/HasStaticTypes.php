@@ -16,12 +16,19 @@ Further standards
 */
 
 trait HasStaticTypes{
-	# static $id_column;
-	# statuc $name_column;
-
-	# static $types_by_id = [];
-	# static $type_ids_by_name = [];
-
+	/*
+	static $id_column = 'id';
+	static $display_name_column = 'display_name';
+	static $system_name_column = 'system_name';
+	static $types_by_id = [];
+	static $type_ids_by_name = [];
+	*/
+	static function type_ids(){
+		return array_keys(self::$types_by_id);
+	}
+	static function types(){
+		return self::$types_by_id;
+	}
 	static function type_by_id($id){
 		if(array_key_exists($id, self::$types_by_id)){
 			return self::$types_by_id[$id];
