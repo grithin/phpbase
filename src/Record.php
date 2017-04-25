@@ -79,9 +79,9 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 
 	/* update stored and local without notifying listeners */
 	public function bypass_set($changes){
-		$this->record = Arrays::merge($this->record, $changes);
+		$this->record = Arrays::replace($this->record, $changes);
 		$this->local_record = $this->record;
-		$this->stored_record = Arrays::merge($this->stored_record, $changes);
+		$this->stored_record = Arrays::replace($this->stored_record, $changes);
 	}
 	public function offsetSet($offset, $value) {
 		$this->update_local_with_changes([$offset=>$value]);

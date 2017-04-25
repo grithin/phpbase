@@ -501,14 +501,39 @@ class Arrays{
 				$array = self::from($array);
 			}
 			if(is_array($array)){
-				$result = array_replace($result,$array);
+				$result = array_merge($result,$array);
 			}
 		}
 		return $result;
 	}
-	# alias for `merge` -  what it should have  been called to start with
+	# merges/replaces objects/arrays.  Ignores scalars.  Later parameters take precedence
+	/*
+	note	merge vs replace
+		-	will replace x many elements in a numeric (classic) array
+			array_merge([1,2,3],[5,1]); #> [1,2,3,5,1]
+			array_replace([1,2,3],[5,1]); #> [5,1,3]
+		-	will at similar with dictionaries
+			array_merge(['bob'=>'sue', 'bob1'=>'sue1'], ['bob'=>'sue', 'bob2'=>'sue2'])  = array_replace(['bob'=>'sue', 'bob1'=>'sue1'], ['bob'=>'sue', 'bob2'=>'sue2']);
+		-	**merge will act odd with mixed numeric keys**
+			$x = array_merge(['bill'=>'moe', 5=>'bob'], ['bill'=>'moe', 5=>'sue']);
+			#> {"bill": "moe", "0": "bob", "1": "sue"}
+			# here we see the '5' key is removed, and both values stay, but on new keys
+		-	whereas, replace will not
+			array_replace(['bill'=>'moe', 5=>'bob'], ['bill'=>'moe', 5=>'sue']);
+			#> {"bill": "moe", "5": "sue"}
+	*/
 	static function replace($x, $y){
-		return call_user_func_array([self,'merge'], func_get_args());
+		$arrays = func_get_args();
+		$result = [];
+		foreach($arrays as $array){
+			if(is_object($array)){
+				$array = self::from($array);
+			}
+			if(is_array($array)){
+				$result = array_replace($result,$array);
+			}
+		}
+		return $result;
 	}
 
 
@@ -808,7 +833,7 @@ class Arrays{
 		}
 	}
 
-	# same as self::merge, but uses array_replace_recursive
+	# same as self::replace, but uses array_replace_recursive
 	static function replace_recursive($x,$y){
 		$arrays = func_get_args();
 		$result = [];
