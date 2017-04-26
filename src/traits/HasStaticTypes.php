@@ -114,12 +114,13 @@ trait HasStaticTypes{
 	}
 	static function static_variables_code_get($db, $table, $id_column='id', $system_name_column=null, $display_name_column=null){
 		$statics = self::static_variables_get_from_db($db, $table, $id_column, $system_name_column, $display_name_column);
-		return '
-			static $id_column = '.var_export($statics['id_column'], true).';
-			static $display_name_column = '.var_export($statics['display_name_column'], true).';
-			static $system_name_column = '.var_export($statics['system_name_column'], true).';
-			static $types_by_id = '.var_export($statics['types_by_id'], true).';
-			static $type_ids_by_name = '.var_export($statics['type_ids_by_name'], true).';';
+		return
+			"\n\t# Generated code.  See \Grithin\HasStaticTypes::static_variables_code_get".
+			"\n\t".'static $id_column = '.var_export($statics['id_column'], true).';'.
+			"\n\t".'static $display_name_column = '.var_export($statics['display_name_column'], true).';'.
+			"\n\t".'static $system_name_column = '.var_export($statics['system_name_column'], true).';'.
+			"\n\t".'static $types_by_id = '.var_export($statics['types_by_id'], true).';'.
+			"\n\t".'static $type_ids_by_name = '.var_export($statics['type_ids_by_name'], true).';';
 	}
 	static function static_variables_get_from_db($db, $table, $id_column='id', $system_name_column=null, $display_name_column=null){
 		if($system_name_column === null || $display_name_column === null){
@@ -174,6 +175,10 @@ insert into type_test (ordinal, system_name, display_name, is_hidden) values
 (3, 'bob3', 'bob three', 1),
 (2, 'bob4', 'bob four', 0),
 (1, 'bob5', 'bob five', 0);
+
+class TypeTest{
+	use HasStaticTypes;
+}
 
 echo TypeTest::static_variables_code_get(Db::primary(), 'type_test');
 
