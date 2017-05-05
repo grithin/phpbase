@@ -33,6 +33,7 @@ if(!function_exists('pretty')){
 		return Debug::pretty($data);
 	}
 }
+# html attributes should also be encoded.  This will work for that, along with text node display
 if(!function_exists('text')){
 	function text($data){
 		if(!Tool::is_scalar($data)){

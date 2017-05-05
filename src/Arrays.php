@@ -71,7 +71,7 @@ class Arrays{
 	}
 
 	/*
-	Copy array, mapping some columns to different columns
+	Copy array, mapping some columns to different columns - only excludes columns on collision
 	@NOTE if src contains key collision with map, map will overwrite
 	*/
 	static function map_with($src, $map){
@@ -84,6 +84,33 @@ class Arrays{
 			}
 		}
 		return $result;
+	}
+
+	/// like map_with, but does not included non-mapped columns
+	/**
+		@note	since this is old, it has a different parameter sequence than map_with
+		@param	map	array	{<newKey> : <oldKey>, <newKey> : <oldKey>, <straight map>}
+		@param	$interpret_numeric_keys	< true | false >< whether to use numeric keys as indication of same key mapping >
+	*/
+	static function &map($map,$extractee,$interpret_numeric_keys=true,&$extractTo=null){
+		if(!is_array($extractTo)){
+			$extractTo = array();
+		}
+		if(!$interpret_numeric_keys){
+			foreach($map as $to=>$from){
+				$extractTo[$to] = $extractee[$from];
+			}
+		}else{
+			foreach($map as $to=>$from){
+				if(is_int($to)){
+					$extractTo[$from] = $extractee[$from];
+				}else{
+					$extractTo[$to] = $extractee[$from];
+				}
+			}
+		}
+
+		return $extractTo;
 	}
 
 	/// lodash omit
@@ -245,36 +272,7 @@ class Arrays{
 		}
 		return $extractTo;
 	}
-	///takes an array and maps its values to the keys of another array
-	/**
-		@param	map	array	{<newKey> : <oldKey>, <newKey> : <oldKey>, <straight map>}
-		@param	$numberDefault	wherein if the newKey is a number, assume the oldKey is both the oldKey and the newKey
 
-		ex
-		$bob = ['sue'=>'a','bill'=>'b'];
-		Arrays::map(['test'=>'sue','bill'],$bob,$x=null,true);
-			[[test] => a [bill] => b]
-	*/
-	static function &map($map,$extractee,$straightMap=false,&$extractTo=null){
-		if(!is_array($extractTo)){
-			$extractTo = array();
-		}
-		if(!$straightMap){
-			foreach($map as $to=>$from){
-				$extractTo[$to] = $extractee[$from];
-			}
-		}else{
-			foreach($map as $to=>$from){
-				if(is_int($to)){
-					$extractTo[$from] = $extractee[$from];
-				}else{
-					$extractTo[$to] = $extractee[$from];
-				}
-			}
-		}
-
-		return $extractTo;
-	}
 
 	///apply a callback to an array, returning the result, with optional arrayed parameters
 	/**
