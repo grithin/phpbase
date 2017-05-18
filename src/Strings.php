@@ -29,8 +29,8 @@ class Strings{
 
   ex:
     ::random(12)
-    ::random(12,'[a-z]')
-    ::random(12,24,'[a-z]')
+    ::random(12,'@[a-z]@')
+    ::random(12,24,'@[a-z]@')
 
 	@return	random string matching the regex pattern
 	*/
@@ -233,7 +233,7 @@ class Strings{
 
 		return array_values($array);
 	}
-	
+
 	///escape various characters with slashes (say, for quoted csv's)
 	static function slashEscape($text,$characters='\"'){
 		return preg_replace('@['.preg_quote($characters).']@','\\\$0',$text);
