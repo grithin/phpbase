@@ -320,27 +320,43 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		return \Grithin\Strings::slashEscape(\Grithin\Strings::slashEscape($name));
 	}
 	///send an actual file on the system via http protocol
+	/*	params
+	saveAs	< `true` to indicate use path filename , otherwise, the actual name desired >
+	*/
 	static function sendFile($path,$saveAs=null,$exit=true){
 		//Might potentially remove ".." from path, but it has already been removed by the time the request gets here by server or browser.  Still removing for precaution
 		$path = \Grithin\Files::removeRelative($path);
 		if(is_file($path)){
 			$mime = \Grithin\Files::mime($path);
-
 			header('Content-Type: '.$mime);
+
 			if($saveAs){
-				header('Content-Description: File Transfer');
-				if(strlen($saveAs) > 1){
-					$fileName = $saveAs;
-				}else{
-					$fileName = array_pop(explode('/',$path));
+				if(strlen($saveAs) <= 1){
+					$saveAs = array_pop(explode('/',$path));
 				}
-				header('Content-Disposition: attachment; filename="'.self::escapeFilename($fileName).'"');
+				self::set_filename_header($saveAs);
 			}
 
-			echo file_get_contents($path);
+			readfile($path);
+
+			if($exit){
+				exit;
+			}
 		}else{
 			throw new \Exception('Request handler encountered unresolvable file.  Searched at '.$path);
 		}
+	}
+	static function set_filename_header($save_as){
+		header('Content-Description: File Transfer');
+		header('Content-Disposition: attachment; filename="'.self::escapeFilename($save_as).'"');
+	}
+
+	static function send_file_content($content, $mime, $save_as=null, $exit=true){
+		header('Content-Type: '.$mime);
+		if($save_as){
+			self::set_filename_header($save_as);
+		}
+		echo $content;
 		if($exit){
 			exit;
 		}
