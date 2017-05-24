@@ -91,6 +91,7 @@ trait HasStaticTypes{
 		return $filtered_types;
 	}
 	# id display map, but only with filtered and ordered
+	# for use with `<select>` and  `$.options_fill`
 	static function id_display_name_map_ordered_shown($types=null){
 		$filtered_types = self::types_ordered_shown($types);
 		return self::id_display_name_map($filtered_types);
