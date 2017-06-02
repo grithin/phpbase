@@ -94,10 +94,6 @@ class Time extends \DateTime implements \JsonSerializable{
 	public function setZone($zone){
 		return parent::setTimezone(self::makeZone($zone));
 	}
-	/// alias for instance_diff
-	public function diff($time,$zone=null,$absolute=null){
-		return $this->instance_diff($time,$zone,$absolute);
-	}
 	///get DateInterval object based on current Time instance.
 	/**
 	@param	time	see Time::__construct()
@@ -111,7 +107,7 @@ class Time extends \DateTime implements \JsonSerializable{
 			$zone = $zone ? $zone : $this->getTimezone();
 			$time = new $class($time,$zone);
 		}
-		return $this->diff($time,$absolute);
+		return parent::diff($time,$absolute);
 	}
 	///get DateInterval without having to separately make DateTime instances
 	/**
