@@ -92,32 +92,58 @@ class Tool{
 			throw new Exception('JSON encode error: '.$types[json_last_error()]);
 		}
 	}
-	/// remove circular references
-	static function flat_json_encode($v, $options=0, $depth=512){
-		if(is_object($v)){
-			try{
-				return self::json_encode($v, $options, $depth);
-			}catch(Exception $e){
-				return self::flat_json_encode(get_object_vars($v), $options, $depth);
-			}
-		}elseif(is_array($v)){
-			try{
-				return self::json_encode($v, $options, $depth);
-			}catch(Exception $e){
-				$acceptable = [];
-				foreach($v as $k=>$v2){
-					try{
-						self::json_encode($v2, $options, $depth);
-						$acceptable[$k] = $v2;
-					}catch(Exception $e){
-						$acceptable[$k] = [];
-					}
+
+
+	# turn a value into a non circular value (potentially by turning objects int)
+	static function decirculate($source, $options=[], $parents=[]){
+
+		#+ set the default circular value hander if not provided {
+		if(!$options['circular_value'] && !array_key_exists('circular_value', $options)){
+			$options['circular_value'] = function($v){
+				if(is_object($v)){
+					return ['_circular'=>true, '_class'=>get_class($v), '_reference'=>spl_object_hash($v)];
+				}else{
+					return ['_circular'=>true,  '_keys'=>array_keys($v)];
 				}
-				return self::json_encode($acceptable, $options, $depth);
-			}
-		}else{
-			return self::json_encode($v, $options, $depth);
+			};
 		}
+		#+ }
+
+		#+ set the default object data extraction hander if not provided {
+		if(!$options['object_extracter'] && !array_key_exists('object_extracter', $options)){
+			$options['object_extracter'] = function($v){
+				return array_merge(['_class' => get_class($v)], get_object_vars($v));
+			};
+		}
+		#+ }
+
+		foreach($parents as $parent){
+			if($parent === $source){
+				if(is_callable($options['circular_value'])){
+					return $options['circular_value']($source);
+				}else{
+					return $options['circular_value'];
+				}
+			}
+		}
+		if(is_object($source)){
+			$parents[] = $source;
+			return self::decirculate($options['object_extracter']($source), $options, $parents);
+		}elseif(is_array($source)){
+			$return = [];
+			$parents[] = $source;
+			foreach($source as $k=>$v){
+				$return[$k] = self::decirculate($v, $options, $parents);
+			}
+			return $return;
+		}else{
+			return $source;
+		}
+	}
+
+	/// remove circular references
+	static function flat_json_encode($v, $json_options=0, $max_depth=512, $decirculate_options=[]){
+		return self::json_encode(self::decirculate($v, $decirculate_options), $json_options, $max_depth);
 	}
 	static function to_jsonable($v){
 		if(is_scalar($v)){
