@@ -30,10 +30,9 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 
 	/* params
 
-		getter: < function(identifier, this, refresh) > < refresh indicates whether to not use cache (ex, some other part of code has memoized the record ) >
-		setter: < function(changes, this) returns record >
-
-		options: [ initial_record: < used instead of initially calling getter > ]
+		Record: < Record instance >,
+		path_prefix: < the position of this sub record >
+		record: the data representing this subrecord
 
 	*/
 	public function __construct($Record, $path_prefix, $record) {
@@ -48,12 +47,16 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 		return new \ArrayIterator($this->record);
 	}
 	public function offsetSet($offset, $value) {
-		$this->record[$offset] = $value;
+		if($offset === null && Arrays::is_numeric($this->record)){ #< in the case of something like `$bob[] = 'sue'`
+			$this->record[] = $value;
+		}else{ #< in all other cases, like `$bob['monkey'] = 'sue'`
+			$this->record[$offset] = $value;
+		}
 
-		$record_changed_and_contexted = Arrays::set($this->path_prefix, $this->record, []);
+		$subrecord_at_path = Arrays::set($this->path_prefix, $this->record, []);
 
 		# send absolute path changes to primary Record holder
-		$this->Record->update_local_with_changes($record_changed_and_contexted);
+		$this->Record->update_local_with_changes($subrecord_at_path);
 		# get the result at the relative path representing this holder
 		$this->record = Arrays::get($this->Record->record, $this->path_prefix);
 	}
@@ -63,12 +66,14 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 	}
 
 	public function offsetUnset($offset) {
-		$this->record[$offset] = new \Grithin\MissingValue;
+		#$this->record[$offset] = new \Grithin\MissingValue;
+		# does this trigger a change event?
+		unset($this->record[$offset]);
 
-		$record_changed_and_contexted = Arrays::set($this->path_prefix, $this->record, []);
+		$subrecord_at_path = Arrays::set($this->path_prefix, $this->record, []);
 
 		# send absolute path changes to primary Record holder
-		$this->Record->update_local_with_changes($record_changed_and_contexted);
+		$this->Record->update_local_with_changes($subrecord_at_path);
 		# get the result at the relative path representing this holder
 		$this->record = Arrays::get($this->Record->record, $this->path_prefix);
 	}

@@ -1,28 +1,7 @@
 <?
+# See doc/Record.md
+
 namespace Grithin;
-/* About
-Intended to be a observable that matches a database record, allowing the handling of a record like an array, while allowing listeners to react to change events.
--	EVENT_CHANGE_BEFORE
--	EVENT_CHANGE_AFTER | EVENT_CHANGE
--	EVENT_UPDATE_BEFORE
--	EVENT_UPDATE_AFTER | EVENT_UPDATE
-
-
-
-Update and Change events will fire if there were changes, otherwise they won't.
-
-Listener can mutate record upon a `update, before` event prior to the setter being called.  Listener can also throw an exception at this point, but the exception is not handled inside this class
-
-See Grithin\phpdb\StandardRecord for example use
-
-Similar to SplSubject, but because SplSubject uses pointless SplObserver, SplSubject is not imlemented
-
-@important:	don't use unset().  It is not detected as a change.  Consequently, if you want to unset a child of a non-scalar, re-set the entire toplevel value. Ex:
-	-	$record['json'] = ['bob'=>'sue', 'phil'=>'jones'];
-	-	$record['json'] = ['bob'=>'sue']
-	instead of
-	-	unset($record['json']['phil'])
-*/
 
 use \Grithin\Arrays;
 use \Grithin\Tool;
@@ -43,6 +22,9 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	const EVENT_UPDATE_BEFORE = 16;
 	const EVENT_UPDATE_AFTER = 32;
 	const EVENT_NEW_KEY = 64;
+
+	# By default, the diff function will turn objects into arrays.  This is not desired for something like a Time object, so, instead, use a equals comparison comparer
+	public $diff_options = ['object_comparer'=>['\Grithin\Arrays', 'diff_comparer_equals']];
 
 
 	/* params
@@ -203,11 +185,11 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	}
 	# does not apply changes, just calculates potential
 	public function calculate_changes($target){
-		return Arrays::diff($target, $this->record);
+		return Arrays::diff($target, $this->record, $this->diff_options);
 	}
 
 	public function stored_record_calculate_changes(){
-		return Arrays::diff($this->record, $this->stored_record);
+		return Arrays::diff($this->record, $this->stored_record, $this->diff_options);
 	}
 	# alias `stored_record_calculate_changes`
 	public function changes(){
@@ -217,7 +199,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public $stored_record_previous;
 	public function apply(){
 		$this->stored_record_previous = $this->stored_record;
-		$diff = new ArrayObject(Arrays::diff($this->record, $this->stored_record));
+		$diff = new ArrayObject(Arrays::diff($this->record, $this->stored_record, $this->diff_options));
 		if(count($diff)){
 			$this->notify(self::EVENT_UPDATE_BEFORE, $diff);
 			if(count($diff)){ # may have been mutated to nothing
@@ -236,7 +218,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public $record_previous; # the $this->record prior to changes; potentially used by event handlers interested in the previous unsaved changes
 	public function update_local($new_record){
 		$this->record_previous = $this->record;
-		$diff = new ArrayObject(Arrays::diff($new_record, $this->record));
+		$diff = new ArrayObject(Arrays::diff($new_record, $this->record, $this->diff_options));
 		if(count($diff)){
 			$this->notify(self::EVENT_CHANGE_BEFORE, $diff);
 			if(count($diff)){ # may have been mutated to nothing
@@ -245,10 +227,16 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 			}
 		}
 	}
-	public function update($new_record){
+
+	# replace update the record to be the new
+	public function replace($new_record){
 		$this->update_local($new_record);
 		$changes = $this->apply();
 		return $changes;
+	}
+	# See replace.  Named update to correspond to the update event (there is no replace event)
+	public function update($new_record){
+		return $this->replace($new_record);
 	}
 	public function update_with_changes($changes){
 		$this->update_local_with_changes($changes);
@@ -262,4 +250,3 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		return $this->record;
 	}
 }
-

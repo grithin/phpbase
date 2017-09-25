@@ -18,16 +18,25 @@ namespace Grithin;
 use \Exception;
 
 trait VariedParameter{
-	static function guaranteed_call($class, $function, $args){
-		if(method_exists($class, $function)){
-			$result = call_user_func_array([$class, $function], $args);
-			if($result === false){
-				throw new Exception('identity not found '.json_encode(array_slice(func_get_args(),1)));
-			}
-			return $result;
-		}else{
-			throw new Exception('function not found "'.$function.'" with args:  '.json_encode(array_slice(func_get_args(),1)));
+	/*	Notes on PHP failures affecting the design of the `guaranteed` functions
+		-	`forward_static_call_array` does not work.
+		-	Turning errors into exceptions does not allow for catching method not found error
+		-	not way to execute a call_user_function([static,'fn_name'])
+	*/
+	static function static_call_guaranteed_identity($function, $arg){
+		$result = static::$function($arg);
+		if($result === false){
+			throw new Exception('identity not found '.json_encode(array_slice(func_get_args(),1)));
 		}
+		return $result;
+		#
+	}
+	static function call_guaranteed_identity($class, $function, $arg){
+		$result = $this->$function($arg);
+		if($result === false){
+			throw new Exception('identity not found '.json_encode(array_slice(func_get_args(),1)));
+		}
+		return $result;
 	}
 
 
@@ -92,15 +101,7 @@ trait VariedParameter{
 
 	static function static_id_by_name($table, $name){
 		$function = $table.'_id_by_name';
-		if(method_exists(__CLASS__, $function)){
-			$result = call_user_func([self, $function], $name);
-			if($result === false){
-				throw new Exception('id not found '.json_encode(func_get_args()));
-			}
-			return $result;
-		}else{
-			throw new Exception('function not found "'.$function.'" with args: '.json_encode(func_get_args()));
-		}
+		return self::static_call_guaranteed_identity($function, $name);
 	}
 	/*	param
 	options	['id_column':<>, 'table':<>]
@@ -143,11 +144,11 @@ trait VariedParameter{
 
 	static function static_item_by_name($table, $name){
 		$function = $table.'_by_name';
-		return self::guaranteed_call(__CLASS__, $function, [$name]);
+		return self::static_call_guaranteed_identity($function, $name);
 	}
 	static function static_item_by_id($table, $id){
 		$function = $table.'_by_id';
-		return self::guaranteed_call(__CLASS__, $function, [$id]);
+		return self::static_call_guaranteed_identity($function, $id);
 	}
 
 	#+++++++++++++++          +++++++++++++++ }
@@ -182,7 +183,7 @@ trait VariedParameter{
 
 	public function id_by_name($table, $name){
 		$function = $table.'_id_by_name';
-		return self::guaranteed_call($this, $function, [$name]);
+		return self::call_guaranteed_identity($this, $function, $name);
 	}
 	/*	param
 	options	['id_column':<>, 'table':<>]
@@ -223,11 +224,11 @@ trait VariedParameter{
 	}
 	public function item_by_name($table, $name){
 		$function = $table.'_by_name';
-		return self::guaranteed_call($this, $function, [$name]);
+		return self::call_guaranteed_identity($this, $function, $name);
 	}
 	public function item_by_id($table, $id){
 		$function = $table.'_by_id';
-		return self::guaranteed_call($this, $function, [$id]);
+		return self::call_guaranteed_identity($this, $function, $id);
 	}
 
 	#+++++++++++++++          +++++++++++++++ }

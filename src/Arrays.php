@@ -854,9 +854,16 @@ class Arrays{
 	self(['bob'=>'suesss', 'noes'=>'bees'], ['bob'=>'sue', 'bill'=>'joe']);
 	#> {"bob": "suesss", "noes": "bees"}
 	*/
-	static function diff($target, $base) {
+	/* params
+	target: < what the diff will transform to >
+	base: < what the diff will transform from >
+	options: {object_comparer: < fn that takes (target_value, base_value) and returns a diff >}
+	*/
+	static function diff($target, $base, $options=[]){
 		$aArray1 = Arrays::from($target);
 		$aArray2 = Arrays::from($base);
+
+
 		$aReturn = [];
 
 		$missing_keys = array_diff(array_keys($aArray2), array_keys($aArray1));
@@ -866,10 +873,22 @@ class Arrays{
 
 		foreach ($aArray1 as $mKey => $mValue) {
 			if (array_key_exists($mKey, $aArray2)) {
-				if(!Tool::is_scalar($mValue)) {
-					$aRecursiveDiff = self::diff($mValue, $aArray2[$mKey]);
+				if(is_array($mValue)){
+					$aRecursiveDiff = self::diff($mValue, $aArray2[$mKey], $options);
 					if(count($aRecursiveDiff)){
 						$aReturn[$mKey] = $aRecursiveDiff;
+					}
+				}elseif(!Tool::is_scalar($mValue)) {
+					if($options['object_comparer']){
+						$diff = $options['object_comparer']($mValue, $aArray2[$mKey]);
+						if($diff){
+							$aReturn[$mKey] = $diff;
+						}
+					}else{
+						$aRecursiveDiff = self::diff($mValue, $aArray2[$mKey], $options);
+						if(count($aRecursiveDiff)){
+							$aReturn[$mKey] = $aRecursiveDiff;
+						}
 					}
 				} else {
 					if((string)$mValue !== (string)$aArray2[$mKey]){
@@ -881,6 +900,18 @@ class Arrays{
 			}
 		}
 		return $aReturn;
+	}
+	static function diff_comparer_exact($target, $base){
+		if($target !== $base){
+			return $target;
+		}
+		return false;
+	}
+	static function diff_comparer_equals($target, $base){
+		if($target != $base){
+			return $target;
+		}
+		return false;
 	}
 	static function diff_apply($target, $diff){
 		$result = Arrays::replace_recursive($target, $diff);
