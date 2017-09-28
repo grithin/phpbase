@@ -64,6 +64,7 @@ class MainTests extends TestCase{
 	}
 
 	function test_events_sequence(){
+		$this->reset_sequences();
 		$record = new Record(null, [$this,'getter'], [$this,'setter']);
 		$record->before_change(make_accumulator('bc'));
 		$record->after_change(make_accumulator('ac'));
@@ -78,6 +79,31 @@ class MainTests extends TestCase{
 		$record->apply();
 		$this->assertEquals($accumulation, ['bc', 'ac', 'bu', 'au'], 'update sequence incorrect');
 	}
+
+	function test_events_no_change(){
+		$this->reset_sequences();
+		$record = new Record(null, [$this,'getter'], [$this,'setter']);
+		$record['sue'] = 'bill';
+		$record->before_change(make_accumulator('bc'));
+		$record->after_change(make_accumulator('ac'));
+		$record['sue'] = 'bill';
+
+
+		global $accumulation;
+		$record->apply();
+		$this->assertEquals($accumulation, [], 'no change sequence incorrect');
+	}
+	function test_events_removal(){
+		$this->reset_sequences();
+		$record = new Record(null, [$this,'getter'], [$this,'setter']);
+		$fn = $record->before_change(make_accumulator('bc'));
+		$record['sue'] = 'bill1';
+		$record->observers->detach($fn);
+		$record['sue'] = 'bill2';
+		global $accumulation;
+		$this->assertEquals($accumulation, ['bc'], 'event removal failed');
+	}
+
 	function test_events_parameters(){
 		$record = new Record(null, [$this,'getter'], [$this,'setter']);
 		$record->before_change('accumulate_array_changes');
@@ -104,6 +130,7 @@ class MainTests extends TestCase{
 	}
 
 	function test_replace(){
+		$this->reset_sequences();
 		$record = new Record(null, [$this,'getter'], [$this,'setter']);
 		$record->before_change('accumulate_array_changes');
 		$record['sue'] = 'bill';
@@ -114,11 +141,12 @@ class MainTests extends TestCase{
 		$this->assertEquals($this->setter_sequence[0], (['moe'=>'dan']), 'update 1 setter diff incorrect');
 		$this->reset_sequences();
 		# test replace with stored record
-		$record->update(['joe'=>'susan']);
+		$record->replace(['joe'=>'susan']);
 		$this->assertEquals($accumulation[0], (['moe'=>new MissingValue, 'joe'=>'susan']), 'update 2 incorrect');
 		$this->assertEquals($this->setter_sequence[0], ( (['moe'=>new MissingValue, 'joe'=>'susan'])), 'update 1 setter diff incorrect');
 	}
 	function test_subrecord(){
+		$this->reset_sequences();
 		$record = new Record(null, [$this,'getter'], [$this,'setter']);
 		$record['bob'] = ['monkeys'=>'bill', 'sl'=>'ss'];
 		$record->before_change('accumulate_array_changes');
@@ -159,4 +187,6 @@ class MainTests extends TestCase{
 		$this->assertEquals($this->setter_sequence[0], (['bob'=>[1=>'456']]), 'update 1 setter diff incorrect');
 		$this->assertEquals($record->record, (['bob'=>['123', '456']]), 'record does not match expected');
 	}
+
+
 }

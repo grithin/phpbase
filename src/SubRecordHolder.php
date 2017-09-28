@@ -56,7 +56,7 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 		$subrecord_at_path = Arrays::set($this->path_prefix, $this->record, []);
 
 		# send absolute path changes to primary Record holder
-		$this->Record->update_local_with_changes($subrecord_at_path);
+		$this->Record->update_local($subrecord_at_path);
 		# get the result at the relative path representing this holder
 		$this->record = Arrays::get($this->Record->record, $this->path_prefix);
 	}
@@ -73,7 +73,7 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 		$subrecord_at_path = Arrays::set($this->path_prefix, $this->record, []);
 
 		# send absolute path changes to primary Record holder
-		$this->Record->update_local_with_changes($subrecord_at_path);
+		$this->Record->update_local($subrecord_at_path);
 		# get the result at the relative path representing this holder
 		$this->record = Arrays::get($this->Record->record, $this->path_prefix);
 	}

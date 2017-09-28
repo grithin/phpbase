@@ -21,7 +21,8 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	const EVENT_CHANGE_AFTER = 8;
 	const EVENT_UPDATE_BEFORE = 16;
 	const EVENT_UPDATE_AFTER = 32;
-	const EVENT_NEW_KEY = 64;
+	const EVENT_NEW_KEY = 64; # ?
+	const EVENT_REFRESH = 128;
 
 	# By default, the diff function will turn objects into arrays.  This is not desired for something like a Time object, so, instead, use a equals comparison comparer
 	public $diff_options = ['object_comparer'=>['\Grithin\Arrays', 'diff_comparer_equals']];
@@ -66,7 +67,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		$this->stored_record = Arrays::replace($this->stored_record, $changes);
 	}
 	public function offsetSet($offset, $value) {
-		$this->update_local_with_changes([$offset=>$value]);
+		$this->update_local([$offset=>$value]);
 	}
 
 	public function offsetExists($offset) {
@@ -74,7 +75,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	}
 
 	public function offsetUnset($offset) {
-		$this->update_local_with_changes([$offset=>(new \Grithin\MissingValue)]);
+		$this->update_local([$offset=>(new \Grithin\MissingValue)]);
 	}
 
 	public function offsetGet($offset) {
@@ -126,13 +127,26 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public function detach($observer) {
 		$this->observers->detach($observer);
 	}
-	# return an callback for use as an observer than only response to particular events
+	# return an callback for use as an observer than only responds to particular events
 	static function event_callback_wrap($event, $observer){
-		return function($that, $type, $details) use ($event, $observer){
-			if($type & $event){
-				return $observer($that, $details);
-			}
-		};
+		if(is_int($event)){
+			return function($that, $type, $details) use ($event, $observer){
+				if(is_int($type) && #< ensure this is a numbered event
+					$type & $event) #< filter fired event type against the type of listener
+				{
+					return $observer($that, $details);
+				}
+			};
+		}else{
+			return function($that, $type, $details) use ($event, $observer){
+				if(!is_int($type) && #< ensure this is a numbered event
+					$type == $event) #< filter fired event type against the type of listener
+				{
+					return $observer($that, $details);
+				}
+			};
+		}
+
 	}
 	# wrapper for observers single-event-dedicated observers
 	public function before_change($observer){
@@ -180,7 +194,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		}
 
 		$changes = $this->calculate_changes($previous);
-		$this->notify('refreshed', $changes);
+		$this->notify(self::EVENT_REFRESH, $changes);
 		return $changes;
 	}
 	# does not apply changes, just calculates potential
@@ -210,13 +224,13 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		return $changes;
 	}
 
-	public function update_local_with_changes($changes){
+	public function update_local($changes){
 		$new_record = Arrays::replace($this->record, $changes);
-		return $this->update_local($new_record);
+		return $this->replace_local($new_record);
 	}
 
 	public $record_previous; # the $this->record prior to changes; potentially used by event handlers interested in the previous unsaved changes
-	public function update_local($new_record){
+	public function replace_local($new_record){
 		$this->record_previous = $this->record;
 		$diff = new ArrayObject(Arrays::diff($new_record, $this->record, $this->diff_options));
 		if(count($diff)){
@@ -230,16 +244,12 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 
 	# replace update the record to be the new
 	public function replace($new_record){
-		$this->update_local($new_record);
+		$this->replace_local($new_record);
 		$changes = $this->apply();
 		return $changes;
 	}
-	# See replace.  Named update to correspond to the update event (there is no replace event)
-	public function update($new_record){
-		return $this->replace($new_record);
-	}
-	public function update_with_changes($changes){
-		$this->update_local_with_changes($changes);
+	public function update($changes){
+		$this->update_local($changes);
 		$changes = $this->apply();
 		return $changes;
 	}
