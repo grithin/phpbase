@@ -1,9 +1,5 @@
 See `tests\Record.php`
 
-# Todo
--	add test for assigning same value
--	add test for removing observer
-
 # Overview
 Intended to be a observable that matches a database record, allowing the handling of a record like an array, keeping track of changes, handling deep data structures, and allowing listeners to react to change events.
 

@@ -23,15 +23,21 @@ trait HasStaticTypes{
 	static $types_by_id = [];
 	static $type_ids_by_name = [];
 	*/
+	static function types_by_id(){
+		return static::types_by_id();
+	}
+	static function type_ids_by_name(){
+		return static::type_ids_by_name();
+	}
 	static function type_ids(){
-		return array_keys(static::$types_by_id);
+		return array_keys(static::types_by_id());
 	}
 	static function types(){
-		return static::$types_by_id;
+		return static::types_by_id();
 	}
 	static function type_by_id($id){
-		if(array_key_exists($id, static::$types_by_id)){
-			return static::$types_by_id[$id];
+		if(array_key_exists($id, static::types_by_id())){
+			return static::types_by_id()[$id];
 		}
 		throw new Exception('id not found "'.$id.'"');
 	}
@@ -39,8 +45,8 @@ trait HasStaticTypes{
 		return array_map(static::type_by_id, $ids);
 	}
 	static function type_by_name($name){
-		if(array_key_exists($name, static::$type_ids_by_name)){
-			return static::$types_by_id[static::$type_ids_by_name[$name]];
+		if(array_key_exists($name, static::type_ids_by_name())){
+			return static::types_by_id()[static::type_ids_by_name()[$name]];
 		}
 		throw new Exception('name not found "'.$name.'"');
 	}
@@ -60,7 +66,7 @@ trait HasStaticTypes{
 		}
 		$map = [];
 		if($types === null){
-			$types = static::$types_by_id;
+			$types = static::types_by_id();
 		}
 		foreach($types as $type){
 			$map[$type[static::$id_column]] = $type[$display_name_column];
@@ -70,7 +76,7 @@ trait HasStaticTypes{
 	# filter and order types
 	static function types_ordered_shown($types=null){
 		if($types === null){
-			$types = static::$types_by_id;
+			$types = static::types_by_id();
 		}
 		$filtered_types = [];
 		foreach($types as $type){
@@ -137,17 +143,19 @@ trait HasStaticTypes{
 
 		$type_ids_by_name = [];
 		$types_by_id = [];
+		$return = self::static_variables_from_rows($options['columns'], $rows);
+		$return['id_column'] = $options['columns']['id'];
+		$return['display_name_column'] = $options['columns']['display_name'];
+		$return['system_name_column'] = $options['columns']['system_name'];
+		return $return;
+	}
+	static function static_variables_from_rows($columns, $rows){
+		$vars = ['type_ids_by_name'=>[], 'types_by_id'=>[]];
 		foreach($rows as $row){
-			$type_ids_by_name[$row[$options['columns']['system_name']]] = $row[$options['columns']['id']];
-			$types_by_id[$row[$options['columns']['id']]] = $row;
+			$vars['type_ids_by_name'][$row[$columns['system_name']]] = $row[$columns['id']];
+			$vars['types_by_id'][$row[$columns['id']]] = $row;
 		}
-		return [
-			'id_column' => $options['columns']['id'],
-			'display_name_column' => $options['columns']['display_name'],
-			'system_name_column' => $options['columns']['system_name'],
-			'type_ids_by_name'=>$type_ids_by_name,
-			'types_by_id'=>$types_by_id
-		];
+		return $vars;
 	}
 	static function static_variables_code_get_from_db($db, $table, $options=[]){
 		return static::static_variables_code_get(static::types_from_database($db, $table, $options));
