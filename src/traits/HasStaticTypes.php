@@ -24,10 +24,10 @@ trait HasStaticTypes{
 	static $type_ids_by_name = [];
 	*/
 	static function types_by_id(){
-		return static::types_by_id();
+		return static::$types_by_id;
 	}
 	static function type_ids_by_name(){
-		return static::type_ids_by_name();
+		return static::$type_ids_by_name;
 	}
 	static function type_ids(){
 		return array_keys(static::types_by_id());
