@@ -202,13 +202,16 @@ class Debug{
 		}
 		$string = '['.$caller['file'].':'.$caller['line'].'](#'.self::$pretty_increment.') : ';
 		if(!Tool::is_scalar($data)){
-			$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
-			$string .= self::json_format_pretty($json);
+			$string .= self::json_pretty($data);
 		}else{
 			$string .= $data;
 		}
 		self::$pretty_increment++;
 		return $string;
+	}
+	static function json_pretty($data){
+		$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
+		return self::json_format_pretty($json);
 	}
 	static function json_format_pretty($json_string){
 		$start_bracket = '[\[\{]+';
