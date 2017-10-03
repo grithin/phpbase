@@ -202,22 +202,22 @@ class Debug{
 		}
 		$string = '['.$caller['file'].':'.$caller['line'].'](#'.self::$pretty_increment.') : ';
 		if(!Tool::is_scalar($data)){
-			#JSON_PRETTY_PRINT, JSON_UNESCAPED_SLASHES, and JSON_UNESCAPED_UNICODE options were added.
 			$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
-			$start_bracket = '[\[\{]+';
-			$end_bracket = '[\]\}]+';
-			$start_line = '(?<=\n|^)';
-			$end_line = '(?=\n|$)';
-			# condense start brackets
-			$json = preg_replace('@'.$start_line.'(\s*'.$start_bracket.')\n\s*@','$1', $json);
-			# condense end brackets
-			$json = preg_replace('@\n\s*('.$end_bracket.',?)'.$end_line.'@','$1', $json);
-
-			$string .= $json;
+			$string .= self::json_format_pretty($json);
 		}else{
 			$string .= $data;
 		}
 		self::$pretty_increment++;
 		return $string;
+	}
+	static function json_format_pretty($json_string){
+		$start_bracket = '[\[\{]+';
+		$end_bracket = '[\]\}]+';
+		$start_line = '(?<=\n|^)';
+		$end_line = '(?=\n|$)';
+		# condense start brackets
+		$json_string = preg_replace('@'.$start_line.'(\s*'.$start_bracket.')\n\s*@','$1', $json_string);
+		# condense end brackets
+		return preg_replace('@\n\s*('.$end_bracket.',?)'.$end_line.'@','$1', $json_string);
 	}
 }
