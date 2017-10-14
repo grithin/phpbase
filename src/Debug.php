@@ -46,6 +46,23 @@ class Debug{
 	*/
 	static function getLine($file,$line){
 		if($file){
+			if(!is_file($file)){
+				# handle eval'd code specified as file
+				# ex: /media/bob/test.php(11) : eval()'d code
+				if(strstr($file, 'eval()') !== false){
+					$eval_file_string = $file;
+					$file_part = implode(':', array_slice(explode(':', $file),0,-1));
+					preg_match('@^(.*)\(([0-9]+)\)\s$@', $file_part, $match);
+					$file = $match[1];
+					$line = $match[2];
+					if(!is_file($file)){
+						throw new \Exception('Could not parse eval for get line "'.$eval_file_string.'"');
+					}
+				}else{
+					throw new \Exception('Could not get line from file "'.$file.'"');
+				}
+
+			}
 			$f = file($file);
 			$code = substr($f[$line-1],0,-1);
 			return preg_replace('@^\s*@','',$code);
