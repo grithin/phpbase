@@ -53,6 +53,10 @@ trait SingletonDefault{
 		}
 		return self::$instances[$name];
 	}
+	# map a key to another key
+	static function instance_map($alias, $target){
+		self::$instances[$alias] = self::$instances[$target]; # instances are objects, to which variables keep references
+	}
 	/// use the default name of `0` and call init
 	static function singleton(){
 		$args = array_merge([0], (array)func_get_args());
