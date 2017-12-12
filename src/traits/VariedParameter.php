@@ -43,9 +43,19 @@ trait VariedParameter{
 	#+++++++++++++++     Static Versions     +++++++++++++++ {
 
 	# assuming the thing is either the id or contains it
-	static function static_id_from_inside_thing($thing, $id_column='id'){
+	static function static_id_from_thing($thing, $id_column='id'){
 		if(!Tool::is_scalar($thing)){
 			return self::static_id_from_object($thing, $id_column);
+		}
+		return $thing;
+	}
+	# assuming the thing is either the id or contains it
+	static function static_id_from_thing_or_error($thing, $id_column='id'){
+		if(!Tool::is_scalar($thing)){
+			return self::static_id_from_object_or_error($thing, $id_column);
+		}
+		if(!$thing){
+			throw new Exception('thing was not id');
 		}
 		return $thing;
 	}
@@ -156,8 +166,11 @@ trait VariedParameter{
 
 	#+++++++++++++++     Instance Versions     +++++++++++++++ {
 
-	public function id_from_inside_thing($thing, $id_column='id'){
-		return self::static_id_from_inside_thing($thing, $id_column);
+	public function id_from_thing($thing, $id_column='id'){
+		return self::static_id_from_thing($thing, $id_column);
+	}
+	public function id_from_thing_or_error($thing, $id_column='id'){
+		return self::static_id_from_thing_or_error($thing, $id_column);
 	}
 	public function id_from_object($thing, $id_column='id'){
 		return self::static_id_from_object($thing, $id_column);
