@@ -22,7 +22,7 @@ class ComplexException extends \Exception{
 				}
 			}
 			if(!$message){
-				$message = Tool::flat_json_encode(Arrays::from($this->details));
+				$message = Tool::flat_json_encode(Arrays::from($details));
 			}
 			$this->details = $details;
 		}else{
@@ -38,5 +38,13 @@ class ComplexException extends \Exception{
 	# alias
 	public function get_details(){
 		return call_user_func_array([$this,'getDetails'], func_get_args());
+	}
+	# getDetails on either complex exception or regular
+	static function details_extract($e){
+		if(method_exists($e, 'getDetails')){
+			return  $e->getDetails();
+		}else{
+			return ['message'=>$e->getMessage()];
+		}
 	}
 }

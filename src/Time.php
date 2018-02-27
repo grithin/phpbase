@@ -1,6 +1,7 @@
 <?
 namespace Grithin;
 use Grithin\Tool;
+use \Exception;
 ///Supplementing language time functions
 class Time extends \DateTime implements \JsonSerializable{
 	///creates a DateTime object with some additional functionality
@@ -32,6 +33,14 @@ class Time extends \DateTime implements \JsonSerializable{
 	}
 	public function jsonSerialize(){
 		return $this->datetime();
+	}
+	# create a Time object from input, returning null if error
+	static function from($time=null,$zone=null){
+		try{
+			return new Time($time, $zone);
+		}catch(Exception $e){
+			return null;
+		}
 	}
 	///creates a DateTimeZone object based on variable input
 	/**
