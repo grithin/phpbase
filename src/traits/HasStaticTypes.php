@@ -23,14 +23,24 @@ trait HasStaticTypes{
 	static $types_by_id = [];
 	static $type_ids_by_name = [];
 	*/
+	# access to variable, intended to be overwritten for instance to get from Db
 	static function types_by_id(){
 		return static::$types_by_id;
 	}
+	# access to variable, intended to be overwritten for instance to get from Db
 	static function type_ids_by_name(){
 		return static::$type_ids_by_name;
 	}
-	static function type_ids(){
-		return array_keys(static::types_by_id());
+	static function type_ids($names=[]){
+		if($names){
+			$return = [];
+			foreach($names as $v){
+				$return[] = static::type_id_by_name($v);
+			}
+			return $return;
+		}else{
+			return array_keys(static::types_by_id());
+		}
 	}
 	static function types(){
 		return static::types_by_id();
@@ -42,7 +52,11 @@ trait HasStaticTypes{
 		throw new Exception('id not found "'.$id.'"');
 	}
 	static function types_by_ids($ids){
-		return array_map(static::type_by_id, $ids);
+		$return = [];
+		foreach($ids as $v){
+			$return[] = static::type_by_id($v);
+		}
+		return $return;
 	}
 	static function type_by_name($name){
 		if(array_key_exists($name, static::type_ids_by_name())){
@@ -50,12 +64,23 @@ trait HasStaticTypes{
 		}
 		throw new Exception('name not found "'.$name.'"');
 	}
+	static function type_ids_by_names($names){
+		$return = [];
+		foreach($names as $v){
+			$return[] = static::type_id_by_name($v);
+		}
+		return $return;
+	}
 	# to be compatible with VariedParameter trait
 	static function type_id_by_name($name){
 		return static::type_by_name($name)[static::$id_column];
 	}
 	static function types_by_names($names){
-		return array_map(static::type_by_name, $names);
+		$return = [];
+		foreach($names as $v){
+			$return[] = static::type_by_name($v);
+		}
+		return $return;
 	}
 	# get map of ids to display names
 	static function id_display_name_map($types=null){
