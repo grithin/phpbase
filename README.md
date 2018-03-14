@@ -114,3 +114,77 @@ Files::inc('bob.php')
 Files::inc('bob.php',['bob'=>'sue'], ['extract'=>['bill']])
 #< ['sue', 'monkey']
 ```
+
+
+## Arrays
+```php
+#+ flatten array picking one value {
+$user_input = [
+	'name'=> [
+		'first'=>'bob',
+		'last'=>'bobl',
+	]
+];
+
+$x = Arrays::flatten_values($user_input);
+ppe($x);
+#>  {"name": "bob"}
+#+ }
+
+
+
+#+ flatten structured array {
+$user_input = [
+	'name'=> [
+		'first'=>'bob',
+		'last'=>'bobl',
+	]
+];
+
+$x = Arrays::flatten($user_input);
+ppe($x);
+/*
+{"name_first": "bob",
+    "name_last": "bobl"}
+*/
+#+ }
+
+
+
+#+ pick and ensure
+$user_input = [
+	'first_name'=>'bob',
+	'last_name'=>'bobl',
+	'unwanted'=>'blah'
+];
+$pick = ['first_name', 'last_name', 'middle_name'];
+
+$x = Arrays::pick_default($user_input, $pick, 'N/A');
+/*
+{"first_name": "bob",
+    "last_name": "bobl",
+    "middle_name": "N\/A"}
+*/
+#+ }
+
+
+
+
+#+ rekey and exclude {
+
+$user_input = [
+	'first_name'=>'bob',
+	'last_name'=>'bobl',
+	'unwanted'=>'blah'
+];
+$map = ['first_name'=>'FirstName', 'last_name'=>'LastName'];
+
+$x = Arrays::map_only($user_input, $map);
+ppe($x);
+/*
+{"FirstName": "bob",
+    "LastName": "bobl"}
+*/
+#+ }
+
+```

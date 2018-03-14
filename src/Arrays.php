@@ -74,6 +74,18 @@ class Arrays{
 	Copy array, mapping some columns to different columns - only excludes columns on collision
 	@NOTE if src contains key collision with map, map will overwrite
 	*/
+	/* Example
+	$user_input = [
+		'first_name'=>'bob',
+		'last_name'=>'bobl'
+	];
+	$map = ['first_name'=>'FirstName'];
+
+	Arrays::map_with($user_input, $map);
+
+	#> 	{"FirstName": "bob",    "last_name": "bobl"}
+	*/
+
 	static function map_with($src, $map){
 		$result = [];
 		foreach($src as $k=>$v){
@@ -86,11 +98,48 @@ class Arrays{
 		return $result;
 	}
 
-	/// like map_with, but does not included non-mapped columns
+	/*
+	Map only specified keys, ignoring the rest
+	@NOTE if src contains key collision with map, map will overwrite
+	*/
+	/* Example
+	$user_input = [
+		'first_name'=>'bob',
+		'last_name'=>'bobl'
+	];
+	$map = ['first_name'=>'FirstName'];
+
+	Arrays::map_only($user_input, $map);
+
+	#> 	{"FirstName": "bob"}
+	*/
+
+	static function map_only($src, $map){
+		$result = [];
+		foreach($map as $k=>$v){
+			if(self::is_set($src, $k)){
+				$result[$v] = $src[$k];
+			}
+		}
+		return $result;
+	}
+
+
+
+	/// like map_with, but does not include non-mapped columns
 	/**
 		@note	since this is old, it has a different parameter sequence than map_with
 		@param	map	array	{<newKey> : <oldKey>, <newKey> : <oldKey>, <straight map>}
 		@param	$interpret_numeric_keys	< true | false >< whether to use numeric keys as indication of same key mapping >
+	*/
+	/* example
+	$user_input = [
+		'first_name'=>'bob',
+		'last_name'=>'bobl'
+	];
+	$map = ['FirstName'=>'first_name'];
+	$x = Arrays::map($map, $user_input);
+	#> {"FirstName": "bob"}
 	*/
 	static function &map($map,$extractee,$interpret_numeric_keys=true,&$extractTo=null){
 		if(!is_array($extractTo)){
@@ -288,6 +337,24 @@ class Arrays{
 	}
 
 
+	# Just flatten the values of an array into non-array values by select one of the sub array items
+	static function flatten_values($array, $fn=null){
+		if(!$fn){
+			$fn = function($v, $k) use (&$fn){
+				if(is_array($v)){
+					list($key, $value) = each($v);
+					return $fn($value, $key);
+				}else{
+					return $v;
+				}
+			};
+		}
+		foreach($array as $k=>&$v){
+			$v = $fn($v, $k);
+		} unset($v);
+		return $array;
+	}
+
 
 	#++ Depth path functions {
 
@@ -300,13 +367,13 @@ class Arrays{
 	*/
 	static function flatten($array,$separator='_',$keyPrefix=null){
 		foreach($array as $k=>$v){
-			if($fK){
+			if($keyPrefix){
 				$key = $keyPrefix.$separator.$k;
 			}else{
 				$key = $k;
 			}
 			if(is_array($v)){
-				$sArrays = self::arrayFlatten($v,$key,$separator);
+				$sArrays = self::flatten($v,$separator, $key);
 				foreach($sArrays as $k2 => $v2){
 					$sArray[$k2] = $v2;
 				}
@@ -505,20 +572,22 @@ class Arrays{
 		return $result;
 	}
 	# merges/replaces objects/arrays.  Ignores scalars.  Later parameters take precedence
-	/*
-	note	merge vs replace
-		-	will replace x many elements in a numeric (classic) array
-			array_merge([1,2,3],[5,1]); #> [1,2,3,5,1]
-			array_replace([1,2,3],[5,1]); #> [5,1,3]
-		-	will at similar with dictionaries
+	/* @note	merge vs replace
+		generally, replace acts as expected, replacing matching keys whether numeric or not.  Merge will append on numeric keys, and consequently, not maintain key offsets during such.
+
+		-	different on numeric keys
+				array_merge([1,2,3], [5,1]);
+					#> [1,2,3,5,1]
+				array_replace([1,2,3], [5,1]);
+					#> [5,1,3]
+		-	same on non-numeric keys
 			array_merge(['bob'=>'sue', 'bob1'=>'sue1'], ['bob'=>'sue', 'bob2'=>'sue2'])  = array_replace(['bob'=>'sue', 'bob1'=>'sue1'], ['bob'=>'sue', 'bob2'=>'sue2']);
-		-	**merge will act odd with mixed numeric keys**
-			$x = array_merge(['bill'=>'moe', 5=>'bob'], ['bill'=>'moe', 5=>'sue']);
-			#> {"bill": "moe", "0": "bob", "1": "sue"}
-			# here we see the '5' key is removed, and both values stay, but on new keys
-		-	whereas, replace will not
+		-	differend on mixed keys
+			array_merge(['bill'=>'moe', 5=>'bob'], ['bill'=>'moe', 5=>'sue']);
+				#> {"bill": "moe", "0": "bob", "1": "sue"}
+				# here we see the '5' key is removed, and both values stay, but on new keys
 			array_replace(['bill'=>'moe', 5=>'bob'], ['bill'=>'moe', 5=>'sue']);
-			#> {"bill": "moe", "5": "sue"}
+				#> {"bill": "moe", "5": "sue"}
 	*/
 	static function replace($x, $y){
 		$arrays = func_get_args();
@@ -931,6 +1000,18 @@ class Arrays{
 		}
 		return $result;
 	}
+	# false equivalent return removes item.  Any other return changes the value of the item
+	static function filter_morph($array, $callback){
+		$result = [];
+		foreach($array as $k=>$v){
+			$value = $callback($v, $k);
+			if($value){
+				$result[$k] = $v;
+			}
+		}
+		return $result;
+	}
+
 	static function iterator_to_array_deep($iterator, $use_keys = true) {
 		$array = array();
 		foreach ($iterator as $key => $value) {
