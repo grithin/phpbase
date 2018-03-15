@@ -31,7 +31,7 @@ trait VariedParameter{
 		return $result;
 		#
 	}
-	static function call_guaranteed_identity($class, $function, $arg){
+	public function call_guaranteed_identity($class, $function, $arg){
 		$result = $this->$function($arg);
 		if($result === false){
 			throw new Exception('identity not found '.json_encode(array_slice(func_get_args(),1)));
@@ -97,70 +97,6 @@ trait VariedParameter{
 
 
 
-
-	static function static_id_from_string($table, $string){
-		if(Tool::isInt($string)){
-			return $string;
-		}
-		$id = self::static_id_by_name($table, $string);
-		if($id === false){
-			throw new Exception('id not found from '.json_encode(func_get_args()));
-		}
-		return $id;
-	}
-
-	static function static_id_by_name($table, $name){
-		$function = $table.'_id_by_name';
-		return self::static_call_guaranteed_identity($function, $name);
-	}
-	/*	param
-	options	['id_column':<>, 'table':<>]
-	*/
-	static function static_id_by_thing($table, $thing, $options=[]){
-		$options = array_merge(['id_column'=>'id'], $options);
-		if(!Tool::is_scalar($thing)){
-			return self::static_id_from_object_or_error($thing, $options['id_column']);
-		}
-		return self::static_id_from_string($table, $thing);
-	}
-	public function static_ids_by_things($table, $things, $options=[]){
-		$map = function ($x) use ($table, $options){
-			return self::static_id_by_thing($table, $x, $options); };
-		return array_map($map, $things);
-	}
-
-
-
-
-	static function static_item_by_string($table, $string){
-		$item = false;
-		if(Tool::isInt($string)){
-			$item = self::static_item_by_id($table, $string);
-		}else{
-			$item = self::static_item_by_name($table, $string);
-		}
-		if($item === false){
-			throw new Exception('id not fround from '.json_encode(func_get_args()));
-		}
-		return $item;
-	}
-
-	static function static_item_by_thing($thing, $table){
-		if(!Tool::is_scalar($thing)){ # the thing is already an item
-			return $thing;
-		}
-		return self::static_item_by_string($thing, $table);
-	}
-
-	static function static_item_by_name($table, $name){
-		$function = $table.'_by_name';
-		return self::static_call_guaranteed_identity($function, $name);
-	}
-	static function static_item_by_id($table, $id){
-		$function = $table.'_by_id';
-		return self::static_call_guaranteed_identity($function, $id);
-	}
-
 	#+++++++++++++++          +++++++++++++++ }
 
 
@@ -179,49 +115,118 @@ trait VariedParameter{
 		return self::static_id_from_object_or_error($thing, $id_column);
 	}
 
+	#+++++++++++++++          +++++++++++++++ }
 
 
-	# Standard way to resolve variable input of either a id or a name identifier
-	# uses `$this->id_by_name`
-	public function id_from_string($table, $string){
+
+
+
+	#+++++++++++++++     Non Prefixed Versions     +++++++++++++++ {
+
+	static function static_id_from_string($string){
 		if(Tool::isInt($string)){
 			return $string;
 		}
-		$id = $this->id_by_name($table, $string);
+		$id = self::static_id_by_name($string);
 		if($id === false){
 			throw new Exception('id not found from '.json_encode(func_get_args()));
 		}
 		return $id;
 	}
 
-	public function id_by_name($table, $name){
-		$function = $table.'_id_by_name';
+	static function static_id_by_name($name){
+		$function = 'id_by_name';
+		return self::static_call_guaranteed_identity($function, $name);
+	}
+	/*	param
+	options	['id_column':<>, 'table':<>]
+	*/
+	static function static_id_by_thing($thing, $options=[]){
+		$options = array_merge(['id_column'=>'id'], $options);
+		if(!Tool::is_scalar($thing)){
+			return self::static_id_from_object_or_error($thing, $options['id_column']);
+		}
+		return self::static_id_from_string($thing);
+	}
+	public function static_ids_by_things($things, $options=[]){
+		$map = function ($x) use ($options){
+			return self::static_id_by_thing($x, $options); };
+		return array_map($map, $things);
+	}
+
+	static function static_item_by_string($string){
+		$item = false;
+		if(Tool::isInt($string)){
+			$item = self::static_item_by_id($string);
+		}else{
+			$item = self::static_item_by_name($string);
+		}
+		if($item === false){
+			throw new Exception('id not fround from '.json_encode(func_get_args()));
+		}
+		return $item;
+	}
+
+	static function static_item_by_thing($thing){
+		if(!Tool::is_scalar($thing)){ # the thing is already an item
+			return $thing;
+		}
+		return self::static_item_by_string($thing);
+	}
+
+	static function static_item_by_name($name){
+		$function = 'by_name';
+		return self::static_call_guaranteed_identity($function, $name);
+	}
+	static function static_item_by_id($id){
+		$function = 'by_id';
+		return self::static_call_guaranteed_identity($function, $id);
+	}
+
+
+
+
+	# Standard way to resolve variable input of either a id or a name identifier
+	# uses `$this->id_by_name`
+	public function id_from_string($string){
+		if(Tool::isInt($string)){
+			return $string;
+		}
+		$id = $this->id_by_name($string);
+		if($id === false){
+			throw new Exception('id not found from '.json_encode(func_get_args()));
+		}
+		return $id;
+	}
+
+	public function id_by_name($name){
+		$function = 'id_by_name';
 		return self::call_guaranteed_identity($this, $function, $name);
 	}
 	/*	param
 	options	['id_column':<>, 'table':<>]
 	*/
-	public function id_by_thing($table, $thing, $options=[]){
+	public function id_by_thing($thing, $options=[]){
 		$options = array_merge(['id_column'=>'id'], $options);
 		if(!Tool::is_scalar($thing)){
 			return $this->id_from_object_or_error($thing, $options['id_column']);
 		}
-		return $this->id_from_string($table, $thing);
+		return $this->id_from_string($thing);
 	}
-	public function ids_by_things($table, $things, $options=[]){
-		$map = function ($x) use ($table, $options){
-			return $this->id_by_thing($table, $x, $options); };
+	public function ids_by_things($things, $options=[]){
+		$map = function ($x) use ($options){
+			return $this->id_by_thing($x, $options); };
 		return array_map($map, $things);
 	}
 
 
 	# uses $this->item_by_id or $this->item_by_name
-	public function item_by_string($table, $string){
+	public function item_by_string($string){
 		$item = false;
 		if(Tool::isInt($string)){
-			$item = $this->item_by_id($table, $string);
+			$item = $this->item_by_id($string);
 		}else{
-			$item = $this->item_by_name($table, $string);
+			$item = $this->item_by_name($string);
 		}
 		if($item === false){
 			throw new Exception('id not found from '.json_encode(func_get_args()));
@@ -229,125 +234,157 @@ trait VariedParameter{
 		return $item;
 	}
 
-	public function item_by_thing($table, $thing){
+	public function item_by_thing($thing){
 		if(!Tool::is_scalar($thing)){ # the thing is already an item
 			return $thing;
 		}
-		return $this->item_by_string($table, $thing);
+		return $this->item_by_string($thing);
 	}
-	public function item_by_name($table, $name){
-		$function = $table.'_by_name';
-		return self::call_guaranteed_identity($this, $function, $name);
+	public function item_by_name($name){
+		$function = 'by_name';
+		return $this->call_guaranteed_identity($this, $function, $name);
 	}
-	public function item_by_id($table, $id){
-		$function = $table.'_by_id';
-		return self::call_guaranteed_identity($this, $function, $id);
+	public function item_by_id($id){
+		$function = 'by_id';
+		return $this->call_guaranteed_identity($this, $function, $id);
 	}
 
 	#+++++++++++++++          +++++++++++++++ }
-}
+
+	#+++++++++++++++     Prefixed Versions     +++++++++++++++ {
 
 
-/* testing, setup
-#+ db setup {
-$_ENV['database']['default'] = array(
-		'user'=>'root',
-		'password'=>'',
-		'database'=>'test',
-		'host'=>'localhost',
-		'driver'=>'mysql');
-
-
-$db = Db::singleton($_ENV['database']['default']);
-"""
-CREATE TABLE `test` (
-  `id` bigint(20) NOT NULL,
-  `name` varchar(250) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `test`
---
-
-INSERT INTO `test` (`id`, `name`) VALUES
-(1, 'test1'),
-(2, 'test2');
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `test`
---
-ALTER TABLE `test`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
-""";
-
-#+ }
-*/
-
-
-/* testing, basic static
-class bob{
-	use \Grithin\VariedParameter;
-	static $db;
-	public function init($db){
-		self::$db = $db;
+	static function static_prefixed_id_from_string($prefix, $string){
+		if(Tool::isInt($string)){
+			return $string;
+		}
+		$id = self::static_prefixed_id_by_name($prefix, $string);
+		if($id === false){
+			throw new Exception('id not found from '.json_encode(func_get_args()));
+		}
+		return $id;
 	}
-	static function get($thing){
-		return self::static_id_by_thing('test', $thing);
-	}
-	static function test_id_by_name($name){
-		return self::test_by_name($name)['id'];
-	}
-	static function test_by_name($name){
-		return self::$db->as_row('select * from test where name = ?', [$name]);
-	}
-}
 
-bob::init($db);
-
-if(bob::get('test2') != 2){
-	pp('fail');
-}
-if(bob::get('5') != 5){
-	pp('fail');
-}
-if(bob::get(['id'=>4]) != 4){
-	pp('fail');
-}
-
-*/
+	static function static_prefixed_id_by_name($prefix, $name){
+		$function = $prefix.'_id_by_name';
+		return self::static_call_guaranteed_identity($function, $name);
+	}
+	/*	param
+	options	['id_column':<>, 'table':<>]
+	*/
+	static function static_prefixed_id_by_thing($prefix, $thing, $options=[]){
+		$options = array_merge(['id_column'=>'id'], $options);
+		if(!Tool::is_scalar($thing)){
+			return self::static_prefixed_id_from_object_or_error($thing, $options['id_column']);
+		}
+		return self::static_prefixed_id_from_string($prefix, $thing);
+	}
+	static function static_prefixed_ids_by_things($prefix, $things, $options=[]){
+		$map = function ($x) use ($prefix, $options){
+			return self::static_prefixed_id_by_thing($prefix, $x, $options); };
+		return array_map($map, $things);
+	}
 
 
-/* testing, basic instance
-class bob{
-	use \Grithin\VariedParameter;
-	public function __construct($db){
-		$this->db = $db;
+
+
+	static function static_prefixed_item_by_string($prefix, $string){
+		$item = false;
+		if(Tool::isInt($string)){
+			$item = self::static_prefixed_item_by_id($prefix, $string);
+		}else{
+			$item = self::static_prefixed_item_by_name($prefix, $string);
+		}
+		if($item === false){
+			throw new Exception('id not fround from '.json_encode(func_get_args()));
+		}
+		return $item;
 	}
-	public function get($thing){
-		return $this->id_by_thing('test', $thing);
+
+	static function static_prefixed_item_by_thing($prefix, $thing){
+		if(!Tool::is_scalar($thing)){ # the thing is already an item
+			return $thing;
+		}
+		return self::static_prefixed_item_by_string($prefix, $thing);
 	}
-	public function test_id_by_name($name){
-		return $this->test_by_name($name)['id'];
+
+	static function static_prefixed_item_by_name($prefix, $name){
+		$function = $prefix.'_by_name';
+		return self::static_call_guaranteed_identity($function, $name);
 	}
-	public function test_by_name($name){
-		return $this->db->as_row('select * from test where name = ?', [$name]);
+	static function static_prefixed_item_by_id($prefix, $id){
+		$function = $prefix.'_by_id';
+		return self::static_call_guaranteed_identity($function, $id);
 	}
+
+
+
+
+
+	# Standard way to resolve variable input of either a id or a name identifier
+	# uses `$this->prefixed_id_by_name`
+	public function prefixed_id_from_string($prefix, $string){
+		if(Tool::isInt($string)){
+			return $string;
+		}
+		$id = $this->prefixed_id_by_name($prefix, $string);
+		if($id === false){
+			throw new Exception('id not found from '.json_encode(func_get_args()));
+		}
+		return $id;
+	}
+
+	public function prefixed_id_by_name($prefix, $name){
+		$function = $prefix.'_id_by_name';
+		return $this->call_guaranteed_identity($this, $function, $name);
+	}
+	/*	param
+	options	['id_column':<>, 'table':<>]
+	*/
+	public function prefixed_id_by_thing($prefix, $thing, $options=[]){
+		$options = array_merge(['id_column'=>'id'], $options);
+		if(!Tool::is_scalar($thing)){
+			return $this->prefixed_id_from_object_or_error($thing, $options['id_column']);
+		}
+		return $this->prefixed_id_from_string($prefix, $thing);
+	}
+	public function prefixed_ids_by_things($prefix, $things, $options=[]){
+		$map = function ($x) use ($prefix, $options){
+			return $this->prefixed_id_by_thing($prefix, $x, $options); };
+		return array_map($map, $things);
+	}
+
+
+	# uses $this->prefixed_item_by_id or $this->prefixed_item_by_name
+	public function prefixed_item_by_string($prefix, $string){
+		$item = false;
+		if(Tool::isInt($string)){
+			$item = $this->prefixed_item_by_id($prefix, $string);
+		}else{
+			$item = $this->prefixed_item_by_name($prefix, $string);
+		}
+		if($item === false){
+			throw new Exception('id not found from '.json_encode(func_get_args()));
+		}
+		return $item;
+	}
+
+	public function prefixed_item_by_thing($prefix, $thing){
+		if(!Tool::is_scalar($thing)){ # the thing is already an item
+			return $thing;
+		}
+		return $this->prefixed_item_by_string($prefix, $thing);
+	}
+	public function prefixed_item_by_name($prefix, $name){
+		$function = $prefix.'_by_name';
+		return $this->call_guaranteed_identity($this, $function, $name);
+	}
+	public function prefixed_item_by_id($prefix, $id){
+		$function = $prefix.'_by_id';
+		return $this->call_guaranteed_identity($this, $function, $id);
+	}
+
+	#+++++++++++++++          +++++++++++++++ }
+
 }
 
-$bob = new bob($db);
-
-if($bob->get('test2') != 2){
-	pp('fail');
-}
-if($bob->get('5') != 5){
-	pp('fail');
-}
-if($bob->get(['id'=>4]) != 4){
-	pp('fail');
-}
-*/

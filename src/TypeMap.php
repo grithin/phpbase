@@ -17,6 +17,6 @@ class TypeMap{
 		return self::type_id_by_name($name);
 	}
 	static function get($string){
-		return self::static_item_by_string('type', $string);
+		return self::static_prefixed_item_by_string('type', $string);
 	}
 }
