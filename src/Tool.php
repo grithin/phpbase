@@ -202,4 +202,43 @@ class Tool{
 		return password_verify($password, $hash);
 	}
 
+
+	static function cli_parse_args($args, $options=[]){
+		$options = array_merge(['default'=>true], $options);
+		$params = [];
+		$current_key = '';
+		foreach($args as $arg){
+			if($arg[0] == '-'){
+				if($arg[1] == '-'){
+					if(strpos($arg, '=') !== false){
+						list($key, $value) = explode('=', $arg);
+						$params[substr($key, 2)] = $value;
+					}else{
+						$current_key = substr($arg, 2);
+						$params[$current_key] = $options['default'];
+					}
+				}else{
+					if(strlen($arg) > 2){
+						$keys = str_split(substr($arg, 1));
+						$current_key = array_pop($keys);
+						$params[$current_key] = $options['default'];
+						foreach($keys as $key){
+							$params[$key] = $options['default'];
+						}
+					}else{
+						$current_key = substr($arg, 1);
+						$params[$current_key] = $options['default'];
+					}
+				}
+			}else{
+				if($current_key){
+					$params[$current_key] = $arg;
+					unset($current_key);
+				}else{
+					$params[] = $arg;
+				}
+			}
+		}
+		return $params;
+	}
 }
