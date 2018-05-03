@@ -366,7 +366,7 @@ class Arrays{
 	@return	array
 	*/
 	static function flatten($array,$separator='_',$keyPrefix=null){
-		foreach($array as $k=>$v){
+		foreach((array)$array as $k=>$v){
 			if($keyPrefix){
 				$key = $keyPrefix.$separator.$k;
 			}else{
@@ -381,7 +381,7 @@ class Arrays{
 				$sArray[$key] = $v;
 			}
 		}
-		return $sArray;
+		return (array)$sArray;
 	}
 
 	/// Checks if element of an arbitrarily deep array is set

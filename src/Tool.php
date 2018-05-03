@@ -203,6 +203,10 @@ class Tool{
 	}
 
 
+	# Ex: cli_parse_args($argv)
+	/*	args
+		options: {default: < the value a flag argument should take.  Defaults to true >}
+	*/
 	static function cli_parse_args($args, $options=[]){
 		$options = array_merge(['default'=>true], $options);
 		$params = [];
