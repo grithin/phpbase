@@ -366,6 +366,15 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		# general set by framework (jquery) submitting the ajax
 		return (bool)$_SERVER['HTTP_X_REQUESTED_WITH'] || (bool)$_GET['_ajax'];
 	}
+	static function is_api_call(){
+		if($_REQUEST['_api']){
+			return true;
+		}
+		# can reasonably expect that a request for json is an API call
+		if(preg_match('@application/json@', $_SERVER['HTTP_ACCEPT'])){
+			return true;
+		}
+	}
 
 	# Respond to an http request, but don't end the script
 	static function respondWith($response){

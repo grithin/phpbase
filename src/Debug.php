@@ -240,4 +240,15 @@ class Debug{
 		# condense end brackets
 		return preg_replace('@\n\s*('.$end_bracket.',?)'.$end_line.'@','$1', $json_string);
 	}
+
+	static function current_exception_handler(){
+		$current = set_exception_handler(function(){});
+		restore_exception_handler();
+		return $current;
+	}
+	static function current_error_handler(){
+		$current = set_error_handler(function(){});
+		restore_error_handler();
+		return $current;
+	}
 }
