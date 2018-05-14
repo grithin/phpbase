@@ -288,6 +288,10 @@ class Arrays{
 		}
 		return $array;
 	}
+	# clear values equivalent to false
+	static function clear_false($v){
+		return self::remove($v);
+	}
 
 	static function ensure_values(&$array, $values){
 		foreach($values as $value){

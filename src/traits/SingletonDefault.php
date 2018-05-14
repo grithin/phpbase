@@ -73,6 +73,11 @@ trait SingletonDefault{
 		static::setPrimary($instanceName,$className);
 		return static::$instances[$instanceName];
 	}
+	static function primary_overwrite(){
+		$args = func_get_args();
+		array_unshift($args, static::$primaryName);
+		return call_user_func_array(['static', 'resetPrimary'], $args);
+	}
 	/// sets primary to some named instance
 	static function setPrimary($instanceName){
 		$instanceName = $instanceName === null ? 0 : $instanceName;

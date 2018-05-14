@@ -60,6 +60,7 @@ class Tool{
 	}
 	///will encode to utf8 on failing for bad encoding
 	static function json_encode($x, $options =0, $depth = 512){
+		$x = self::deresource($x);
 		$json = json_encode($x, $options, $depth);
 		if($json === false){
 			if(json_last_error() == JSON_ERROR_UTF8){
@@ -99,7 +100,7 @@ class Tool{
 	}
 
 
-	# turn a value into a non circular value (potentially by turning objects int)
+	# turn a value into a non circular value
 	static function decirculate($source, $options=[], $parents=[]){
 
 		#+ set the default circular value hander if not provided {
@@ -143,6 +144,23 @@ class Tool{
 			return $return;
 		}else{
 			return $source;
+		}
+	}
+
+	# remove resource varaibles by replacing them with a string returned by get_resource_type
+	static function deresource($source){
+		if(is_array($source)){
+			$return = [];
+			foreach($source as $k=>$v){
+				$return[$k] = self::deresource($v);
+			}
+			return $return;
+		}else{
+			if(is_resource($source)){
+				return 'Resource Type: '.get_resource_type($source);
+			}else{
+				return $source;
+			}
 		}
 	}
 
@@ -210,33 +228,63 @@ class Tool{
 	static function cli_parse_args($args, $options=[]){
 		$options = array_merge(['default'=>true], $options);
 		$params = [];
+
+		# use the options map if present
+		$key_get = function($key) use ($options){
+			if($options['map'] && $options['map'][$key]){
+				return $options['map'][$key];
+			}
+			return $key;
+		};
+
+		# only set a default for keys that don't have previous values
+		$param_set_default = function($key) use (&$params, $options){
+			if(!array_key_exists($key,$params)){
+				$params[$key] = $options['default'];
+			}
+		};
+
+		# clear out defaults when values are provided, and make keys arrays when multiple values provided
+		$param_set = function($key, $value) use (&$params, $options){
+			if(array_key_exists($key,$params) && $params[$key] !== $options['default']){
+				if(is_array($params[$key])){
+					$params[$key][] = $value;
+				}else{
+					$params[$key] = [$params[$key], $value];
+				}
+			}else{
+				$params[$key] = $value;
+			}
+		};
+
 		$current_key = '';
 		foreach($args as $arg){
 			if($arg[0] == '-'){
-				if($arg[1] == '-'){
-					if(strpos($arg, '=') !== false){
+				if($arg[1] == '-'){ # case of `--key`
+					if(strpos($arg, '=') !== false){ # case of `--key=bob`
 						list($key, $value) = explode('=', $arg);
-						$params[substr($key, 2)] = $value;
-					}else{
-						$current_key = substr($arg, 2);
-						$params[$current_key] = $options['default'];
+						$param_set($key_get(substr($key, 2)), $value);
+					}else{ # case of `--key bob`
+						$current_key = $key_get(substr($arg, 2));
+						$param_set_default($current_key);
 					}
 				}else{
-					if(strlen($arg) > 2){
+					if(strlen($arg) > 2){ # case of `-abc`
 						$keys = str_split(substr($arg, 1));
-						$current_key = array_pop($keys);
-						$params[$current_key] = $options['default'];
+						$current_key = $key_get(array_pop($keys));
+						$param_set_default($current_key);
 						foreach($keys as $key){
-							$params[$key] = $options['default'];
+							$param_set_default($key_get($key));
 						}
-					}else{
-						$current_key = substr($arg, 1);
-						$params[$current_key] = $options['default'];
+					}else{ # case of `-a`
+
+						$current_key = $key_get(substr($arg, 1));
+						$param_set_default($current_key);
 					}
 				}
 			}else{
 				if($current_key){
-					$params[$current_key] = $arg;
+					$param_set($current_key, $arg);
 					unset($current_key);
 				}else{
 					$params[] = $arg;
@@ -244,5 +292,14 @@ class Tool{
 			}
 		}
 		return $params;
+	}
+	static function cli_stdin_get(){
+		$streams = [STDIN];
+		$null = NULL;
+		if(stream_select($streams, $null, $null, 0)){
+			return stream_get_contents(STDIN);
+		}else{
+			return false;
+		}
 	}
 }
