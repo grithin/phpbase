@@ -4,15 +4,91 @@ namespace Grithin;
 use Grithin\Arrays;
 
 class Strings{
-	static $regexExpandCache = array();
-	///expand a regex pattern to a list of characters it matches
+	# code point to UTF-8 string
+	static function unicode_char($i) {
+		return iconv('UCS-4LE', 'UTF-8', pack('V', $i));
+	}
+
+	# UTF-8 string to code point
+	static function unicode_ord($s) {
+		return unpack('V', iconv('UTF-8', 'UCS-4LE', $s))[1];
+	}
+
+	# https://stackoverflow.com/questions/2748956/how-would-you-create-a-string-of-all-utf-8-characters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa : (I avoided the surrogate range 0xD800–0xDFFF as they aren't valid to put in UTF-8 themselves; that would be “CESU-8”.)
+	static function utf8_chars(){
+		static $chars;
+		if(!$chars){
+			for ($i = 0; $i<0xD800; $i++){
+				$chars[] = self::unicode_char($i);
+			}
+			for ($i = 0xE000; $i<0xFFFF; $i++){
+				$chars[] = self::unicode_char($i);
+			}
+		}
+		return $chars;
+	}
+	static function ascii_chars(){
+		static $chars;
+		if(!$chars){
+			$chars = array_map([self, 'unicode_char'], range(0, 127)); # ascii - unicode same for first 127
+		}
+		return $chars;
+	}
+	static function utf8_encode($string){
+		return iconv(mb_detect_encoding($string), 'UTF-8', $string);
+	}
+	static function utf8_is($string){
+		return mb_detect_encoding($string) == 'UTF-8';
+	}
+
+
+	# deprecated
+	static $regexExpandCache;
+	# simpler version of regex_expand
 	static function regexExpand($regex){
-		$ascii = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~'."\t\n";
+		$delimter = $regex[0];
 		if(!self::$regexExpandCache[$regex]){
-			preg_match_all($regex,$ascii,$matches);
-			self::$regexExpandCache[$regex] = implode('',$matches[0]);
+			self::$regexExpandCache[$regex] = self::regex_expand($regex, null, ['delimited'=>true]);
 		}
 		return self::$regexExpandCache[$regex];
+	}
+
+	# expand a range based regex into the actual characters
+	static function regex_expand($regex, $set=null, $options=[]){
+		if(!$set){
+			if($options['utf8']){
+				$set = self::utf8_chars();
+			}else{
+				$set = self::ascii_chars();
+			}
+
+		}
+		if(is_array($set)){
+			$set = implode($set);
+		}
+		#$regex = self::utf8_encode($regex);
+		if(!$options['delimited']){
+			$regex = self::preg_quote_delimiter($regex);
+			if(!$options['bound']){
+				if($options['invert']){
+					$regex = '[^'.$regex.']';
+				}else{
+					$regex = '['.$regex.']';
+				}
+			}
+			$regex = '/'.$regex.'/';
+			if($options['utf8'] || self::utf8_is($set)){
+				$regex .= 'u';
+			}
+		}
+		preg_match_all($regex, $set, $matches);
+		return implode($matches[0]);
+	}
+	# expand a regex and invert it upon a set of characters
+	static function regex_invert($regex, $set=null, $options=[]){
+		$chars = self::regex_expand($regex, $set, $options);
+		$options = array_merge($options, ['delimited'=>false, 'bound'=>true]);
+		return self::regex_expand('[^'.self::preg_quote($chars).']', $set, $options);
 	}
 	///generate a random string
 	/**
@@ -50,7 +126,7 @@ class Strings{
 			$match = '@[a-z0-9]@i';
 		}
 		$allowedChars = self::regexExpand($match);
-		$range = strlen($allowedChars) - 1;
+		$range = mb_strlen($allowedChars) - 1;
 		for($i=0;$i<$length;$i++){
 			$string .= $allowedChars[mt_rand(0,$range)];
 		}
@@ -127,6 +203,14 @@ class Strings{
 			$acronym[] = $part[0];
 		}
 		return implode($seperater,$acronym);
+	}
+
+	# normal preg_quote, but specified delimter escaping
+	static function preg_quote($string, $delimiter='/'){
+		return self::preg_quote_delimiter(preg_quote($string), $delimiter);
+	}
+	static function preg_quote_delimiter($string, $delimiter='/'){
+		return preg_replace('/\\'.$delimiter.'/', '\\\\\0', $string);
 	}
 
 	///escapes the delimiter and delimits the regular expression.

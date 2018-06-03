@@ -199,11 +199,11 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	}
 	# does not apply changes, just calculates potential
 	public function calculate_changes($target){
-		return Arrays::diff($target, $this->record, $this->diff_options);
+		return Collection::diff($target, $this->record, $this->diff_options);
 	}
 
 	public function stored_record_calculate_changes(){
-		return Arrays::diff($this->record, $this->stored_record, $this->diff_options);
+		return Collection::diff($this->record, $this->stored_record, $this->diff_options);
 	}
 	# alias `stored_record_calculate_changes`
 	public function changes(){
@@ -213,7 +213,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public $stored_record_previous;
 	public function apply(){
 		$this->stored_record_previous = $this->stored_record;
-		$diff = new ArrayObject(Arrays::diff($this->record, $this->stored_record, $this->diff_options));
+		$diff = new ArrayObject(Collection::diff($this->record, $this->stored_record, $this->diff_options));
 		if(count($diff)){
 			$this->notify(self::EVENT_UPDATE_BEFORE, $diff);
 			if(count($diff)){ # may have been mutated to nothing
@@ -232,11 +232,11 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public $record_previous; # the $this->record prior to changes; potentially used by event handlers interested in the previous unsaved changes
 	public function replace_local($new_record){
 		$this->record_previous = $this->record;
-		$diff = new ArrayObject(Arrays::diff($new_record, $this->record, $this->diff_options));
+		$diff = new ArrayObject(Collection::diff($new_record, $this->record, $this->diff_options));
 		if(count($diff)){
 			$this->notify(self::EVENT_CHANGE_BEFORE, $diff);
 			if(count($diff)){ # may have been mutated to nothing
-				$this->record = Arrays::diff_apply($this->record, $diff);
+				$this->record = Collection::diff_apply($this->record, $diff);
 				$this->notify(self::EVENT_CHANGE_AFTER, $diff);
 			}
 		}

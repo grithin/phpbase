@@ -230,6 +230,7 @@ class Debug{
 		$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
 		return self::json_format_pretty($json);
 	}
+	# spacing adjustments on standard prettied json (non-breaking)
 	static function json_format_pretty($json_string){
 		$start_bracket = '[\[\{]+';
 		$end_bracket = '[\]\}]+';

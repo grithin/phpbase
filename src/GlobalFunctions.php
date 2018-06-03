@@ -35,6 +35,18 @@ if(!function_exists('pretty')){
 		return Debug::pretty($data);
 	}
 }
+if(!function_exists('json_pretty')){
+	function json_pretty($data){
+		return Debug::json_pretty($data);
+	}
+}
+if(!function_exists('stderr')){
+	function stderr($data){
+		return fwrite(STDERR, $data);
+	}
+}
+
+
 # html attributes should also be encoded.  This will work for that, along with text node display
 if(!function_exists('text')){
 	# print escaped value into html content.  Should also work with tag attributes
@@ -63,6 +75,11 @@ if(!function_exists('encode')){
 	}
 }
 #++ }
+if(!function_exists('file_extension')){
+	function file_extension($file){
+		return array_pop(explode('.', $file));;
+	}
+}
 
 
 }

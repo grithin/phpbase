@@ -225,17 +225,21 @@ class Files{
 		$files = array();
 		foreach(scandir($realPath) as $v){
 			if($v != '.' && $v != '..'){
-				if(is_dir($realPath.$v)){
-					if(!$options['filter_folder'] || $options['filter_folder']($options['prefix'].$v)){
+				$item_path = $realPath.$v;
+				if(is_dir($item_path)){
+					if($options['progress']){
+						stderr('.');
+					}
+					if(!$options['filter_folder'] || $options['filter_folder']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
 						$newOptions = array_merge($options,['prefix'=>$options['prefix'].$v.'/']);
 						if(isset($newOptions['maxDepth'])){
 							$newOptions['maxDepth']--;
 						}
-						$newFiles = self::scan($realPath.$v,$newOptions);
+						$newFiles = self::scan($item_path,$newOptions);
 						$files = Arrays::merge($files,$newFiles);
 					}
 				}else{
-					if(!$options['filter'] || $options['filter']($options['prefix'].$v)){
+					if(!$options['filter'] || $options['filter']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
 						$files[] = $options['prefix'].$v;
 					}
 				}

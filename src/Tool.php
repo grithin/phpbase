@@ -176,11 +176,10 @@ class Tool{
 		}
 	}
 
-
 	///utf encode variably deep array
 	static function &utf8_encode(&$x){
 		if(!is_array($x)){
-			$x = utf8_encode($x);
+			$x = Strings::utf8_encode($x);
 		}else{
 			foreach($x as $k=>&$v){
 				self::utf8_encode($v);	}	}
@@ -223,7 +222,13 @@ class Tool{
 
 	# Ex: cli_parse_args($argv)
 	/*	args
-		options: {default: < the value a flag argument should take.  Defaults to true >}
+		options: {
+			default: < the value a flag argument should take.  Defaults to true >
+			map: {
+				<from> : <to>
+			}
+		}
+
 	*/
 	static function cli_parse_args($args, $options=[]){
 		$options = array_merge(['default'=>true], $options);
