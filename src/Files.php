@@ -228,7 +228,7 @@ class Files{
 				$item_path = $realPath.$v;
 				if(is_dir($item_path)){
 					if($options['progress']){
-						stderr('.');
+						stderr($item_path."\n");
 					}
 					if(!$options['filter_folder'] || $options['filter_folder']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
 						$newOptions = array_merge($options,['prefix'=>$options['prefix'].$v.'/']);

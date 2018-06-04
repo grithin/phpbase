@@ -35,7 +35,10 @@ class Strings{
 		return $chars;
 	}
 	static function utf8_encode($string){
-		return iconv(mb_detect_encoding($string), 'UTF-8', $string);
+		if(!mb_detect_encoding($string, 'UTF-8', true)){ # not strictly utf-8, so convert
+			$string = iconv('ISO-8859-1', 'UTF-8', $string);
+		}
+		return $string;
 	}
 	static function utf8_is($string){
 		return mb_detect_encoding($string) == 'UTF-8';

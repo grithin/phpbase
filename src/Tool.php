@@ -176,13 +176,17 @@ class Tool{
 		}
 	}
 
-	///utf encode variably deep array
+	///utf8 encode keys and values of variably deep array
 	static function &utf8_encode(&$x){
 		if(!is_array($x)){
 			$x = Strings::utf8_encode($x);
 		}else{
+			$new_x = [];
 			foreach($x as $k=>&$v){
-				self::utf8_encode($v);	}	}
+				$new_x[Strings::utf8_encode($k)] = self::utf8_encode($v);
+			}
+			$x = $new_x;
+		}
 		return $x;
 	}
 
