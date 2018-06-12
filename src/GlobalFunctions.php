@@ -42,7 +42,13 @@ if(!function_exists('json_pretty')){
 }
 if(!function_exists('stderr')){
 	function stderr($data){
-		return fwrite(STDERR, $data);
+		return Debug::stderr($data);
+	}
+}
+# improves (array) conversion to use __toArray method
+if(!function_exists('arr')){
+	function arr($data){
+		return \Grithin\Arrays::to_array($data);
 	}
 }
 
@@ -75,7 +81,7 @@ if(!function_exists('encode')){
 	}
 }
 #++ }
-if(!function_exists('file_extension')){
+if(!function_exists('file_extension')){ # because functions exist for other parts (`basename`)
 	function file_extension($file){
 		return array_pop(explode('.', $file));;
 	}

@@ -252,4 +252,7 @@ class Debug{
 		restore_error_handler();
 		return $current;
 	}
+	static function stderr($data){
+		return fwrite(STDERR, $data);
+	}
 }

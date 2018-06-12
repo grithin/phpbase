@@ -23,7 +23,7 @@ class Arrays{
 		@note	if it is a string, will attempt to explode it using divider, unless divider is not set
 		@return	array
 	*/
-	static function toArray($var,$divider=',\s*'){
+	static function to_array($var,$divider=',\s*'){
 		if(is_string($var)){
 			if($divider){
 				return (array)preg_split("@$divider@",$var);
@@ -34,6 +34,11 @@ class Arrays{
 			return (array)get_object_vars($var);
 		}
 		return (array)$var;
+	}
+	# alias
+	static function toArray(){
+		$function = 'to_array';
+		return call_user_func_array([self, $function], func_get_args());
 	}
 	/// extract, if present, specified keys
 	static function pick($src, $props){
