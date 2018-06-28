@@ -46,6 +46,21 @@ trait SingletonDefault{
 		}
 		return static::$instances[$instanceName];
 	}
+	static function init_force($instanceName=null){
+		$instanceName = $instanceName !== null ? $instanceName : self::$i++;
+		$className = static::className(get_called_class());#< use of `static` to allow for override on which class is instantiated
+		$class = new \ReflectionClass($className);
+		$instance = $class->newInstanceArgs(array_slice(func_get_args(),1));
+		static::$instances[$instanceName] = $instance;
+		static::$instances[$instanceName]->name = $instanceName;
+
+		//set primary if no instances except this one
+		if(count(static::$instances) == 1){
+			static::setPrimary($instanceName,$className);#< use of `static` a,d `$className` override and custom handling
+		}
+		return static::$instances[$instanceName];
+	}
+
 	/// get named instance from $instance dictionary - convenience of expectation
 	static function instance($name){
 		if(!self::$instances[$name]){
