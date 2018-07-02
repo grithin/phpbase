@@ -255,4 +255,58 @@ class Debug{
 	static function stderr($data){
 		return fwrite(STDERR, $data);
 	}
+	static function backtrace_clear_debug($conformed_backtrace){
+		$extract = Arrays::pick($conformed_backtrace, ['message', 'context']);
+		unset($conformed_backtrace['message'], $conformed_backtrace['context']);
+
+		$backtrace = $conformed_backtrace['backtrace'];
+		unset($conformed_backtrace['backtrace']);
+		array_unshift($backtrace, $conformed_backtrace);
+
+		foreach($backtrace as $k=>$item){
+			if(preg_match('@phpbase/src/Debug\.php$|phpbase/src/traits/testCall\.php$@',$item['file'])){
+				continue;
+			}
+			if($item['function'] == '__methodExists'){
+				continue;
+			}
+			if(!$item['file']){
+				continue;
+			}
+			$start = $k;
+			break;
+		}
+		$backtrace = array_slice($backtrace, $start);
+
+		$first = array_merge(['message'=>$extract['message']], (array)array_shift($backtrace));
+		$first['backtrace'] = $backtrace;
+		$first['context'] = $extract['context'];
+		return $first;
+	}
+	static function backtrace_clear_framework($conformed_backtrace){
+		$conformed_backtrace = self::backtrace_clear_debug($conformed_backtrace);
+		$extract = Arrays::pick($conformed_backtrace, ['message', 'context']);
+		unset($conformed_backtrace['message'], $conformed_backtrace['context']);
+
+		$backtrace = $conformed_backtrace['backtrace'];
+		unset($conformed_backtrace['backtrace']);
+		array_unshift($backtrace, $conformed_backtrace);
+
+		foreach($backtrace as $k=>$item){
+			if(preg_match('@phpbase/src/|phpdb/src/@',$item['file'])){
+				continue;
+			}
+			if(!$item['file']){
+				continue;
+			}
+			$start = $k;
+			break;
+		}
+		$backtrace = array_slice($backtrace, $start);
+
+		$first = array_merge(['message'=>$extract['message']], (array)array_shift($backtrace));
+		$first['backtrace'] = $backtrace;
+		$first['context'] = $extract['context'];
+		return $first;
+	}
 }

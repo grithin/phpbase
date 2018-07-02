@@ -27,37 +27,37 @@ trait Memoized{
 			return $return;
 		}
 		if(!method_exists(self, $name)){
-			throw new Exception(get_called_class().' Method not found: '.$name);
+			throw new ExceptionMissingMethod($name);
 		}
 	}
 	static $static_memoized = [];
 	static function static_get_memoized($name, $arguments){
-		$key = self::static_make_key($name, $arguments);
+		$key = self::static_memoized__make_key($name, $arguments);
 
-		if(self::static_memoized_has_key($key)){
-			return self::static_memoized_get_from_key($key);
+		if(self::static_memoized__has_key($key)){
+			return self::static_memoized__get_from_key($key);
 		}else{
 			return self::static_call_and_memoize($name, $arguments, $key);
 		}
 	}
 	static function static_call_and_memoize($name, $arguments, $key=null){
 		if(!$key){
-			$key = self::static_make_key($name, $arguments);
+			$key = self::static_memoized__make_key($name, $arguments);
 		}
 		$result_to_memoize = call_user_func_array([self, $name], $arguments);
-		self::static_memoized_set_key($key, $result_to_memoize);
+		self::static_memoized__set_key($key, $result_to_memoize);
 		return $result_to_memoize;
 	}
-	static function static_make_key($name, $arguments){
+	static function static_memoized__make_key($name, $arguments){
 		return $name.'-'.md5(serialize($arguments));
 	}
-	static function static_memoized_has_key($key){
+	static function static_memoized__has_key($key){
 		return array_key_exists($key, self::$static_memoized);
 	}
-	static function static_memoized_get_from_key($key){
+	static function static_memoized__get_from_key($key){
 		return self::$static_memoized[$key];
 	}
-	static function static_memoized_set_key($key, $result){
+	static function static_memoized__set_key($key, $result){
 		self::$static_memoized[$key] = $result;
 	}
 
@@ -120,38 +120,46 @@ trait Memoized{
 			return $return;
 		}
 		if(!method_exists(self, $name)){
-			throw new Exception(get_called_class().' Method not found: '.$name);
+			throw new ExceptionMissingMethod($name);
 		}
 	}
 	public $memoized = [];
 	public function get_memoized($name, $arguments){
-		$key = $this->make_key($name, $arguments);
+		$key = $this->memoized__make_key($name, $arguments);
 
-		if($this->memoized_has_key($key)){
-			return $this->memoized_get_from_key($key);
+		if($this->memoized__has_key($key)){
+			return $this->memoized__get_from_key($key);
 		}else{
 			return $this->call_and_memoize($name, $arguments, $key);
 		}
 	}
 	public function call_and_memoize($name, $arguments, $key=null){
 		if(!$key){
-			$key = $this->make_key($name, $arguments);
+			$key = $this->memoized__make_key($name, $arguments);
 		}
 		$result_to_memoize = call_user_func_array([self, $name], $arguments);
-		$this->memoized_set_key($key, $result_to_memoize);
+		$this->memoized__set_key($key, $result_to_memoize);
 		return $result_to_memoize;
 	}
-	public function make_key($name, $arguments){
+	public function memoized__make_key($name, $arguments){
 		return $name.'-'.md5(serialize($arguments));
 	}
-	public function memoized_has_key($key){
+	public function memoized__has_key($key){
 		return array_key_exists($key, $this->memoized);
 	}
-	public function memoized_get_from_key($key){
+	public function memoized__get_from_key($key){
 		return $this->memoized[$key];
 	}
-	public function memoized_set_key($key, $result){
+	public function memoized__set_key($key, $result){
 		$this->memoized[$key] = $result;
+	}
+	public function memoized__set($name, $arguments, $result){
+		$key = $this->memoized__make_key($name, $arguments);
+		$this->memoized__set_key($key, $result);
+	}
+	public function memoized__unset($name, $arguments){
+		$key = $this->memoized__make_key($name, $arguments);
+		unset($this->memoized[$key]);
 	}
 
 	/*
@@ -190,80 +198,3 @@ trait Memoized{
 
 	#+	}
 }
-
-/* Test Static
-class bob{
-	use \Grithin\Memoized;
-	static function test($x){
-		if(self::static_caller_requested_memoized()){
-			return self::memoized_bottom($x);
-		}else{
-			return self::bottom($x);
-		}
-	}
-	static function test2($x){
-		if(self::static_caller_requested_memoized()){
-			return self::memoized_bottom($x);
-		}else{
-			return self::memoize_bottom($x);
-		}
-	}
-
-	static function bottom($x){
-		return $x.'1 '.microtime();
-	}
-}
-
-$x1 = bob::memoized_test('bobs');
-$x2 = bob::memoized_test('bobs');
-if($x1 !== $x2){
-	pp('memoized faliure');
-}
-$x3 = bob::memoize_test('bobs');
-if($x3 == $x1){
-	pp('memoize remake faliure');
-}
-$x4 = bob::memoized_test('bobs');
-if($x3 !== $x4){
-	pp('memoized faliure');
-}
-*/
-
-/* Test Instance
-class bob{
-	use \Grithin\Memoized;
-	public function test($x){
-		if($this->caller_requested_memoized()){
-			return $this->memoized_bottom($x);
-		}else{
-			return $this->bottom($x);
-		}
-	}
-	public function test2($x){
-		if($this->caller_requested_memoized()){
-			return $this->memoized_bottom($x);
-		}else{
-			return $this->memoize_bottom($x);
-		}
-	}
-
-	public function bottom($x){
-		return $x.'1 '.microtime();
-	}
-}
-
-$bob = new bob;
-$x1 = $bob->memoized_test('bobs');
-$x2 = $bob->memoized_test('bobs');
-if($x1 !== $x2){
-	pp('memoized faliure');
-}
-$x3 = $bob->memoize_test('bobs');
-if($x3 == $x1){
-	pp('memoize remake faliure');
-}
-$x4 = $bob->memoized_test('bobs');
-if($x3 !== $x4){
-	pp('memoized faliure');
-}
-*/

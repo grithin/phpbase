@@ -122,6 +122,9 @@ class Tool{
 		#+ set the default object data extraction hander if not provided {
 		if(!$options['object_extracter'] && !array_key_exists('object_extracter', $options)){
 			$options['object_extracter'] = function($v){
+				if(method_exists($v, '__toArray')){
+					return array_merge($v->__toArray());
+				}
 				return array_merge(['_class' => get_class($v)], get_object_vars($v));
 			};
 		}
