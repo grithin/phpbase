@@ -45,6 +45,17 @@ if(!function_exists('stderr')){
 		return Debug::stderr($data);
 	}
 }
+
+if(!function_exists('sepp')){
+	# standard error pretty print
+	function sepp($data){
+		$output = "\n".Debug::pretty($data, Debug::caller());
+		Debug::stderr($output);
+	}
+}
+
+
+
 # improves (array) conversion to use __toArray method
 if(!function_exists('arr')){
 	function arr($data){
