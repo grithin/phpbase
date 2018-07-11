@@ -75,6 +75,15 @@ trait HasStaticTypes{
 	static function type_id_by_name($name){
 		return static::type_by_name($name)[static::$id_column];
 	}
+	# system name by id
+	static function type_name_by_id($id){
+		return static::type_by_id($id)[static::$system_name_column];
+	}
+	# display name by id
+	static function type_display_by_id($id){
+		return static::type_by_id($id)[static::$dislpay_name_column];
+	}
+
 	static function types_by_names($names){
 		$return = [];
 		foreach($names as $v){
