@@ -2,7 +2,12 @@
 namespace Grithin;
 
 /* About
-Exception intended to accept an array as error details
+Exception intended to accept potentially complex data as error details
+
+-	details are conformed to a string message while retaining tsrutcuer in `details` attribute
+-	if $details param is a string, `details`  attribute takes the form {message: <>}
+-	`details_raw` is available to get exactly what is passed without message conformity
+
 */
 
 
@@ -11,6 +16,7 @@ class ComplexException extends \Exception{
 	public function __construct($details = null, $code = 0, \Exception $previous = null){
 		# the message is extracted from the details, or it is a representation of the details
 		$message = null;
+		$this->details_raw = $details;
 		if(!Tool::is_scalar($details)){
 			if(is_array($details)){
 				if($details['message']){
