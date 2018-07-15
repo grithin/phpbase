@@ -6,6 +6,9 @@ In cases with `id_from_object`, there is no need to call an outside function, an
 In cases with `id_from_string`, if the string is numeric, it is considered the id, otherwise `id_from_name` is called, which then calls a implementer defined function $table.'_id_by_name';
 In the case of `item_by_thing`, if the thing is not a scalar, it is considered the thing desired; otherwise, `item_by_string` is called. which will call either `item_by_id` or  `item_by_name`. and the respective implementer defined functions would be $table.'_by_id' and $table.'_by_name';
 
+Prefix
+With some things, like a type class, there is only one object to be concerned about, and so, with `id_by_thing`, there is only one conceptual thing.  However, wiht somehting like a `Users` class that used these trait functions for a user's profile, address, etc, there are multiple things, which are differentiated by the prefix to their function `profile_by_id`, `address_by_id`.
+
 
 Notes
 -	run on multiple: array_map([$this,'item_by_thing'], $things);
@@ -59,7 +62,6 @@ trait VariedParameter{
 		}
 		return $thing;
 	}
-
 	/*
 	Take what could be an id or an array or an object, and turn it into an id
 	*/
