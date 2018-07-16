@@ -10,7 +10,7 @@ namespace Grithin;
 use \Exception;
 
 trait VariedParameterDynamic{
-	public function call_guaranteed_identity($class, $function, $arg){
+	public function call_guaranteed_identity($function, $arg){
 		$that = $this ?: get_called_class();
 		$result = [$that, $function]($arg);
 		if($result === false){
@@ -143,12 +143,12 @@ trait VariedParameterDynamic{
 	public function item_by_name($name){
 		$that = $this ?: get_called_class();
 		$function = 'by_name';
-		return [$that, 'call_guaranteed_identity']($this, $function, $name);
+		return [$that, 'call_guaranteed_identity']($function, $name);
 	}
 	public function item_by_id($id){
 		$that = $this ?: get_called_class();
 		$function = 'by_id';
-		return [$that, 'call_guaranteed_identity']($this, $function, $id);
+		return [$that, 'call_guaranteed_identity']($function, $id);
 	}
 
 	#+++++++++++++++          +++++++++++++++ }
@@ -173,7 +173,7 @@ trait VariedParameterDynamic{
 	public function prefixed_id_by_name($prefix, $name){
 		$that = $this ?: get_called_class();
 		$function = $prefix.'_id_by_name';
-		return [$that, 'call_guaranteed_identity']($this, $function, $name);
+		return [$that, 'call_guaranteed_identity']($function, $name);
 	}
 	/*	param
 	options	['id_column':<>, 'table':<>]
@@ -219,12 +219,12 @@ trait VariedParameterDynamic{
 	public function prefixed_item_by_name($prefix, $name){
 		$that = $this ?: get_called_class();
 		$function = $prefix.'_by_name';
-		return [$that, 'call_guaranteed_identity']($this, $function, $name);
+		return [$that, 'call_guaranteed_identity']($function, $name);
 	}
 	public function prefixed_item_by_id($prefix, $id){
 		$that = $this ?: get_called_class();
 		$function = $prefix.'_by_id';
-		return [$that, 'call_guaranteed_identity']($this, $function, $id);
+		return [$that, 'call_guaranteed_identity']($function, $id);
 	}
 
 	#+++++++++++++++          +++++++++++++++ }

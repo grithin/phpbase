@@ -16,7 +16,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Grithin\\": ["src/","src/traits/"]
+            "Grithin\\": ["src/","src/traits/"],
+				"Grithin\\Traits\\": ["src/traits/"]
         }
     }
 }

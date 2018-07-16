@@ -33,7 +33,9 @@ trait SingletonDefault{
 	static function init($instanceName=null){
 		$instanceName = $instanceName !== null ? $instanceName : self::$i++;
 		if(!isset(static::$instances[$instanceName])){
-			$className = static::className(get_called_class());#< use of `static` to allow for override on which class is instantiated
+			# in the case of trait `SingletonDefaultPublic`, the called class is a shell for the public class, and so the className must be defined by the shell
+			$className = static::className(get_called_class());
+
 			$class = new \ReflectionClass($className);
 			$instance = $class->newInstanceArgs(array_slice(func_get_args(),1));
 			static::$instances[$instanceName] = $instance;

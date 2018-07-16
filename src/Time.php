@@ -4,6 +4,7 @@ use Grithin\Tool;
 use \Exception;
 ///Supplementing language time functions
 class Time extends \DateTime implements \JsonSerializable{
+	use Traits\Common;
 	///creates a DateTime object with some additional functionality
 	/**
 
@@ -93,6 +94,9 @@ class Time extends \DateTime implements \JsonSerializable{
 	}
 	///Get the common dateTime format "Y-m-d H:i:s"
 	public function datetime(){
+		if(!$this){
+			return self::instance_with_args(func_get_args())->datetime();
+		}
 		return parent::format("Y-m-d H:i:s");
 	}
 	///Get the common date format "Y-m-d"
