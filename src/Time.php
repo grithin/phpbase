@@ -247,11 +247,11 @@ class Time extends \DateTime implements \JsonSerializable{
 		return array('city' => $cityBased, 'standard'=>$standard);
 	}
 
-	# offset by actual months, accounting for variable days in each month, and cutting down the date day-part if necessary
+	# offset by actual months (instead of where php will do `30d * 3` for `+3 months`), accounting for variable days in each month, and cutting down the date day-part if necessary
 	function offset_months($months){
 		return new Time(self::offset_date_by_months($this->unix, $months));
 	}
-	 static function offset_date_by_months($initial_date, $months){
+	static function offset_date_by_months($initial_date, $months){
 		$start_year = date('Y',$initial_date);
 		$start_month = date('m',$initial_date);
 		$start_day = date('d',$initial_date);
@@ -282,5 +282,40 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 
 		return strtotime($date.' '.date('H:i:s',$initial_date));
+	}
+	# return a datetime with some level of precision
+	# ensures a standard way of dealing with reduced precision datetime columns
+	function datetime_precision($precision){
+		if(!$this){
+			$args = func_get_args();
+			$precision = array_pop($args);
+			$function = __FUNCTION__;
+			return self::instance_with_args($args)->$function($precision);
+		}
+		$map = [
+			'year'=>'Y-1-1 00:00:00',
+			'month'=>'Y-m-1 00:00:00',
+			'day'=>'Y-m-d 00:00:00',
+			'hour'=>'Y-m-d H:00:00',
+			'minute'=>'Y-m-d H:i:00',
+			'second'=>'Y-m-d H:i:s',
+		];
+		return $this->format($map[$precision]);
+	}
+	# return a date with some level of precision
+	# ensures a standard way of dealing with reduced precision date columns
+	function date_precision($precision){
+		if(!$this){
+			$args = func_get_args();
+			$precision = array_pop($args);
+			$function = __FUNCTION__;
+			return self::instance_with_args($args)->$function($precision);
+		}
+		$map = [
+			'year'=>'Y-1-1',
+			'month'=>'Y-m-1',
+			'day'=>'Y-m-d',
+		];
+		return $this->format($map[$precision]);
 	}
 }
