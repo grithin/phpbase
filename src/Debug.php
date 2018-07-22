@@ -155,8 +155,12 @@ class Debug{
 			return $level_code;
 		}
 
-	static function conform_exception($exception){
-		return self::conform_error(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),$exception->getTrace());
+	static function conform_exception($exception, $options=[]){
+		$options['additional'] = (array)$options['additional'];
+		if($previous = $exception->getPrevious()){
+			$options['additional']['previous'] = self::conform_error(E_USER_ERROR,$previous->getMessage(),$previous->getFile(),$previous->getLine(),$previous->getTrace(), ['context'=>false]);
+		}
+		return self::conform_error(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),$exception->getTrace(), $options);
 	}
 
 	///print a boatload of information to the load so that even your grandma could fix that bug
@@ -166,7 +170,9 @@ class Debug{
 	@param	eFile	error file
 	@param	eLine	error line
 	*/
-	static function conform_error($eLevel,$eStr,$eFile,$eLine,$backtrace=null){
+	static function conform_error($eLevel,$eStr,$eFile,$eLine,$backtrace=null, $options=[]){
+		$options = array_merge(['context'=>true], $options);
+
 		if($backtrace === null){
 			$backtrace = self::backtrace();
 		}else{
@@ -185,7 +191,12 @@ class Debug{
 			$error['line_string'] = self::getLine($eFile, $eLine);
 		}
 		$error['backtrace'] = $backtrace;
-		$error['context'] = self::context();
+		if($options['additional']){
+			$error['additional'] = $options['additional'];
+		}
+		if($options['context']){
+			$error['context'] = self::context();
+		}
 
 		return $error;
 	}
