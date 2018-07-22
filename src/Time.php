@@ -67,7 +67,7 @@ class Time extends \DateTime implements \JsonSerializable{
 			return $time;
 		}
 		$zone = self::makeZone($zone);
-		if(Tool::isInt($time)){
+		if(is_numeric($time)){
 			# create DateTime with same zone used for later interpretation
 			$Date = new \DateTime(null,$zone);
 			$Date->setTimestamp($time);
