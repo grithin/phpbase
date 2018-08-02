@@ -176,7 +176,13 @@ class Strings{
 	@param	separater	string used to separate
 	@return	underscope separated string
 	*/
-	static function camelToSeparater($string,$separater='_'){
+	static function camelToSeparater($string,$separater='_', $except_start=true){
+		if($except_start){
+			$string = preg_replace_callback('@^[A-Z]@',
+				function($matches) use ($separater){return strtolower($matches[0]);},
+				$string);
+		}
+
 		return preg_replace_callback('@[A-Z]@',
 			function($matches) use ($separater){return $separater.strtolower($matches[0]);},
 			$string);

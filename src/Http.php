@@ -298,14 +298,18 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		return $protocol;
 	}
 
-	///end script with xml
-	static function endXml($content){
+	# end script with xml
+	static function end_with_xml($content){
 		header('Content-type: text/xml; charset=utf-8');
 		echo '<?xml version="1.0" encoding="UTF-8"?>';
 		echo $content; exit;
 	}
-	///end script with json
-	static function endJson($content,$encode=true){
+	static function endXml($content){
+		$alias_for = 'end_with_xml';
+		return call_user_func_array([$this,$alias_for], func_get_args());
+	}
+	# end script with json
+	static function end_with_json($content,$encode=true){
 		header('Content-type: application/json');
 		if($encode){
 			echo \Grithin\Tool::json_encode($content);
@@ -313,6 +317,10 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 			echo $content;
 		}
 		exit;
+	}
+	static function endJson($content,$encode=true){
+		$alias_for = 'end_with_json';
+		return call_user_func_array([$this,$alias_for], func_get_args());
 	}
 
 	//it appears the browser parses once, then operating system, leading to the need to double escape the file name.  Use double quotes to encapsulate name
@@ -389,6 +397,12 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		ob_end_flush(); # flush inner layer
 		ob_flush(); # flush all layers
 		flush(); # push to browser
+	}
+	static function header_cache_time($time){
+		$time = new \Grithin\Time($time);
+		header("Expires: ".$time->format('D, d M Y H:i:s'));
+		header("Pragma: cache");
+		header("Cache-Control: max-age=".(-$time->age('seconds')));
 	}
 }
 Http::configure();

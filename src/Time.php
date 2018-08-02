@@ -107,6 +107,7 @@ class Time extends \DateTime implements \JsonSerializable{
 	public function setZone($zone){
 		return parent::setTimezone(self::makeZone($zone));
 	}
+	# deprecated
 	///get DateInterval object based on current Time instance.
 	/**
 	@param	time	see Time::__construct()
@@ -122,6 +123,7 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 		return parent::diff($time,$absolute);
 	}
+	# deprecated
 	///get DateInterval without having to separately make DateTime instances
 	/**
 	@param	time1	see Time::__construct()
@@ -193,9 +195,52 @@ class Time extends \DateTime implements \JsonSerializable{
 		$parts = explode(':', $clock);
 		$this->setTime($parts[0],$parts[1],$parts2[2]);
 	}
+	function diff($time, $format=null){
+		if($format){
+			return self::interval_convert(parent::diff($time), $format);
+		}else{
+			return parent::diff($time);
+		}
+	}
+
 	///Get Diff object comparing current object ot current time
-	function age(){
-		return $this->diff(Datetime());
+	function age($format=null){
+		return $this->diff(new \Datetime(),  $format);
+	}
+	static function interval_convert($interval, $into){
+		$seconds = $interval->s + 60 * $interval->s + 3600 * $interval->h;
+		if($interval->days){
+			$days = $interval->days; # this is the total number of days, whereas ->d is just the number of days in the remaining month
+		}else{
+			$days = $interval->d + ($interval->m * 30) + $interval->y * 365;
+		}
+		$invert = $interval->invert ? -1 : 1;
+		$get_absolute = function()use($interval, $into, $seconds, $days){
+			switch($into){
+				case 'second':
+				case 'seconds':
+					return $seconds + 86400 * $days;
+				case 'minute':
+				case 'minutes':
+					return $seconds/60 + $days * 1440;
+				case 'hour':
+				case 'hours':
+					return $seconds/3600 + $days * 24;
+				case 'day':
+				case 'days':
+					return $seconds/86400 + $days;
+				case 'week':
+				case 'weeks':
+					return ($seconds/86400 + $days)/7;
+				case 'month':
+				case 'months':
+					return $seconds/2592000 + $interval->d/30 + $interval->m + $interval->y*12 ;
+				case 'year':
+				case 'years':
+					return ($seconds/2592000 + $interval->d/30 + $interval->m)/12 + $interval->y ;
+			}
+		};
+		return $invert * $get_absolute();
 	}
 	function unix(){
 		return $this->format('U');
