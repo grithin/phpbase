@@ -30,6 +30,7 @@ if(!function_exists('ppe')){
 		Debug::quit($data, $caller);
 	}
 }
+# data as a pretty, identifying string
 if(!function_exists('pretty')){
 	function pretty($data){
 		return Debug::pretty($data);

@@ -384,7 +384,7 @@ class Arrays{
 	}
 
 
-	# Just flatten the values of an array into non-array values by select one of the sub array items
+	# flatten the values of an array into non-array values by select one of the sub array items
 	static function flatten_values($array, $fn=null){
 		if(!$fn){
 			$fn = function($v, $k) use (&$fn){

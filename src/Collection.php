@@ -3,6 +3,16 @@ namespace Grithin;
 
 class Collection{
 	# lodash find
+	/* params
+	< collection >
+	< predicate > (
+		< closure >
+		||
+		{< match_key >: < match_value >, ...}
+		||
+		< string of key to find within objects >
+	)
+	*/
 	static function find($collection, $predicate){
 		if(is_object($predicate) && ($predicate instanceof Closure)){
 			foreach($collection as $item){
@@ -11,16 +21,73 @@ class Collection{
 				}
 			}
 		}else{
-			foreach($collection as $item){
-				foreach($predicate as $k_match => $v_match){
-					if(!array_key_exists($k_match, $item) || $item[$k_match] != $v_match){
-						continue 2;
+			if(is_array($predicate)){
+				foreach($collection as $item){
+					foreach($predicate as $k_match => $v_match){
+						if(!array_key_exists($k_match, $item) || $item[$k_match] != $v_match){
+							continue 2;
+						}
+						return $item;
 					}
-					return $item;
+				}
+			}else{
+				foreach($collection as $item){
+					if(array_key_exists($predicate, $item)){
+						return $item;
+					}
 				}
 			}
 		}
 	}
+	# find, but return all matches
+	static function find_all($collection, $predicate){
+		$found = [];
+		if(is_object($predicate) && ($predicate instanceof Closure)){
+			foreach($collection as $item){
+				if($predicate($item)){
+					$found[] = $item;
+				}
+			}
+		}else{
+			if(is_array($predicate)){
+				foreach($collection as $item){
+					foreach($predicate as $k_match => $v_match){
+						if(!array_key_exists($k_match, $item) || $item[$k_match] != $v_match){
+							continue 2;
+						}
+						$found[] = $item;
+					}
+				}
+			}else{
+				foreach($collection as $item){
+					if(array_key_exists($predicate, $item)){
+						$found[] = $item;
+					}
+				}
+			}
+		}
+		return $found;
+	}
+	# Convert a numeric list (array) to a dictionary (key:value) by using some function that returns [key, value]
+	/* Ex
+	[ {a:b}, {x:y} ]
+	=>
+	{a:b, x:y}
+	*/
+	static function list_to_dictionary($list, $fn=null){
+		if(!$fn){
+			$fn = function($item){
+				return [key($item), current($item)];
+			};
+		}
+		$dictionary = [];
+		foreach($list as $item){
+			list($k,$v) = $fn($item);
+			$dictionary[$k] = $v;
+		}
+		return $dictionary;
+	}
+
 	# get ArrayObject representing diff between two arrays/objects, wherein items in $target are different than in $base, but not vice versa (existing $base items may not exist in $target)
 	/* Examples
 	self(['bob'=>'sue'], ['bob'=>'sue', 'bill'=>'joe']);
