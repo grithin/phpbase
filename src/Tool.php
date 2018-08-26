@@ -241,6 +241,10 @@ class Tool{
 		}
 
 	*/
+	/* Defaults
+		Collection::empty_default(cli_parse_args($argv), ['key'=>'default_value'])
+
+	*/
 	static function cli_parse_args($args, $options=[]){
 		$options = array_merge(['default'=>true], $options);
 		$params = [];
@@ -306,6 +310,9 @@ class Tool{
 					$params[] = $arg;
 				}
 			}
+		}
+		if($options['empty_defaults']){
+			$params = Collection::empty_default($params, $options['empty_defaults']);
 		}
 		return $params;
 	}

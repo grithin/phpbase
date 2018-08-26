@@ -159,4 +159,12 @@ class Collection{
 
 		return MissingValue::remove($result);
 	}
+	static function empty_default($source, $defaults){
+		foreach($defaults as $k=>$v){
+			if(!array_key_exists($k, $source) || $source[$k] === '' || $source[$k] === false || $source[$k] === null){
+				$source[$k] = $v;
+			}
+		}
+		return $source;
+	}
 }
