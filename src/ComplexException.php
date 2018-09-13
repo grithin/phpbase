@@ -10,6 +10,18 @@ Exception intended to accept potentially complex data as error details
 
 */
 
+/* Example
+try{
+	throw new \Grithin\ComplexException(['message'=>'error 123', 'type'=>'123']);
+}catch(\Grithin\ComplexException $e){
+	if($e->details['type'] != 123){
+		throw $e;
+	}else{
+		echo 'handling exception type 123';
+	}
+}
+*/
+
 
 class ComplexException extends \Exception{
 	public $details = [];
