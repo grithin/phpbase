@@ -16,7 +16,7 @@ class TypeMap{
 	static function id($name){
 		return self::type_id_by_name($name);
 	}
-	static function get($string){
-		return self::static_prefixed_item_by_string('type', $string);
+	static function get($thing){
+		return self::static_prefixed_item_by_thing('type', $thing);
 	}
 }
