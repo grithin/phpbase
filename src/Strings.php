@@ -103,6 +103,8 @@ class Strings{
 		@param	1	min length
 		@param	2	max length max
 		@param	3	regex pattern
+	case 3 (default alphanumeric pattern)
+		@param	1	length
 
 	Regex pattern:  Can evaluate to false (which defaults to alphanumeric).  Should be delimeted.  Defaults to '@[a-z0-9]@i'
 

@@ -71,7 +71,12 @@ class Time extends \DateTime implements \JsonSerializable{
 			# create DateTime with same zone used for later interpretation
 			$Date = new \DateTime(null,$zone);
 			$Date->setTimestamp($time);
-			return $Date;
+			$remainder = floor($time) - $time;
+			if($remainder){ # number had a fraction, remake Date with microtime (which can only be done by making a new Date object)
+				return new \DateTime($Date->format('Y-m-d H:i:s.').$remainder);
+			}else{
+				return $Date;
+			}
 		}
 		# normal interpretation
 		return new \DateTime($time,$zone);

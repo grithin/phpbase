@@ -1,5 +1,5 @@
 <?
-# run with `phpunit VariedParameter.php`
+# run with `phpunit TypeMap.php`
 
 $_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
 require $_ENV['root_folder'] . '/vendor/autoload.php';
