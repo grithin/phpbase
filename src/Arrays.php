@@ -78,6 +78,9 @@ class Arrays{
 	/*
 	Copy array, mapping some columns to different columns - only excludes columns on collision
 	@NOTE if src contains key collision with map, map will overwrite
+
+	[ old_key => new_key ]
+
 	*/
 	/* Example
 	$user_input = [
@@ -106,6 +109,9 @@ class Arrays{
 	/*
 	Map only specified keys, ignoring the rest
 	@NOTE if src contains key collision with map, map will overwrite
+
+	[ old_key => new_key ]
+
 	*/
 	/* Example
 	$user_input = [
@@ -1026,5 +1032,13 @@ class Arrays{
 			}
 		}
 		return $set;
+	}
+	/* About.md
+	like array_unique, but
+	-	array_unique defaults to converting comparison to string.  This uses the `SORT_REGULAR` flag to avoid that, allowing comparison of values that are complex, like subarrays
+	-	the return does not preserve the keys, so this will not cause json_encode to create an object instead of an array
+	*/
+	static function unique($list){
+		return array_values(array_unique($list, SORT_REGULAR));
 	}
 }

@@ -94,7 +94,7 @@ class Strings{
 		return self::regex_expand('[^'.self::preg_quote($chars).']', $set, $options);
 	}
 	///generate a random string
-	/**
+	/*
 	@note this function is overloaded and can take either two or three params.
 	case 1
 		@param	1	length
