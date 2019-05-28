@@ -62,7 +62,7 @@ class Files{
 	*/
 	private static function inc($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
-			self::logIncluded(true);
+			self::log_included(true);
 
 			if($_options['globals']){
 				foreach($_options['globals'] as $_global){
@@ -84,7 +84,7 @@ class Files{
 			}
 			return $_return;
 		}
-		self::logIncluded(false);
+		self::log_included(false);
 		return false;
 	}
 	///include a file once
@@ -95,9 +95,9 @@ class Files{
 	@param	extract	variables to extract from the included file to be returned
 	@return	true or extracted varaibles if file successfully included, else false
 	*/
-	private static function incOnce($_file, $_vars=null, $_options=[]){
+	private static function inc_once($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
-			self::logIncluded(true);
+			self::log_included(true);
 			if($_options['globals']){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
@@ -118,7 +118,7 @@ class Files{
 			}
 			return $_return;
 		}
-		self::logIncluded(false);
+		self::log_included(false);
 		return false;
 	}
 	///require a file
@@ -128,7 +128,7 @@ class Files{
 	*/
 	private static function req($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
-			self::logIncluded(true);
+			self::log_included(true);
 			if($_options['globals']){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
@@ -149,7 +149,7 @@ class Files{
 			}
 			return $_return;
 		}
-		self::logIncluded(false);
+		self::log_included(false);
 		Debug::toss('Could not include file "'.$_file.'"');
 	}
 	///require a file once
@@ -157,9 +157,9 @@ class Files{
 	see self::inc
 	@return	on failure, runs Debug::toss
 	*/
-	private static function reqOnce($_file, $_vars=null, $_options=[]){
+	private static function req_once($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
-			self::logIncluded(true);
+			self::log_included(true);
 			if($_options['globals']){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
@@ -180,16 +180,24 @@ class Files{
 			}
 			return $_return;
 		}
-		self::logIncluded(false);
+		self::log_included(false);
 		Debug::toss('Could not include file "'.$_file.'"');
 	}
-	private static function logIncluded($result){
+	private static function log_included($result){
 		self::$currentInclude['result'] = $result;
 		self::$included[] = self::$currentInclude;
+	}
+	# standard-naming alias
+	static function get_included($path_parts){
+		return call_user_func_array([self, 'getIncluded'], func_get_arg());
 	}
 	///get all the included files included by functions from this class
 	static function getIncluded(){
 		return self::$included;
+	}
+	# standard-naming alias
+	static function remove_relative($path_parts){
+		return call_user_func_array([self, 'removeRelative'], func_get_arg());
 	}
 	///remove relative parts of a path that could be used for exploits
 	static function removeRelative($path){
@@ -278,6 +286,10 @@ class Files{
 		}
 		return $mime;
 	}
+	# standard-naming alias
+	static function mime_ext($path_parts){
+		return call_user_func_array([self, 'mimeExt'], func_get_arg());
+	}
 	///take a mimetype and return the extension for it
 	static function mimeExt($mime){
 		$mime = explode('/',$mime);
@@ -299,6 +311,10 @@ class Files{
 		file_put_contents($location,$content);
 	}
 
+	# standard-naming alias
+	static function dir_size($path_parts){
+		return call_user_func_array([self, 'dirSize'], func_get_arg());
+	}
 	///get the size of a directory
 	/**
 	@param	dir	path to a directory
@@ -320,7 +336,10 @@ class Files{
 			return $size;
 		}
 	}
-
+	# standard-naming alias
+	static function absolute_path($path_parts){
+		return call_user_func([self, 'absolutePath'], $path_parts);
+	}
 	///does not care whether relative folders exist (unlike file include functions).  Does not work when |relative-to object| not given
 	///Found here b/c can be applied to HTTP paths, not just file paths
 	static function absolutePath($pathParts){
@@ -337,7 +356,11 @@ class Files{
 		}
 		return implode('/',$absParts);
 	}
-
+	# affix, before the extension
+	# ex: ('bob.mp3', '.150') => 'bob.150.mp4'
+	static function affix($name, $affix){
+		return substr_replace($name, $affix, strrpos($name, '.'), 0);
+	}
 }
 
 

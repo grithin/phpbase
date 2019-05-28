@@ -233,16 +233,14 @@ class Tool{
 
 	# Ex: cli_parse_args($argv)
 	/*	args
-		options: {
+		< options >: {
 			default: < the value a flag argument should take.  Defaults to true >
 			map: {
 				<from> : <to>
-			}
+			},
+			defaults :
+				< key > : < default value >
 		}
-
-	*/
-	/* Defaults
-		Collection::empty_default(cli_parse_args($argv), ['key'=>'default_value'])
 
 	*/
 	static function cli_parse_args($args, $options=[]){
@@ -311,8 +309,9 @@ class Tool{
 				}
 			}
 		}
-		if($options['empty_defaults']){
-			$params = Collection::empty_default($params, $options['empty_defaults']);
+		#
+		if($options['defaults']){
+			$params = Collection::empty_default($params, $options['defaults']);
 		}
 		return $params;
 	}

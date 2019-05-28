@@ -60,7 +60,7 @@ if(!function_exists('sepp')){
 # improves (array) conversion to use __toArray method
 if(!function_exists('arr')){
 	function arr($data){
-		return \Grithin\Arrays::to_array($data);
+		return \Grithin\Arrays::convert($data);
 	}
 }
 
@@ -99,5 +99,20 @@ if(!function_exists('file_extension')){ # because functions exist for other part
 	}
 }
 
+
+if(!function_exists('gi')){ # GlobalInstance get or set (depending on parameter count)
+	/* params
+	< name >
+	< instance > < optional, determines whether to call `set` >
+	*/
+	function gi(){
+		$args = func_get_args();
+		if(count($args) == 2){
+			return \Grithin\GlobalInstance::get($args[0], $args[1]);
+		}else{
+			return \Grithin\GlobalInstance::get($args[0]);
+		}
+	}
+}
 
 }

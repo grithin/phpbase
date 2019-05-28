@@ -404,5 +404,88 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		header("Pragma: cache");
 		header("Cache-Control: max-age=".(-$time->age('seconds')));
 	}
+	/*
+	PHP will organize $_FILES like (uploading input.file.test.bob and input.file.test.bill)
+		{"input": {
+		  "name": {
+				"file": {
+					 "test": {
+						  "bob": "test1.csv",
+						  "bill": "test2.csv"}}},
+		  "type": {
+				"file": {
+					 "test": {
+						  "bob": "text\/csv",
+						  "bill": "text\/csv"}}},
+		  "tmp_name": {
+				"file": {
+					 "test": {
+						  "bob": "\/tmp\/phphmtApT",
+						  "bill": "\/tmp\/phpdDMI1r"}}},
+		  "error": {
+				"file": {
+					 "test": {
+						  "bob": 0,
+						  "bill": 0}}},
+		  "size": {
+				"file": {
+					 "test": {
+						  "bob": 5478,
+						  "bill": 2892}}}}}
+	wherein the first key is not categorized under one of (name, type, tmp_name, error, size), but the remaining keys are.
+
+	This function moves the categories into the keys, instead of the other way around:
+	{"input": {
+	  "file": {
+			"test": {
+				 "bob": {
+					  "name": "test1.csv",
+					  "type": "text\/csv",
+					  "tmp_name": "\/tmp\/phpwz2pRx",
+					  "error": 0,
+					  "size": 5478},
+				 "bill": {
+					  "name": "test2.csv",
+					  "type": "text\/csv",
+					  "tmp_name": "\/tmp\/phpAoe0UK",
+					  "error": 0,
+					  "size": 2892}}}}}
+	*/
+	function files_variable_organize($files=null){
+		$files = $files ? $files : $_FILES;
+		$traverse = function($v, $prefix_path = '') use (&$traverse){
+			$paths_values = [];
+			if(is_array($v)){
+				foreach($v as $k=>$v2){
+					if($prefix_path){
+						$new_prefix = $prefix_path.'.'.$k;
+					}else{
+						$new_prefix = $k;
+					}
+					$paths_values = array_merge($paths_values, $traverse($v2, $new_prefix));
+				}
+			}else{
+				$paths_values[] = [$prefix_path, $v];
+			}
+			return $paths_values;
+		};
+
+		$organized_files = [];
+		foreach($files as $top_key=>$type_level){
+			if(is_array($type_level['name'])){
+				# Note: types = ['error','name','size','tmp_name','type'];
+				foreach($type_level as $type=>$hierarchy){
+					$paths_values = $traverse($hierarchy, $top_key);
+
+					foreach($paths_values as $path_value){
+						$organized_files = \Grithin\Arrays::set($path_value[0].'.'.$type, $path_value[1], $organized_files);
+					}
+				}
+			}else{
+				$organized_files[$top_key] = $type_level;
+			}
+		}
+		return $organized_files;
+	}
 }
 Http::configure();

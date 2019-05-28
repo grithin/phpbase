@@ -10,39 +10,53 @@ use \Exception;
 */
 class Arrays{
 	# use __toArray if exists on object
-	static function from($x){
-		if(is_object($x)){
-			if(method_exists($x, '__toArray')){ # hopefully PHP adds this at some point
-				return $x->__toArray();
-			}
+	# @note	if it is a string, will attempt to explode it using divider, unless divider is not set
+	static function from($x, $divider=',\s*'){
+		if(is_string($x)){
+			return self::from_string($x, $divider);
+		}elseif(is_object($x)){
+			return self::from_object($x);
+		}else{
+			return (array)$x;
+		}
+	}
+	# alias for `from`
+	static function to_array($var, $divider=',\s*'){
+		return self::from($var, $divider);
+	}
+	# alias for `from`
+	static function toArray($var, $divider=',\s*'){
+		return self::from($var, $divider);
+	}
+	static function from_object($x){
+		if(method_exists($x, '__toArray')){ # hopefully PHP adds this at some point
+			return $x->__toArray();
+		}else{
+			/* get_object_vars vs (array)
+				`(array)$x` will create keys for private and protected attributes, but those keys will have special utf character prefixes to indicate their status.  They are generally not useful as plain name keys
+				`get_object_vars($x)` will not get private and protected attributes
+			*/
+			return get_object_vars($x);
+		}
+	}
+	static function from_string($string, $divider=',\s*'){
+		if($divider){
+			return (array)preg_split("@$divider@",$string);
+		}else{
+			return (array)$var;
+		}
+	}
+	# intended to replace `(array)$x` with the added feature of using __toArray if available on object
+	static function convert(){
+		if(is_object($x) && method_exists($x, '__toArray')){
+			return $x->__toArray();
 		}
 		return (array)$x;
 	}
-	///turns var into an array
-	/**
-		@note	if it is a string, will attempt to explode it using divider, unless divider is not set
-		@return	array
-	*/
-	static function to_array($var,$divider=',\s*'){
-		if(is_string($var)){
-			if($divider){
-				return (array)preg_split("@$divider@",$var);
-			}else{
-				return (array)$var;
-			}
-		}elseif(is_object($var)){
-			return (array)get_object_vars($var);
-		}
-		return (array)$var;
-	}
-	# alias
-	static function toArray(){
-		$function = 'to_array';
-		return call_user_func_array([self, $function], func_get_args());
-	}
+
 	/// extract, if present, specified keys
 	static function pick($src, $props){
-		$props = Arrays::toArray($props);
+		$props = Arrays::from($props);
 		$dest = [];
 		foreach($props as $prop){
 			if(self::is_set($src, $prop)){
@@ -58,7 +72,7 @@ class Arrays{
 	}
 	/// ensure, by adding if necessary, keys are within an array
 	static function ensure_keys($src, $props, $fill_on_missing=null){
-		$props = Arrays::toArray($props);
+		$props = Arrays::from($props);
 		foreach($props as $prop){
 			if(!self::is_set($src, $prop)){
 				$src[$prop] = $fill_on_missing;
@@ -175,7 +189,7 @@ class Arrays{
 
 	/// lodash omit
 	static function omit($src, $props){
-		$props = self::toArray($props);
+		$props = self::from($props);
 		$dest = [];
 		foreach($src as $key=>$value){
 			if(!in_array($key, $props)){
@@ -443,7 +457,7 @@ class Arrays{
 	@param	array	array	The array which is parsed for the element
 	*/
 	static function isElement($keys,$array){
-		$keys = self::toArray($keys);
+		$keys = self::from($keys);
 		$lastKey = array_pop($keys);
 		$array = self::getElement($keys,$array);
 		return self::is_set($array, $lastKey);
@@ -456,7 +470,7 @@ class Arrays{
 	@param	force	string	determines whetehr to create parts of depth if they don't exist
 	*/
 	static function getElement($keys,$array,$force=false){
-		$keys = self::toArray($keys);
+		$keys = self::from($keys);
 		foreach($keys as $key){
 			if(!self::is_set($array, $key)){
 				if(!$force){
@@ -475,7 +489,7 @@ class Arrays{
 	@param	force	string	determines whether to create parts of depth if they don't exist
 	*/
 	static function &getElementReference($keys,&$array,$force=false){
-		$keys = self::toArray($keys);
+		$keys = self::from($keys);
 		foreach($keys as &$key){
 			if(!is_array($array)){
 				$array = array();
@@ -936,11 +950,11 @@ class Arrays{
 		}
 		return $count;
 	}
-	/// takes an object and converts it into an array.  Ignores nested objects
-	static function convert($variable,$parseObject=true){
+	/// Turns nested objects, at any level of depth, into arrays
+	static function convert_deep($variable,$parseObject=true){
 		if(is_object($variable)){
 			if($parseObject){
-				$parts = get_object_vars($variable);
+				$parts = self::from_object($variable);
 				foreach($parts as $k=>$part){
 					$return[$k] = self::convert($part,false);
 				}
