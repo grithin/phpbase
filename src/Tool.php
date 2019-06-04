@@ -243,6 +243,10 @@ class Tool{
 		}
 
 	*/
+	/*
+	Warning, because PHP is stupid, quoting a value argument like `-r '-24hr'` makes no difference, and $argv will  still have `-r` and `-24hr`.  As such, this function will interprety `-24hr` as a named parameter rather than a value argument.
+	The way to account for this is to use `=` and long keys for specifying value parameters: `--range='-24hr'`
+	*/
 	static function cli_parse_args($args, $options=[]){
 		$options = array_merge(['default'=>true], $options);
 		$params = [];
@@ -305,7 +309,7 @@ class Tool{
 					$param_set($current_key, $arg);
 					unset($current_key);
 				}else{
-					$params[] = $arg;
+					$param_set($key_get(count($params)), $arg);
 				}
 			}
 		}
