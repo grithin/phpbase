@@ -213,7 +213,7 @@ class Time extends \DateTime implements \JsonSerializable{
 		return $this->diff(new \Datetime(),  $format);
 	}
 	static function interval_convert($interval, $into){
-		$seconds = $interval->s + 60 * $interval->s + 3600 * $interval->h;
+		$seconds = $interval->s + 60 * $interval->i + 3600 * $interval->h;
 		if($interval->days){
 			$days = $interval->days; # this is the total number of days, whereas ->d is just the number of days in the remaining month
 		}else{
