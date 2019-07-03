@@ -243,9 +243,14 @@ class Tool{
 		}
 
 	*/
-	/*
-	Warning, because PHP is stupid, quoting a value argument like `-r '-24hr'` makes no difference, and $argv will  still have `-r` and `-24hr`.  As such, this function will interprety `-24hr` as a named parameter rather than a value argument.
-	The way to account for this is to use `=` and long keys for specifying value parameters: `--range='-24hr'`
+	/* note, on quoted args
+	$argv does not distinguished quoted arguments from non quoted arguments.  Consequently, if a value starts with '-', it is always interpretted as a key.
+	To avoid this, for any key that receives a value that can start with '-', use the form `--range='-24hr'`
+	*/
+
+	/* note, on duplicate keys
+	the majority of the time, a repeated key is an error, and not an intended array.  And, if an array is desired, it can be done with another key to be parsed as such.
+	Consequently, duplicate keys overwrite each other instead of forming an array
 	*/
 	static function cli_parse_args($args, $options=[]){
 		$options = array_merge(['default'=>true], $options);
@@ -266,18 +271,24 @@ class Tool{
 			}
 		};
 
-		# clear out defaults when values are provided, and make keys arrays when multiple values provided
 		$param_set = function($key, $value) use (&$params, $options){
-			if(array_key_exists($key,$params) && $params[$key] !== $options['default']){
-				if(is_array($params[$key])){
-					$params[$key][] = $value;
-				}else{
-					$params[$key] = [$params[$key], $value];
-				}
-			}else{
-				$params[$key] = $value;
-			}
+			$params[$key] = $value;
 		};
+
+		#+ handle negative number keys {
+		if($options['map']){
+			foreach($options['map'] as $key=>$target){
+				if((int)$key < 0){
+					$slice = array_slice($args, $key, 1);
+					if(count($slice)){
+						$params[$target] = $slice[0];
+					}
+				}
+			}
+		}
+		#+ }
+
+
 
 		$current_key = '';
 		foreach($args as $arg){
@@ -286,6 +297,7 @@ class Tool{
 					if(strpos($arg, '=') !== false){ # case of `--key=bob`
 						list($key, $value) = explode('=', $arg);
 						$param_set($key_get(substr($key, 2)), $value);
+						$current_key = false;
 					}else{ # case of `--key bob`
 						$current_key = $key_get(substr($arg, 2));
 						$param_set_default($current_key);
