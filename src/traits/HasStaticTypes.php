@@ -13,6 +13,18 @@ The code being prejudiced towards `system_name`, instances of `name` in function
 Further standards
 -	`ordinal` position in appearance
 -	`is_hidden`
+
+
+Thoughts on system_name:
+-	system name might be used for a number of things within the code, including
+	-	css class
+	-	variable names
+	-	class or function names
+	-	array keys
+	The restrictions for these names might incline one towards the use of  restrictive system names.  However, a conforming function can be used, `css_class(system_name)`.  There is another aspect of ensuring simplicity in the naming, so that there is no confusion in the code about spacing or capitalization.  And, primarily for the purpose of keeping things simple and thus reducing errors, my system_name convention is:
+	-	all lower case
+	-	no spaces, use underscores
+	-	no special characters
 */
 
 trait HasStaticTypes{
