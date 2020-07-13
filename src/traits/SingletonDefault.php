@@ -77,7 +77,7 @@ trait SingletonDefault{
 	/// use the default name of `0` and call init
 	static function singleton(){
 		$args = array_merge([0], (array)func_get_args());
-		return call_user_func_array([self,'init'], $args);
+		return call_user_func_array([__CLASS__,'init'], $args);
 	}
 	/// overwrite any existing primary with new construct
 	static function &resetPrimary($instanceName=null){
