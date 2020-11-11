@@ -1,6 +1,6 @@
 <?
 /* About
-For convenience, a function might accept an id, a name, or an object used to identify some object.  This standardises handling such variable input.
+See VariedParameter.php
 
 To allow either instance or static calls, `$that = $this ?: get_called_class();` is used.  `__call` and `__callStatic` are not used so as not to require a `$that` parameter to the various functions
 

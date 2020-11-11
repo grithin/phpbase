@@ -168,4 +168,39 @@ class Collection{
 		}
 		return $source;
 	}
+
+
+	# take a string and turn it into a collection for mapping
+	/* ex
+		'
+			bob:bob2
+			bob:bob3
+		'
+	*/
+	# if either key on either side of ':' is blank, the non-blank value will be used for both.  And, ":" can be omitted
+	/* ex
+		'
+			:bob
+			sue:
+			jill
+			normal:normal2
+		'
+	*/
+	# @NOTE lines are trimmed.  Empty lines are ignored
+
+	static function string_to_map(){
+		$lines = array_filter(preg_split('@[\s\n]+@', $map_string));
+		$array = [];
+		$lines = array_filter($lines);
+		foreach($lines as $line){
+			$parts = explode(':', $line);
+			if($parts[0] === ''){
+				$parts[0] = $parts[1];
+			}elseif($parts[1] === ''){
+				$parts[1] = $parts[0];
+			}
+			$array[$parts[0]] = $parts[1];
+		}
+		return $array;
+	}
 }

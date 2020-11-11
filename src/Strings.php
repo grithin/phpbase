@@ -371,12 +371,15 @@ class Strings{
 		}
 		return $matches;
 	}
-	static function matchAny($regexes,$subject){
+	static function match_any($regexes,$subject){
 		foreach($regexes as $regex){
 			if(preg_match($regex,$subject)){
 				return true;
 			}
 		}
+	}
+	static function matchAny($regexes,$subject){
+		return self::match_any($regexes,$subject);
 	}
 	///translate human readable size into bytes
 	static function byteSize($string){

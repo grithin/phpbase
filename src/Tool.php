@@ -222,10 +222,12 @@ class Tool{
 	#+	}
 
 
+	# create a randomly salted password hash
 	function password_hash($password){
 		return password_hash($password, PASSWORD_BCRYPT);
 
 	}
+	# check a password against a randomly salted password hash
 	function password_verify($password, $hash){
 		return password_verify($password, $hash);
 	}
@@ -238,6 +240,7 @@ class Tool{
 			map: {
 				<from> : <to>
 			},
+			flags: [ < key >, ...] < array of keys that will not have a value, but should be taken as a flag >
 			defaults :
 				< key > : < default value >
 		}
@@ -253,7 +256,7 @@ class Tool{
 	Consequently, duplicate keys overwrite each other instead of forming an array
 	*/
 	static function cli_parse_args($args, $options=[]){
-		$options = array_merge(['default'=>true], $options);
+		$options = array_merge(['default'=>true, 'flags'=>[]], $options);
 		$params = [];
 
 		# use the options map if present
@@ -311,10 +314,13 @@ class Tool{
 							$param_set_default($key_get($key));
 						}
 					}else{ # case of `-a`
-
 						$current_key = $key_get(substr($arg, 1));
 						$param_set_default($current_key);
 					}
+				}
+				# if key is a non-valued flag, don't seek value in next part
+				if(in_array($current_key, $options['flags'])){
+					unset($current_key);
 				}
 			}else{
 				if($current_key){

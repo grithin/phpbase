@@ -64,7 +64,10 @@ trait SingletonDefault{
 	}
 
 	/// get named instance from $instance dictionary - convenience of expectation
-	static function instance($name){
+	static function instance($name=null){
+		if(!$name){
+			return static::primary();
+		}
 		if(!self::$instances[$name]){
 			throw new \Exception('No instance of name "'.$name.'"');
 		}
