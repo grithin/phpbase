@@ -107,7 +107,7 @@ class Tool{
 	# turn a value into a non circular value
 	static function decirculate($source, $options=[], $parents=[]){
 
-		#+ set the default circular value hander if not provided {
+		#+ set the default circular value handler if not provided {
 		if(!$options['circular_value'] && !array_key_exists('circular_value', $options)){
 			$options['circular_value'] = function($v){
 				if(is_object($v)){
@@ -119,11 +119,11 @@ class Tool{
 		}
 		#+ }
 
-		#+ set the default object data extraction hander if not provided {
+		#+ set the default object data extraction handler if not provided {
 		if(!$options['object_extracter'] && !array_key_exists('object_extracter', $options)){
 			$options['object_extracter'] = function($v){
 				if(method_exists($v, '__toArray')){
-					return array_merge($v->__toArray());
+					return (array)$v->__toArray();
 				}
 				return array_merge(['_class' => get_class($v)], get_object_vars($v));
 			};
