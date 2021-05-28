@@ -189,7 +189,7 @@ class Files{
 	}
 	# standard-naming alias
 	static function get_included($path_parts){
-		return call_user_func_array([self, 'getIncluded'], func_get_arg());
+		return call_user_func_array([__CLASS__, 'getIncluded'], func_get_arg());
 	}
 	///get all the included files included by functions from this class
 	static function getIncluded(){
@@ -197,7 +197,7 @@ class Files{
 	}
 	# standard-naming alias
 	static function remove_relative($path_parts){
-		return call_user_func_array([self, 'removeRelative'], func_get_arg());
+		return call_user_func_array([__CLASS__, 'removeRelative'], func_get_arg());
 	}
 	///remove relative parts of a path that could be used for exploits
 	static function removeRelative($path){
@@ -288,7 +288,7 @@ class Files{
 	}
 	# standard-naming alias
 	static function mime_ext($path_parts){
-		return call_user_func_array([self, 'mimeExt'], func_get_arg());
+		return call_user_func_array([__CLASS__, 'mimeExt'], func_get_arg());
 	}
 	///take a mimetype and return the extension for it
 	static function mimeExt($mime){
@@ -313,7 +313,7 @@ class Files{
 
 	# standard-naming alias
 	static function dir_size($path_parts){
-		return call_user_func_array([self, 'dirSize'], func_get_arg());
+		return call_user_func_array([__CLASS__, 'dirSize'], func_get_arg());
 	}
 	///get the size of a directory
 	/**
@@ -338,7 +338,7 @@ class Files{
 	}
 	# standard-naming alias
 	static function absolute_path($path_parts){
-		return call_user_func([self, 'absolutePath'], $path_parts);
+		return call_user_func([__CLASS__, 'absolutePath'], $path_parts);
 	}
 	///does not care whether relative folders exist (unlike file include functions).  Does not work when |relative-to object| not given
 	///Found here b/c can be applied to HTTP paths, not just file paths

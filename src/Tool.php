@@ -27,7 +27,7 @@ class Tool{
 	}
 	static function is_int($x){
 		$function = 'isInt';
-		return call_user_func_array([self, $function], func_get_args());
+		return call_user_func_array([__CLASS__, $function], func_get_args());
 	}
 	///determines if a string is an integer.  Not limited to php int size
 	static function isInteger($x){

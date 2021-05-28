@@ -30,7 +30,7 @@ class Strings{
 	static function ascii_chars(){
 		static $chars;
 		if(!$chars){
-			$chars = array_map([self, 'unicode_char'], range(0, 127)); # ascii - unicode same for first 127
+			$chars = array_map([__CLASS__, 'unicode_char'], range(0, 127)); # ascii - unicode same for first 127
 		}
 		return $chars;
 	}

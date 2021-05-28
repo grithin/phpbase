@@ -26,7 +26,7 @@ trait Memoized{
 			self::$static_memoized_count--;
 			return $return;
 		}
-		if(!method_exists(self, $name)){
+		if(!method_exists(__CLASS__, $name)){
 			throw new ExceptionMissingMethod($name);
 		}
 	}
@@ -44,7 +44,7 @@ trait Memoized{
 		if(!$key){
 			$key = self::static_memoized__make_key($name, $arguments);
 		}
-		$result_to_memoize = call_user_func_array([self, $name], $arguments);
+		$result_to_memoize = call_user_func_array([__CLASS__, $name], $arguments);
 		self::static_memoized__set_key($key, $result_to_memoize);
 		return $result_to_memoize;
 	}
@@ -90,7 +90,7 @@ trait Memoized{
 	*/
 	public function static_conditional_memoized($name, $args){
 		if(!is_array($name)){
-			$name = [self, $name];
+			$name = [__CLASS__, $name];
 		}
 
 		if(self::static_memoizing()){
@@ -119,7 +119,7 @@ trait Memoized{
 			$this->memoized_count--;
 			return $return;
 		}
-		if(!method_exists(self, $name)){
+		if(!method_exists(__CLASS__, $name)){
 			throw new ExceptionMissingMethod($name);
 		}
 	}
@@ -137,7 +137,7 @@ trait Memoized{
 		if(!$key){
 			$key = $this->memoized__make_key($name, $arguments);
 		}
-		$result_to_memoize = call_user_func_array([self, $name], $arguments);
+		$result_to_memoize = call_user_func_array([__CLASS__, $name], $arguments);
 		$this->memoized__set_key($key, $result_to_memoize);
 		return $result_to_memoize;
 	}
@@ -186,7 +186,7 @@ trait Memoized{
 	# see static
 	public function conditional_memoized($name, $args){
 		if(!is_array($name)){
-			$name = [self, $name];
+			$name = [__CLASS__, $name];
 		}
 
 		if($this->memoizing()){
