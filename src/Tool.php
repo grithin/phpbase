@@ -246,6 +246,12 @@ class Tool{
 		}
 
 	*/
+	/* note, on numeric args
+	The args can be mapped like normal keys, with those keys being numeric (ex: "0", "1", "2")
+	The numeric key of an argument is the increment of unkeyed arguments.  If an argument is keyed (ex "-b bill"), it does not count towards the increment that serves as the numeric key for unkeyed arguments
+	Note that the first argument, "0", is normally the file name
+	Numeric key mapping will not overwrite values given by key.  (Ex: if "0" is mapped to "r", and both are passed in, the value passed in under "r" will remain)
+	*/
 	/* note, on quoted args
 	$argv does not distinguished quoted arguments from non quoted arguments.  Consequently, if a value starts with '-', it is always interpretted as a key.
 	To avoid this, for any key that receives a value that can start with '-', use the form `--range='-24hr'`
@@ -255,7 +261,13 @@ class Tool{
 	the majority of the time, a repeated key is an error, and not an intended array.  And, if an array is desired, it can be done with another key to be parsed as such.
 	Consequently, duplicate keys overwrite each other instead of forming an array
 	*/
-	static function cli_parse_args($args, $options=[]){
+	/* Notes
+	-	there are no outside function dependencies so that this function can be copy and pasted into a single file intended to be run on command line without the need to link this library
+	*/
+	static function cli_parse_args($args, $options=[]){ # see \Grithin\Tool::cli_parse_args
+		if(!is_array($args)){
+			throw new \Exception('$args parameter should be an array');
+		}
 		$options = array_merge(['default'=>true, 'flags'=>[]], $options);
 		$params = [];
 
@@ -268,9 +280,9 @@ class Tool{
 		};
 
 		# only set a default for keys that don't have previous values
-		$param_set_default = function($key) use (&$params, $options){
+		$param_set_default = function($key, $value=null) use (&$params, $options){
 			if(!array_key_exists($key,$params)){
-				$params[$key] = $options['default'];
+				$params[$key] = $value ? $value : $options['default'];
 			}
 		};
 
@@ -291,8 +303,7 @@ class Tool{
 		}
 		#+ }
 
-
-
+		$numbered_params = 0;
 		$current_key = '';
 		foreach($args as $arg){
 			if($arg[0] == '-'){
@@ -327,16 +338,26 @@ class Tool{
 					$param_set($current_key, $arg);
 					unset($current_key);
 				}else{
-					$param_set($key_get(count($params)), $arg);
+					$param_set_default($key_get($numbered_params), $arg);
+					$numbered_params++;
 				}
 			}
 		}
-		#
 		if($options['defaults']){
-			$params = Collection::empty_default($params, $options['defaults']);
+			# taken from \Grithin\Collection::empty_default
+			$empty_default = function($source, $defaults){
+				foreach($defaults as $k=>$v){
+					if(!array_key_exists($k, $source) || $source[$k] === '' || $source[$k] === false || $source[$k] === null){
+						$source[$k] = $v;
+					}
+				}
+				return $source;
+			};
+			$params = $empty_default($params, $options['defaults']);
 		}
 		return $params;
 	}
+	# get STDIN (piped input on CLI)
 	static function cli_stdin_get(){
 		$streams = [STDIN];
 		$null = NULL;
@@ -345,5 +366,16 @@ class Tool{
 		}else{
 			return false;
 		}
+	}
+	# checks whether the current environment is CLI
+	static function is_cli(){
+		return (php_sapi_name() === 'cli');
+	}
+	# check if the caller is the file that the current process started with
+	static function is_entry_file(){
+		if(debug_backtrace()[0]['file'] == realpath($_SERVER["SCRIPT_FILENAME"])){
+			return true;
+		}
+		return false;
 	}
 }
