@@ -49,7 +49,7 @@ class Http{
 				}
 				unset($match,$matches);
 			}else{
-				if($array[$key]){
+				if(!empty($array[$key])){
 					if(is_array($array[$key])){
 						$array[$key][] = $value;
 					}else{
@@ -160,7 +160,7 @@ class Http{
 			$regex = '@^'.preg_quote($regex,'@').'$@';
 		}
 		$urlParts = explode('?',$url,2);
-		if($urlParts[1]){
+		if(!empty($urlParts[1])){
 			$pairs = explode('&',$urlParts[1]);
 			$newPairs = array();
 			foreach($pairs as $pair){
@@ -290,7 +290,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	static function protocol(){
 		if(self::$env['loadBalancerIps'] && $_SERVER['HTTP_X_FORWARDED_PROTO']){
 			  $protocol = $_SERVER['HTTP_X_FORWARDED_PROTO'];
-		}elseif($_SERVER['HTTPS']){
+		}elseif(!empty($_SERVER['HTTPS'])){
 			$protocol = 'https';
 		}else{
 			$protocol = 'http';

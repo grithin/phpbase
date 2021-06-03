@@ -158,13 +158,13 @@ trait HasStaticTypes{
 
 			# prefer fixed names
 			foreach(['system_name', 'name'] as $name){
-				if($table_info['columns'][$name]){
+				if(!empty($table_info['columns'][$name])){
 					$options['columns']['system_name'] = $name;
 					break;
 				}
 			}
 			foreach(['display_name', 'name'] as $name){
-				if($table_info['columns'][$name]){
+				if(!empty($table_info['columns'][$name])){
 					$options['columns']['display_name'] = $name;
 					break;
 				}

@@ -207,7 +207,7 @@ class Debug{
 		if(isset($options['additional'])){
 			$error['additional'] = $options['additional'];
 		}
-		if($options['context']){
+		if(!empty($options['context'])){
 			$error['context'] = self::context();
 		}
 

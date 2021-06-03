@@ -158,7 +158,7 @@ class Strings{
 		if(empty($options['delimited'])){
 			$regex = self::preg_quote_delimiter($regex);
 			if(empty($options['bound'])){
-				if($options['invert']){
+				if(!empty($options['invert'])){
 					$regex = '[^'.$regex.']';
 				}else{
 					$regex = '['.$regex.']';
@@ -287,7 +287,7 @@ class Strings{
 		preg_match('@['.$separaters.']*[^'.$separaters.']*@',$string,$match);
 		$cString = $upperCamel ? ucfirst($match[0]) : $match[0];//first word
 		preg_match_all('@['.$separaters.']+([^'.$separaters.']+)@',$string,$match);
-		if($match[1]){
+		if(!empty($match[1])){
 			foreach($match[1] as $word){
 				$cString .= ucfirst($word);
 			}

@@ -120,7 +120,7 @@ class Collection{
 						$aReturn[$mKey] = $aRecursiveDiff;
 					}
 				}elseif(!Tool::is_scalar($mValue)) {
-					if($options['object_comparer']){
+					if(!empty($options['object_comparer'])){
 						$diff = $options['object_comparer']($mValue, $aArray2[$mKey]);
 						if($diff){
 							$aReturn[$mKey] = $diff;

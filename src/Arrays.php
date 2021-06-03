@@ -277,7 +277,7 @@ class Arrays{
 				# PHP will turn the null `reference_to_last` into an array, and then create the accessed key for referencing
 				$reference_to_last =& $reference_to_last[$part];
 			}else{
-				if($options['path_error_handler']){
+				if(!empty($options['path_error_handler'])){
 					$options['path_error_handler']($reference_to_last, $value, $parsed, $part, $path, $collection, $options);
 				}else{
 					throw new \Exception('Can not expand into path at "'.$part.'" with "'.$path.'"');
@@ -286,7 +286,7 @@ class Arrays{
 			}
 			$parsed[] = $part;
 		}
-		if($options['set_handler']){
+		if(!empty($options['set_handler'])){
 			$options['set_handler']($reference_to_last, $value, $path, $collection, $options);
 		}else{
 			$reference_to_last = $value;
@@ -835,7 +835,7 @@ class Arrays{
 			};
 		}
 
-		if($options['name']){
+		if(!empty($options['name'])){
 			foreach($arrays as $array){
 				$sub_key_value = $array[$sub_key];
 				$value = $array[$options['name']];

@@ -291,7 +291,7 @@ class Tool{
 		};
 
 		#+ handle negative number keys {
-		if($options['map']){
+		if(!empty($options['map'])){
 			foreach($options['map'] as $key=>$target){
 				if((int)$key < 0){
 					$slice = array_slice($args, $key, 1);
@@ -343,7 +343,7 @@ class Tool{
 				}
 			}
 		}
-		if($options['defaults']){
+		if(!empty($options['defaults'])){
 			# taken from \Grithin\Collection::empty_default
 			$empty_default = function($source, $defaults){
 				foreach($defaults as $k=>$v){

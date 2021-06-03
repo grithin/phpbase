@@ -129,7 +129,7 @@ class Files{
 	private static function req($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::log_included(true);
-			if($_options['globals']){
+			if(!empty($_options['globals'])){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
@@ -224,7 +224,7 @@ class Files{
 
 		$realPath = realpath($dir);
 		if(!$realPath){
-			if($options['ghost']){
+			if(!empty($options['ghost'])){
 				return [];
 			}else{
 				Debug::toss('No such directory');	}
@@ -235,7 +235,7 @@ class Files{
 			if($v != '.' && $v != '..'){
 				$item_path = $realPath.$v;
 				if(is_dir($item_path)){
-					if($options['progress']){
+					if(!empty($options['progress'])){
 						stderr($item_path."\n");
 					}
 					if(empty($options['filter_folder']) || $options['filter_folder']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){

@@ -31,7 +31,7 @@ class ComplexException extends \Exception{
 		$this->details_raw = $details;
 		if(!Tool::is_scalar($details)){
 			if(is_array($details)){
-				if($details['message']){
+				if(!empty($details['message'])){
 					$message = $details['message'];
 				}
 			}else{
