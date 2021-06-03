@@ -268,7 +268,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	*/
 	static function ip($slicePoint=-1){
 		if(!self::$ip){
-			if($_SERVER['HTTP_X_FORWARDED_FOR']){
+			if(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
 				#get first ip (should be client's ip)
 				#X-Forwarded-For: clientIPAddress, previousLoadBalancerIPAddress-1, previousLoadBalancerIPAddress-2
 				$ips = preg_split('@\s*,\s*@',$_SERVER['HTTP_X_FORWARDED_FOR']);
@@ -375,7 +375,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		return (bool)$_SERVER['HTTP_X_REQUESTED_WITH'] || (bool)$_GET['_ajax'];
 	}
 	static function is_api_call(){
-		if($_REQUEST['_api']){
+		if(!empty($_REQUEST['_api'])){
 			return true;
 		}
 		# can reasonably expect that a request for json is an API call

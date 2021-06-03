@@ -135,7 +135,7 @@ class Strings{
 	# simpler version of regex_expand
 	static function regexExpand($regex){
 		$delimter = $regex[0];
-		if(!self::$regexExpandCache[$regex]){
+		if(empty(self::$regexExpandCache[$regex])){
 			self::$regexExpandCache[$regex] = self::regex_expand($regex, null, ['delimited'=>true]);
 		}
 		return self::$regexExpandCache[$regex];
@@ -144,7 +144,7 @@ class Strings{
 	# expand a range based regex into the actual characters
 	static function regex_expand($regex, $set=null, $options=[]){
 		if(!$set){
-			if($options['utf8']){
+			if(!empty($options['utf8'])){
 				$set = self::utf8_chars();
 			}else{
 				$set = self::ascii_chars();
@@ -202,13 +202,15 @@ class Strings{
 	*/
 	static function random(){
 		$args = func_get_args();
+		$match = '';
+		$string = '';
 		if(func_num_args() >= 3){
 			$length = rand($args[0],$args[1]);
 			$match = $args[2];
 		}else{
 			$length = $args[0];
 			//In case this is 3 arg overloaded with $match null for default
-			if(!is_int($args[1])){
+			if(isset($args[1]) && !is_int($args[1])){
 				$match = $args[1];
 			}
 		}

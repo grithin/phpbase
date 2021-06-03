@@ -73,18 +73,27 @@ class Debug{
 	static function conform_backtrace_item($v){
 		$stackItem = [];
 
-		$stackItem['file'] = preg_replace('@^'.preg_quote($_SERVER['DOCUMENT_ROOT']).'@', '', $v['file']);
-		$stackItem['line'] = $v['line'];
-		if($v['class']){
+		if(isset($v['file'])){
+			$stackItem['file'] = preg_replace('@^'.preg_quote($_SERVER['DOCUMENT_ROOT']).'@', '', $v['file']);
+		}else{
+			$stackItem['file'] = null;
+		}
+		$stackItem['line'] = isset($v['line']) ? $v['line'] : null;
+		if(!empty($v['class'])){
 			$stackItem['class'] = $v['class'].$v['type'];
 		}
-		$stackItem['function'] = $v['function'];
-		$line_string = self::getLine($v['file'],$v['line']);
-		if($line_string){
-			$stackItem['line_string'] = $line_string;
+
+		$stackItem['function'] = isset($v['function']) ? $v['function'] : null;
+
+		if($stackItem['file'] && $stackItem['line']){
+			$line_string = self::getLine($v['file'],$v['line']);
+			if($line_string){
+				$stackItem['line_string'] = $line_string;
+			}
 		}
 
-		if($v['args']){
+
+		if(isset($v['args'])){
 			$stackItem['args'] = Tool::to_jsonable($v['args']);
 		}
 		return $stackItem;
@@ -118,7 +127,7 @@ class Debug{
 		return array_slice(self::conform_backtrace(debug_backtrace()), 1);
 	}
 
-	function error_level($level_code){
+	static function error_level($level_code){
 			switch($level_code)
 				{
 				case E_ERROR: // 1 //
@@ -155,8 +164,12 @@ class Debug{
 			return $level_code;
 		}
 
+	/*	params
+	< excrption >
+	< additional > < array of additional stacks from chained exceptions (exceptions called within exception handling) >
+	*/
 	static function conform_exception($exception, $options=[]){
-		$options['additional'] = (array)$options['additional'];
+		$options['additional'] = isset($options['additional']) ? (array)$options['additional'] : [];
 		if($previous = $exception->getPrevious()){
 			$options['additional']['previous'] = self::conform_error(E_USER_ERROR,$previous->getMessage(),$previous->getFile(),$previous->getLine(),$previous->getTrace(), ['context'=>false]);
 		}
@@ -191,7 +204,7 @@ class Debug{
 			$error['line_string'] = self::getLine($eFile, $eLine);
 		}
 		$error['backtrace'] = $backtrace;
-		if($options['additional']){
+		if(isset($options['additional'])){
 			$error['additional'] = $options['additional'];
 		}
 		if($options['context']){

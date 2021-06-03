@@ -15,7 +15,7 @@ class Files{
 		self::$currentInclude = array(
 				'file'=>$arguments[0],
 				'globals'=>$arguments[1],
-				'vars'=>$arguments[2],
+				'vars'=>isset($arguments[2]) ? $arguments[2] : [],
 				'type'=>$name
 			);
 		if(method_exists(__CLASS__,$name)){
@@ -64,7 +64,7 @@ class Files{
 		if(is_file($_file)){
 			self::log_included(true);
 
-			if($_options['globals']){
+			if(!empty($_options['globals'])){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
@@ -75,7 +75,7 @@ class Files{
 
 			$_return = include($_file);
 
-			if($_options['extract']){
+			if(!empty($_options['extract'])){
 				$_return = [];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
@@ -98,7 +98,7 @@ class Files{
 	private static function inc_once($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::log_included(true);
-			if($_options['globals']){
+			if(!empty($_options['globals'])){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
@@ -109,7 +109,7 @@ class Files{
 
 			$_return = include_once($_file);
 
-			if($_options['extract']){
+			if(!empty($_options['extract'])){
 				$_return = [];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
@@ -140,7 +140,7 @@ class Files{
 
 			$_return = include($_file);
 
-			if($_options['extract']){
+			if(!empty($_options['extract'])){
 				$_return = [];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
@@ -160,7 +160,7 @@ class Files{
 	private static function req_once($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::log_included(true);
-			if($_options['globals']){
+			if(!empty($_options['globals'])){
 				foreach($_options['globals'] as $_global){
 					global $$_global;
 				}
@@ -171,7 +171,7 @@ class Files{
 
 			$_return = include_once($_file);
 
-			if($_options['extract']){
+			if(!empty($_options['extract'])){
 				$_return = [];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
