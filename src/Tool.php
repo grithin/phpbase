@@ -108,7 +108,7 @@ class Tool{
 	static function decirculate($source, $options=[], $parents=[]){
 
 		#+ set the default circular value handler if not provided {
-		if(!$options['circular_value'] && !array_key_exists('circular_value', $options)){
+		if(empty($options['circular_value']) && !array_key_exists('circular_value', $options)){
 			$options['circular_value'] = function($v){
 				if(is_object($v)){
 					return ['_circular'=>true, '_class'=>get_class($v), '_reference'=>spl_object_hash($v)];
@@ -120,7 +120,7 @@ class Tool{
 		#+ }
 
 		#+ set the default object data extraction handler if not provided {
-		if(!$options['object_extracter'] && !array_key_exists('object_extracter', $options)){
+		if(empty($options['object_extracter']) && !array_key_exists('object_extracter', $options)){
 			$options['object_extracter'] = function($v){
 				if(method_exists($v, '__toArray')){
 					return (array)$v->__toArray();

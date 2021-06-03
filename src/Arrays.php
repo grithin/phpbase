@@ -829,7 +829,7 @@ class Arrays{
 		$arrays = (array)$arrays;
 		$new_arrays = [];
 
-		if(!$options['collision_handler']){
+		if(empty($options['collision_handler'])){
 			$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
 				throw new Exception('Keys have collided with '.json_encode(func_get_args()));
 			};
@@ -890,7 +890,7 @@ class Arrays{
 	static function key_on_sub_key($arrays, $sub_key='id', $options=[]){
 		$new_arrays = [];
 
-		if(!$options['collision_handler']){
+		if(empty($options['collision_handler'])){
 			$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
 				throw new Exception('Keys have collided with '.json_encode(func_get_args()));
 			};

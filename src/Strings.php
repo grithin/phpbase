@@ -155,9 +155,9 @@ class Strings{
 			$set = implode($set);
 		}
 		#$regex = self::utf8_encode($regex);
-		if(!$options['delimited']){
+		if(empty($options['delimited'])){
 			$regex = self::preg_quote_delimiter($regex);
-			if(!$options['bound']){
+			if(empty($options['bound'])){
 				if($options['invert']){
 					$regex = '[^'.$regex.']';
 				}else{

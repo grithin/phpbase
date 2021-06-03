@@ -33,7 +33,7 @@ class Debug{
 
 	# in multithreading, the fork will have a separate process id.  It can be helpful to know if two separate process ids are within the same run id in logs
 	static function getRunId(){
-		if(!$GLOBALS['_run_id']){
+		if(empty($GLOBALS['_run_id'])){
 			$GLOBALS['_run_id'] = Strings::random(10);
 		}
 		return $GLOBALS['_run_id'];
@@ -281,7 +281,7 @@ class Debug{
 			if($item['function'] == '__methodExists'){
 				continue;
 			}
-			if(!$item['file']){
+			if(empty($item['file'])){
 				continue;
 			}
 			$start = $k;
@@ -307,7 +307,7 @@ class Debug{
 			if(preg_match('@phpbase/src/|phpdb/src/@',$item['file'])){
 				continue;
 			}
-			if(!$item['file']){
+			if(empty($item['file'])){
 				continue;
 			}
 			$start = $k;

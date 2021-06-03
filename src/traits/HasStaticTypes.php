@@ -126,7 +126,7 @@ trait HasStaticTypes{
 		}
 		$filtered_types = [];
 		foreach($types as $type){
-			if(!$type['is_hidden']){
+			if(empty($type['is_hidden'])){
 				$filtered_types[] = $type;
 			}
 		}
@@ -152,7 +152,7 @@ trait HasStaticTypes{
 
 	# extract types from db table and set static variables
 	static function types_from_database($db, $table, $options=[]){
-		if(!$options['columns']){
+		if(empty($options['columns'])){
 			$options['columns'] = [];
 			$table_info = $db->table_info($table);
 
@@ -172,7 +172,7 @@ trait HasStaticTypes{
 
 			# try to find columns
 			foreach($table_info['columns'] as $column_name=>$column){
-				if($column['key'] == 'primary' && !$options['columns']['id']){
+				if($column['key'] == 'primary' && empty($options['columns']['id'])){
 					$options['columns']['id'] = $column_name;
 				}elseif($column['key'] == 'UNI' && preg_match('@name@', $column_name) && $options['columns']['system_name']){
 					$options['columns']['system_name'] = $column_name;

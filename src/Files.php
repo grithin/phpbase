@@ -216,7 +216,7 @@ class Files{
 		ghost:<don't error on non-existent>}
 	*/
 	static function scan($dir,$options=[]){
-		if(!$options['prefix'] && $options['mimic']){
+		if(empty($options['prefix']) && $options['mimic']){
 			$options['prefix'] = $dir;	}
 
 		if(isset($options['maxDepth']) && $options['maxDepth'] == 0){
@@ -238,7 +238,7 @@ class Files{
 					if($options['progress']){
 						stderr($item_path."\n");
 					}
-					if(!$options['filter_folder'] || $options['filter_folder']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
+					if(empty($options['filter_folder']) || $options['filter_folder']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
 						$newOptions = array_merge($options,['prefix'=>$options['prefix'].$v.'/']);
 						if(isset($newOptions['maxDepth'])){
 							$newOptions['maxDepth']--;
@@ -247,7 +247,7 @@ class Files{
 						$files = Arrays::merge($files,$newFiles);
 					}
 				}else{
-					if(!$options['filter'] || $options['filter']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
+					if(empty($options['filter']) || $options['filter']($options['prefix'].$v, ['name'=>$v, 'path'=>$item_path])){
 						$files[] = $options['prefix'].$v;
 					}
 				}

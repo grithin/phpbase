@@ -34,7 +34,7 @@ class Reflection{
 				continue;	}
 
 			# call_* functions can be inside or outside, not enough frame information to tell, so have to wait until the next frame
-			if(!$backtrace[$i]['class'] && ($backtrace[$i]['function'] == 'call_user_func' || $backtrace[$i]['function'] == 'call_user_func_array')){
+			if(empty($backtrace[$i]['class']) && ($backtrace[$i]['function'] == 'call_user_func' || $backtrace[$i]['function'] == 'call_user_func_array')){
 				$found = $backtrace[$i];
 				continue;	}
 
