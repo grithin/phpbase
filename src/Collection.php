@@ -170,12 +170,14 @@ class Collection{
 	}
 
 
-	# take a string and turn it into a collection for mapping
-	/* ex
-		'
-			bob:bob2
-			bob:bob3
-		'
+	# turn a string a specially formatted string into a collection.  Format intended to provide minimal syntax description of collections.
+	/* about format
+		Key value pairs separated by new lines:
+
+		key:value
+		key:value
+
+		Empty newlines are not used.
 	*/
 	# if either key on either side of ':' is blank, the non-blank value will be used for both.  And, ":" can be omitted
 	/* ex
