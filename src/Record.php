@@ -1,4 +1,4 @@
-<?
+<?php
 # See doc/Record.md
 
 namespace Grithin;

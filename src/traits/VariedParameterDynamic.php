@@ -1,4 +1,4 @@
-<?
+<?php
 /* About
 See VariedParameter.php
 

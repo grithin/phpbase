@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin;
 /* About
 Intended to be a observable that matches a database record, allowing the handling of a record like an array, while allowing listeners to react to change events.

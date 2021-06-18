@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin;
 /*
 For Class Instance for which it is expected there is only one, and so, it can exist as a keyed value in an array

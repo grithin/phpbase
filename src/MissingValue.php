@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin;
 
 class MissingValue implements \JsonSerializable{

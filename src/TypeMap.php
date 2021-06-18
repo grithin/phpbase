@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin;
 
 /* Use Example

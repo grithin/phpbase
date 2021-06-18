@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin;
 use Grithin\Debug;
 
@@ -46,7 +46,7 @@ class Files{
 
 	@Example
 		File `bob.php`:
-			<?
+			<?php
 			$bill = [$bob]
 			$bill[] = 'monkey'
 			return 'blue'

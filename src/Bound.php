@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin;
 /// for creating functions with preset prefixed arguments
 /**

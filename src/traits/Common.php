@@ -1,4 +1,4 @@
-<?
+<?php
 namespace Grithin\Traits; # so named because \Grithin\Trait causes syntax error
 
 /* About

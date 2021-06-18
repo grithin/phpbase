@@ -1,4 +1,4 @@
-<?
+<?php
 /* About
 For convenience, a function might accept an id, a name, or an object used to identify some object.  This standardises handling such variable input.
 

@@ -1,4 +1,4 @@
-<?
+<?php
 /* About
 Autoloader trick to load global convenience functions
 */

@@ -1,4 +1,4 @@
-<?
+<?php
 # run with `phpunit Tool.php`
 
 $_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
