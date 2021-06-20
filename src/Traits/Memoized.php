@@ -1,5 +1,5 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 
 /*
 For handling static and instance based convenient memoizing (by __call and __callStatic function name matching).  Allows handling sub-memoize calls (`static_caller_requested_memoized`), and allows re-making (`static_call_and_memoize`).

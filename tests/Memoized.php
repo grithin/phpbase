@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use \Grithin\Debug;
 use \Grithin\Time;
 use \Grithin\Arrays;
-use \Grithin\VariedParameter;
+use \Grithin\Traits\VariedParameter;
 use \Grithin\MissingValue;
 
 
@@ -17,7 +17,7 @@ use \Grithin\MissingValue;
 
 
 class StaticTest{
-	use \Grithin\Memoized;
+	use \Grithin\Traits\Memoized;
 	static function test($x){
 		if(self::static_caller_requested_memoized()){
 			return self::memoized_bottom($x);
@@ -40,7 +40,7 @@ class StaticTest{
 
 
 class InstanceTest{
-	use \Grithin\Memoized;
+	use \Grithin\Traits\Memoized;
 	public function test($x){
 		if($this->caller_requested_memoized()){
 			return $this->memoized_bottom($x);

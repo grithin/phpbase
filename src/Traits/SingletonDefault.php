@@ -1,7 +1,7 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 use Grithin\Debug;
-use Grithin\testCall;
+use Grithin\Traits\testCall;
 
 /*
 The convenience of acting like there is just one, with the ability to handle multiple

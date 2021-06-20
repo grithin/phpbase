@@ -1,5 +1,5 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 trait Singleton{
 	static $singleton;
 	static function singleton(){

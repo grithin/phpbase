@@ -1,5 +1,5 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 trait SingletonInit{
 	use Singleton;
 	use testCall;

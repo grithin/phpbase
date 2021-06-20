@@ -1,5 +1,5 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 use Grithin\Debug;
 
 ///Makes failure of call_user_func_array on a overriden __call easier to read

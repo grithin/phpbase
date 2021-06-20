@@ -5,7 +5,7 @@ See VariedParameter.php
 To allow either instance or static calls, `$that = $this ?: get_called_class();` is used.  `__call` and `__callStatic` are not used so as not to require a `$that` parameter to the various functions
 
 */
-namespace Grithin;
+namespace Grithin\Traits;
 
 use \Exception;
 

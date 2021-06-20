@@ -1,8 +1,8 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 use Grithin\Debug;
-use Grithin\SingletonDefault;
-use Grithin\OverClass;
+use Grithin\Traits\SingletonDefault;
+use Grithin\Traits\OverClass;
 
 
 trait OverClassSingleton{

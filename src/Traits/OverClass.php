@@ -1,5 +1,5 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 use Grithin\Debug;
 
 /**

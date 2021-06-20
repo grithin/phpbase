@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use \Grithin\Debug;
 use \Grithin\Time;
 use \Grithin\Arrays;
-use \Grithin\VariedParameter;
+use \Grithin\Traits\VariedParameter;
 use \Grithin\MissingValue;
 
 
@@ -17,7 +17,7 @@ use \Grithin\MissingValue;
 
 
 class TestStatic{
-	use \Grithin\VariedParameter;
+	use \Grithin\Traits\VariedParameter;
 	static function test_get($thing){
 		return self::static_prefixed_item_by_thing('test', $thing);
 	}
@@ -41,7 +41,7 @@ class TestStatic{
 }
 
 class TestInstance{
-	use \Grithin\VariedParameter;
+	use \Grithin\Traits\VariedParameter;
 	public function test_get($thing){
 		return $this->prefixed_item_by_thing('test', $thing);
 	}

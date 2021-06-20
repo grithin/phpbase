@@ -16,7 +16,7 @@ Notes
 @TODO
 -	add `ids_by_things` style methods for the other by_* methods
 */
-namespace Grithin;
+namespace Grithin\Traits;
 
 use \Exception;
 

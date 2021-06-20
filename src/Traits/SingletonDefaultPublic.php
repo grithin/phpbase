@@ -1,7 +1,7 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 use Grithin\Debug;
-use Grithin\SingletonDefault;
+use Grithin\Traits\SingletonDefault;
 
 /**
 Concept of public: Since with php, you can't make one method protected when called statically and public when called on an instance, for applying the singleton default pattern, you must apply 'protected' to all methods.  This, however, has the inefficiency of using a '__call' for methods that would otherwise go straight through (instance method calls).  To avoid this, make one class which handles the static calls, and another class which makes the instance and has public methods.

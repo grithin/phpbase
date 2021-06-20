@@ -1,7 +1,7 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 use Grithin\Debug;
-use Grithin\SingletonDefault;
+use Grithin\Traits\SingletonDefault;
 
 /**
 The pattern: Load resource when used, not when class instantiated.  Calling a method, or getting an non-set property will cause a load.

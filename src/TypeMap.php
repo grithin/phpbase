@@ -29,8 +29,8 @@ class PaymentType extends \Grithin\TypeMap{
 */
 
 class TypeMap{
-	use \Grithin\HasStaticTypes;
-	use \Grithin\VariedParameter;
+	use \Grithin\Traits\HasStaticTypes;
+	use \Grithin\Traits\VariedParameter;
 	static $id_column = 'id';
 	static $display_name_column = 'name';
 	static $system_name_column = 'name';

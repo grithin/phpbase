@@ -1,5 +1,5 @@
 <?php
-namespace Grithin;
+namespace Grithin\Traits;
 
 use \Exception;
 
@@ -232,7 +232,7 @@ trait HasStaticTypes{
 	}
 	static function static_variables_code_get($statics){
 		return
-			"\n\t# Generated code.  See \Grithin\HasStaticTypes::static_variables_code_get".
+			"\n\t# Generated code.  See \Grithin\Traits\HasStaticTypes::static_variables_code_get".
 			"\n\t".'static $id_column = '.var_export($statics['id_column'], true).';'.
 			"\n\t".'static $display_name_column = '.var_export($statics['display_name_column'], true).';'.
 			"\n\t".'static $system_name_column = '.var_export($statics['system_name_column'], true).';'.
