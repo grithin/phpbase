@@ -10,6 +10,7 @@ class Files{
 
 	static private $included;///<an array of included files along with other arguments
 	static private $currentInclude;///<internal use
+
 	///used to factor out common functionality
 	static function __callStatic($name,$arguments){
 		self::$currentInclude = array(
@@ -21,7 +22,7 @@ class Files{
 		if(method_exists(__CLASS__,$name)){
 			return call_user_func_array(array(__CLASS__,$name),$arguments);
 		}else{
-			Debug::toss('No such method');
+			new \Exception('no such method');
 		}
 
 	}
@@ -195,14 +196,7 @@ class Files{
 	static function getIncluded(){
 		return self::$included;
 	}
-	# standard-naming alias
-	static function remove_relative($path_parts){
-		return call_user_func_array([__CLASS__, 'removeRelative'], func_get_arg());
-	}
-	///remove relative parts of a path that could be used for exploits
-	static function removeRelative($path){
-		return preg_replace(array('@((\.\.)(/|$))+@','@//+@'),'/',$path);
-	}
+
 	///backwards compatibility
 	static function fileList(){
 		return call_user_func_array(['self','scan'],func_get_args());
@@ -337,24 +331,57 @@ class Files{
 		}
 	}
 	# standard-naming alias
+	static function remove_relative($path_parts){
+		return call_user_func_array([__CLASS__, 'removeRelative'], func_get_arg());
+	}
+	///remove relative parts of a path that could be used for exploits
+	static function removeRelative($path){
+		return preg_replace(array('@((\.\.)(/|$))+@','@//+@'),'/',$path);
+	}
+
+	# standard-naming alias
 	static function absolute_path($path_parts){
 		return call_user_func([__CLASS__, 'absolutePath'], $path_parts);
 	}
-	///does not care whether relative folders exist (unlike file include functions).  Does not work when |relative-to object| not given
+	///does not care whether relative folders exist (unlike file include functions)
 	///Found here b/c can be applied to HTTP paths, not just file paths
-	static function absolutePath($pathParts){
-		if(!is_array($pathParts)){
-			$pathParts = explode('/',$pathParts);
+	static function resolve_relative($pathParts, $relative = false, $separator = DIRECTORY_SEPARATOR){
+		# if relative path is absolute, use it
+		if($relative && $relative[0] == DIRECTORY_SEPARATOR){
+			return self::resolve_relative($relative, false, $separator);
 		}
-		$absParts = array();
+
+
+		if(!is_array($pathParts)){
+			$pathParts = explode($separator, $pathParts);
+		}
+		if(!$pathParts[0]){ # blank first key indicates started with '/'
+			$is_absolute = true;
+		}
+
+		$path_parts_resolved = array();
 		foreach($pathParts as $pathPart){
 			if($pathPart == '..'){
-				array_pop($absParts);
+				array_pop($path_parts_resolved);
 			}elseif($pathPart != '.'){
-				$absParts[] = $pathPart;
+				$path_parts_resolved[] = $pathPart;
 			}
 		}
-		return implode('/',$absParts);
+		if($is_absolute){ # ensure a '/' at the start, which may have been cleared by ../
+			if($path_parts_resolved[0]){
+				array_unshift($path_parts_resolved, '');
+			}
+		}
+		if($relative){
+			# merging the relative path array is like adding a '/' between the two paths
+			if(!(count($path_parts_resolved) == 1 && $is_absolute)){
+				# strip the last path token to allow joining, accept if the path is currently '/'
+				array_pop($path_parts_resolved);
+			}
+
+			return self::resolve_relative(array_merge($path_parts_resolved, explode($separator, $relative)), false, $separator);
+		}
+		return implode($separator, $path_parts_resolved);
 	}
 	# affix, before the extension
 	# ex: ('bob.mp3', '.150') => 'bob.150.mp4'

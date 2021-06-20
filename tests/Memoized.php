@@ -1,8 +1,4 @@
 <?php
-# run with `phpunit Memoized.php`
-
-$_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
-require $_ENV['root_folder'] . '/vendor/autoload.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,9 +7,6 @@ use \Grithin\Time;
 use \Grithin\Arrays;
 use \Grithin\Traits\VariedParameter;
 use \Grithin\MissingValue;
-
-
-\Grithin\GlobalFunctions::init();
 
 
 class StaticTest{
@@ -63,8 +56,10 @@ class InstanceTest{
 
 
 
-
-class MainTests extends TestCase{
+/**
+* @group Memoized
+*/
+class MemoizedClassTests extends TestCase{
 	function test_static_methods(){
 		$x1 = StaticTest::memoized_test('bobs');
 		$x2 = StaticTest::memoized_test('bobs');

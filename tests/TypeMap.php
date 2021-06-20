@@ -1,8 +1,4 @@
 <?php
-# run with `phpunit TypeMap.php`
-
-$_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
-require $_ENV['root_folder'] . '/vendor/autoload.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,10 +7,6 @@ use \Grithin\Time;
 use \Grithin\Arrays;
 use \Grithin\Traits\VariedParameter;
 use \Grithin\MissingValue;
-
-\Grithin\GlobalFunctions::init();
-
-
 
 
 class TypeMap1 extends \Grithin\TypeMap{
@@ -39,6 +31,7 @@ class TypeMap1 extends \Grithin\TypeMap{
 		'bill' => 2,
 	];
 }
+
 
 
 
@@ -91,8 +84,10 @@ class TestInstance{
 }
 
 
-
-class MainTests extends TestCase{
+/**
+* @group TypeMap
+*/
+class TypeMapClassTests extends TestCase{
 	function test_type_map(){
 		$TypeMap = new TypeMap1;
 		$type = $TypeMap::get('bob');

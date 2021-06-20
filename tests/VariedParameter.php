@@ -1,8 +1,4 @@
 <?php
-# run with `phpunit VariedParameter.php`
-
-$_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
-require $_ENV['root_folder'] . '/vendor/autoload.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -12,11 +8,7 @@ use \Grithin\Arrays;
 use \Grithin\Traits\VariedParameter;
 use \Grithin\MissingValue;
 
-
-\Grithin\GlobalFunctions::init();
-
-
-class TestStatic{
+class VariedParameterTestStatic{
 	use \Grithin\Traits\VariedParameter;
 	static function test_get($thing){
 		return self::static_prefixed_item_by_thing('test', $thing);
@@ -40,7 +32,8 @@ class TestStatic{
 	}
 }
 
-class TestInstance{
+
+class VariedParameterTestInstance{
 	use \Grithin\Traits\VariedParameter;
 	public function test_get($thing){
 		return $this->prefixed_item_by_thing('test', $thing);
@@ -65,18 +58,20 @@ class TestInstance{
 }
 
 
-
-class MainTests extends TestCase{
+/**
+* @group VariedParameter
+*/
+class VariedParameterClassTests extends TestCase{
 	function test_static_methods(){
-		$this->assertEquals(TestStatic::test_get(333), ['id'=>333, 'name'=>'bob'], 'static prefixed get by id wrong');
-		$this->assertEquals(TestStatic::test_get('sue'), ['id'=>123, 'name'=>'sue'], 'static prefixed get by name wrong');
-		$this->assertEquals(TestStatic::test_get(['id'=>888, 'name'=>'bob']), ['id'=>888, 'name'=>'bob'], 'static prefixed get by object wrong');
-		$this->assertEquals(TestStatic::get(333), ['id'=>333, 'name'=>'bob', 'nonprefixed'=>true], 'static get by id wrong');
-		$this->assertEquals(TestStatic::get('sue'), ['id'=>123, 'name'=>'sue', 'nonprefixed'=>true], 'static prefixed get by name wrong');
-		$this->assertEquals(TestStatic::get(['id'=>888, 'name'=>'bob']), ['id'=>888, 'name'=>'bob'], 'static get by object wrong');
+		$this->assertEquals(VariedParameterTestStatic::test_get(333), ['id'=>333, 'name'=>'bob'], 'static prefixed get by id wrong');
+		$this->assertEquals(VariedParameterTestStatic::test_get('sue'), ['id'=>123, 'name'=>'sue'], 'static prefixed get by name wrong');
+		$this->assertEquals(VariedParameterTestStatic::test_get(['id'=>888, 'name'=>'bob']), ['id'=>888, 'name'=>'bob'], 'static prefixed get by object wrong');
+		$this->assertEquals(VariedParameterTestStatic::get(333), ['id'=>333, 'name'=>'bob', 'nonprefixed'=>true], 'static get by id wrong');
+		$this->assertEquals(VariedParameterTestStatic::get('sue'), ['id'=>123, 'name'=>'sue', 'nonprefixed'=>true], 'static prefixed get by name wrong');
+		$this->assertEquals(VariedParameterTestStatic::get(['id'=>888, 'name'=>'bob']), ['id'=>888, 'name'=>'bob'], 'static get by object wrong');
 	}
 	function test_instance_methods(){
-		$test_instance = new TestInstance;
+		$test_instance = new VariedParameterTestInstance;
 		$this->assertEquals($test_instance->test_get(333), ['id'=>333, 'name'=>'bob'], 'instance prefixed get by id wrong');
 		$this->assertEquals($test_instance->test_get('sue'), ['id'=>123, 'name'=>'sue'], 'instance prefixed get by name wrong');
 		$this->assertEquals($test_instance->test_get(['id'=>888, 'name'=>'bob']), ['id'=>888, 'name'=>'bob'], 'instance prefixed get by object wrong');

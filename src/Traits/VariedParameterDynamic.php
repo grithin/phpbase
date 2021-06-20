@@ -7,6 +7,7 @@ To allow either instance or static calls, `$that = $this ?: get_called_class();`
 */
 namespace Grithin\Traits;
 
+use \Grithin\Tool;
 use \Exception;
 
 trait VariedParameterDynamic{

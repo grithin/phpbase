@@ -1,7 +1,63 @@
 <?php
 namespace Grithin;
 
-class Collection{
+/* About
+Although PHP does not distinguish, it is sometimes necessary to treat dictionaries ({key:name}) differently than lists ([value1,value2]).
+To help distinguish, here, the terms `dictionary` and `list` will be used
+
+Further, class instances can also act like dictionaries.
+
+*/
+
+class Dictionary{
+
+	# determine if parameter is dictionary by checking if it has string keys
+	static function is($x) {
+		if(is_object($x)){
+			$x = Arrays::from($x);
+		}
+		return count(array_filter(array_keys($x), 'is_string')) > 0;
+	}
+
+
+	# merges two dictionaries.  Plain arrays will be treated like dictionaries (this won't act like array_merge)
+	static function merge($x, $y){
+		$arrays = func_get_args();
+		$result = [];
+		foreach($arrays as $array){
+			if(is_object($array)){
+				$array = self::from($array);
+			}
+			foreach($array as $k=>$v){
+				$result[$k] = $v;
+			}
+		}
+		return $result;
+	}
+	# deeply merges two dictionaries
+	static function merge_deep($x, $y){
+		$arrays = func_get_args();
+		$result = [];
+		foreach($arrays as $array){
+			if(is_object($array)){
+				$array = self::from($array);
+			}
+			foreach($array as $k=>$v){
+				if((is_object($v) || is_array($v)) && isset($result[$k])){
+					if(!self::is($result[$k])){ # this is a list, not a dictionary.  Don't deep merge
+						$result[$k] = $v;
+
+					}else{
+						$result[$k] = self::merge_deep($result[$k], $v);
+					}
+				}else{
+					$result[$k] = $v;
+				}
+			}
+		}
+		return $result;
+	}
+
 	# lodash find
 	/* params
 	< collection >

@@ -10,7 +10,7 @@ use \Grithin\Strings;
 class Debug{
 	///throws variable class exception
 	/**
-	Useful if you eitherr want a variable-new-class exception, or if you want a non-scalar message
+	Useful if you either want a variable-new-class exception, or if you want a non-scalar message
 
 
 	@note	if message is not a scalar, it is JSON encoded

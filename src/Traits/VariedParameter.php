@@ -18,6 +18,7 @@ Notes
 */
 namespace Grithin\Traits;
 
+use \Grithin\Tool;
 use \Exception;
 
 trait VariedParameter{

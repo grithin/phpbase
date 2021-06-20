@@ -22,190 +22,7 @@ class Http{
 	}
 
 
-	///parse a query string using a more standard less php specific rule (all repeated tokens turn into arrays, not just tokens with "[]")
-	/**
-	You can have this function include php field special syntax along with standard parsing.
-	@param	string	string that matches form of a url query string
-	@param	specialSyntax	whether to parse the string using php rules (where [] marks an array) in addition to "standard" rules
-	*/
-	static function parseQuery($string,$specialSyntax = false){
-		$parts = \Grithin\Strings::explode('&',$string);
-		$array = array();
-		foreach($parts as $part){
-			list($key,$value) = explode('=',$part);
-			$key = urldecode($key);
-			$value = urldecode($value);
-			if($specialSyntax && ($matches = self::specialSyntaxKeys($key))){
-				if(Arrays::isElement($matches,$array)){
-					$currentValue = Arrays::getElement($matches,$array);
-					if(is_array($currentValue)){
-						$currentValue[] = $value;
-					}else{
-						$currentValue = array($currentValue,$value);
-					}
-					Arrays::updateElement($matches,$array,$currentValue);
-				}else{
-					Arrays::updateElement($matches,$array,$value);
-				}
-				unset($match,$matches);
-			}else{
-				if(!empty($array[$key])){
-					if(is_array($array[$key])){
-						$array[$key][] = $value;
-					}else{
-						$array[$key] = array($array[$key],$value);
-					}
-				}else{
-					$array[$key] = $value;
-				}
-			}
-		}
-		return $array;
-	}
-	static function buildQuery($array){
-		$standard = array();
-		foreach($array as $k=>$v){
-			//exclude standard array handling from php array handling
-			if(is_array($v) && !preg_match('@\[.*\]$@',$k)){
-				$key = urlencode($k);
-				foreach($v as $v2){
-					$standard[] = $key.'='.urlencode($v2);
-				}
-				unset($array[$k]);
-			}
-		}
-		$phpquery = http_build_query($array);
-		$standard = implode('&',$standard);
-		return Arrays::implode('&',array($phpquery,$standard));
-	}
-	///get all the keys invovled in a string that represents an array.  Ex: "bob[sue][joe]" yields array('bob','sue','joe')
-	static function specialSyntaxKeys($string){
-		if(preg_match('@^([^\[]+)((\[[^\]]*\])+)$@',$string,$match)){
-			//match[1] = array name, match[2] = all keys
 
-			//get names of all keys
-			preg_match_all('@\[([^\]]*)\]@',$match[2],$matches);
-
-			//add array name to beginning of keys list
-			array_unshift($matches[1],$match[1]);
-
-			//clear out empty key items
-			Arrays::remove($matches[1],'',true);
-
-			return $matches[1];
-		}
-	}
-	///appends multiple (key=>value)s to a url, replacing any key values that already exist
-	/**
-	@param	kvA	array of keys to values array(key1=>value1,key2=>value2)
-	@param	url	url to be appended
-
-	@example
-
-	normal use
-		Http::appendsUrl(['bob'=>'rocks','sue'=>'rocks'],'bobery.com');
-			bobery.com?bob=rocks&sue=rocks
-	empty string url
-		Http::appendsUrl(['bob'=>'rocks','sue'=>'rocks'],'');
-			?bob=rocks&sue=rocks
-
-	overwriting existing
-		Http::appendsUrl(['bob'=>'rocks','sue'=>'rocks'],'bobery.com/?bob=sucks&bill=rocks');
-			bobery.com/?bill=rocks&bob=rocks&sue=rocks
-	*/
-	static function appendsUrl($kvA,$url=null,$replace=true){
-		foreach((array)$kvA as $k=>$v){
-			if(is_array($v)){
-				foreach($v as $subv){
-					$url = self::appendUrl($k,$subv,$url,$replace);
-				}
-			}else{
-				$url = self::appendUrl($k,$v,$url,$replace);
-			}
-		}
-		return $url;
-	}
-	///appends name=value to query string, replacing them if they already exist
-	/**
-	@param	name	name of value
-	@param	value	value of item
-	@param	url	url to be appended
-	*/
-	static function appendUrl($name,$value,$url=null,$replace=true){
-		$url = $url !== null ? $url : $_SERVER['REQUEST_URI'];
-		$add = urlencode($name).'='.urlencode($value);
-		if(preg_match('@\?@',$url)){
-			$urlParts = explode('?',$url,2);
-			if($replace){
-				//remove previous occurrence
-				$urlParts[1] = preg_replace('@(^|&)'.preg_quote(urlencode($name)).'=(.*?)(&|$)@','$3',$urlParts[1]);
-				if($urlParts[1][0] == '&'){
-					$urlParts[1] = substr($urlParts[1],1);
-				}
-			}
-			if($urlParts[1] != '&'){
-				return $urlParts[0].'?'.$urlParts[1].'&'.$add;
-			}
-			return $urlParts[0].'?'.$add;
-		}
-		return $url.'?'.$add;
-	}
-	/**
-	Removes key value pairs from url where key matches some regex.
-	@param	regex	The regex to use for key matching.  If the regex does not contain the '@' for the regex delimiter, it is assumed the input is not a regex and instead just a string to be matched exactly against the key.  IE, '@bob@' will be considered regex while 'bob' will not
-	*/
-	static function removeFromQuery($regex,$url=null){
-		$url = $url !== null ? $url : urldecode($_SERVER['REQUEST_URI']);
-		if(!preg_match('@\@@',$regex)){
-			$regex = '@^'.preg_quote($regex,'@').'$@';
-		}
-		$urlParts = explode('?',$url,2);
-		if(!empty($urlParts[1])){
-			$pairs = explode('&',$urlParts[1]);
-			$newPairs = array();
-			foreach($pairs as $pair){
-				$pair = explode('=',$pair,2);
-				#if not removed, include
-				if(!preg_match($regex,urldecode($pair[0]))){
-					$newPairs[] = $pair[0].'='.$pair[1];
-				}
-			}
-			$url = $urlParts[0].'?'.implode('&',$newPairs);
-		}
-		return $url;
-	}
-	//resolves relative url paths into absolute url paths
-	static  function absoluteUrl($url,$relativeTo=null){
-		list($uPath,$query) = explode('?',$url);
-		preg_match('@(^.*?://.*?)(/.*$|$)@',$uPath,$match);
-		if(!$match){
-			//url is relative, use relativeTo as base
-			list($rPath) = explode('?',$relativeTo);
-			preg_match('@(^.*?://.*?)(/.*$|$)@',$rPath,$match);
-			$pathParts = explode('/',$match[2]);
-
-			if($uPath){
-				if($uPath[0] == '/'){
-					//relative to base of site
-					$base = $pathParts[0];
-					$pathParts = explode('/',$base.$uPath);
-				}else{
-					//relative to directory, so clear page part.   ie url = "view.php?m=bob"
-					array_pop($pathParts);
-					$pathParts = implode('/',$pathParts).'/'.$uPath;
-					$pathParts = explode('/',$pathParts);
-				}
-			}
-		}else{
-			$pathParts = explode('/',$match[2]);
-		}
-		$path = \Grithin\Files::absolutePath($pathParts);
-		$url = $match[1].$path;
-		if($query){
-			$url .= '?'.$query;
-		}
-		return $url;
-	}
 /*#from Dylan at WeDefy dot com
 	// 301 Moved Permanently
 header("Location: /foo.php",TRUE,301);
@@ -308,14 +125,17 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		$alias_for = 'end_with_xml';
 		return call_user_func_array([__CLASS__, $alias_for], func_get_args());
 	}
-	# end script with json
-	static function end_with_json($content,$encode=true){
+	static function respond_with_json($content,$encode=true){
 		header('Content-type: application/json');
 		if($encode){
 			echo \Grithin\Tool::json_encode($content);
 		}else{
 			echo $content;
 		}
+	}
+	# end script with json
+	static function end_with_json($content,$encode=true){
+		self::respond_with_json($content,$encode);
 		exit;
 	}
 	static function endJson($content,$encode=true){
@@ -324,14 +144,14 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	}
 
 	//it appears the browser parses once, then operating system, leading to the need to double escape the file name.  Use double quotes to encapsulate name
-	static function escapeFilename($name){
+	static function filename_escape($name){
 		return \Grithin\Strings::slashEscape(\Grithin\Strings::slashEscape($name));
 	}
 	///send an actual file on the system via http protocol
 	/*	params
 	saveAs	< `true` to indicate use path filename , otherwise, the actual name desired >
 	*/
-	static function sendFile($path,$saveAs=null,$exit=true){
+	static function file_send($path,$saveAs=null,$exit=true){
 		//Might potentially remove ".." from path, but it has already been removed by the time the request gets here by server or browser.  Still removing for precaution
 		$path = \Grithin\Files::removeRelative($path);
 		if(is_file($path)){
@@ -356,7 +176,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	}
 	static function set_filename_header($save_as){
 		header('Content-Description: File Transfer');
-		header('Content-Disposition: attachment; filename="'.self::escapeFilename($save_as).'"');
+		header('Content-Disposition: attachment; filename="'.self::filename_escape($save_as).'"');
 	}
 
 	static function send_file_content($content, $mime, $save_as=null, $exit=true){
@@ -385,7 +205,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	}
 
 	# Respond to an http request, but don't end the script
-	static function respondWith($response){
+	static function respond_with($response){
 		ignore_user_abort(true); # Set whether a client disconnect should abort script execution
 		set_time_limit(0); # allow script to run forever
 

@@ -344,7 +344,7 @@ class Tool{
 			}
 		}
 		if(!empty($options['defaults'])){
-			# taken from \Grithin\Collection::empty_default
+			# taken from \Grithin\Dictionary::empty_default
 			$empty_default = function($source, $defaults){
 				foreach($defaults as $k=>$v){
 					if(!array_key_exists($k, $source) || $source[$k] === '' || $source[$k] === false || $source[$k] === null){

@@ -1,7 +1,7 @@
 See `tests\Record.php`
 
 # Overview
-Intended to be a observable that matches a database record, allowing the handling of a record like an array, keeping track of changes, handling deep data structures, and allowing listeners to react to change events.
+Intended to be an observable that matches a database record, allowing the handling of a record like an array, keeping track of changes, handling deep data structures, and allowing listeners to react to change events.
 
 Similar to SplSubject, but because SplSubject uses pointless SplObserver, SplSubject is not imlemented
 

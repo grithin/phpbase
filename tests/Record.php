@@ -1,9 +1,4 @@
 <?php
-# run with `phpunit Record.php`
-
-$_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
-require $_ENV['root_folder'] . '/vendor/autoload.php';
-
 use PHPUnit\Framework\TestCase;
 
 use \Grithin\Debug;
@@ -12,8 +7,6 @@ use \Grithin\Arrays;
 use \Grithin\Record;
 use \Grithin\MissingValue;
 
-
-\Grithin\GlobalFunctions::init();
 
 global $accumulation;
 $accumulation = [];
@@ -28,12 +21,15 @@ function args_accumulator(){
 	global $accumulation;
 	$accumulation[] = $args;
 }
-function accumulate_array_changes($this, $changes){
+function accumulate_array_changes($that, $changes){
 	global $accumulation;
 	$accumulation[] = (array)$changes;
 }
 
-class MainTests extends TestCase{
+/**
+* @group Record
+*/
+class RecordClassTests extends TestCase{
 	function __construct(){
 		$this->underlying = [];
 		$this->events = [];
@@ -105,6 +101,7 @@ class MainTests extends TestCase{
 	}
 
 	function test_events_parameters(){
+		$this->reset_sequences();
 		$record = new Record(null, [$this,'getter'], [$this,'setter']);
 		$record->before_change('accumulate_array_changes');
 		$record->after_change('accumulate_array_changes');

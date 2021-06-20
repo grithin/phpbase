@@ -1,8 +1,4 @@
 <?php
-# run with `phpunit Tool.php`
-
-$_ENV['root_folder'] = realpath(dirname(__FILE__).'/../').'/';
-require $_ENV['root_folder'] . '/vendor/autoload.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,11 +7,9 @@ use \Grithin\Time;
 use \Grithin\Arrays;
 use \Grithin\Tool;
 
-
-\Grithin\GlobalFunctions::init();
-
-
-
+/**
+* @group Tool
+*/
 class MainTests extends TestCase{
 	function test_cli_parse_args(){
 		$args = ['/bob/bob.php', '-t', 'bill', '-abc', 'bob', '--test', 'monkey', '--test2=monkey2'];

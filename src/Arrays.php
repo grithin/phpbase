@@ -54,6 +54,12 @@ class Arrays{
 		return (array)$x;
 	}
 
+
+
+
+
+
+
 	/// extract, if present, specified keys
 	static function pick($src, $props){
 		$props = Arrays::from($props);
@@ -624,7 +630,19 @@ class Arrays{
 			return $y;	}
 	}
 
-	# merges objects/arrays.  Ignores scalars.  Later parameters take precedence
+	# merges class instances and arrays.  Ignores scalars.  Later parameters take precedence
+	# different from array_merge in that it merges class instances as arrays
+
+	/* example
+
+	$bob = new StdClass;
+	$bob->bill = 'no';
+
+	Arrays::merge(['bill'=>'yes'], $bob);
+
+	=> ['bill'=>'no']
+
+	*/
 	static function merge($x,$y){
 		$arrays = func_get_args();
 		$result = [];
