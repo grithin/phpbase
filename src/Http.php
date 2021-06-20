@@ -115,15 +115,15 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		return $protocol;
 	}
 
-	# end script with xml
-	static function end_with_xml($content){
+	static function respond_with_xml($content=''){
 		header('Content-type: text/xml; charset=utf-8');
 		echo '<?xml version="1.0" encoding="UTF-8"?>';
-		echo $content; exit;
+		echo $content;
 	}
-	static function endXml($content){
-		$alias_for = 'end_with_xml';
-		return call_user_func_array([__CLASS__, $alias_for], func_get_args());
+	# end script with xml
+	static function end_with_xml($content=''){
+		self::respond_with_xml($content);
+		exit;
 	}
 	static function respond_with_json($content,$encode=true){
 		header('Content-type: application/json');
@@ -137,10 +137,6 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	static function end_with_json($content,$encode=true){
 		self::respond_with_json($content,$encode);
 		exit;
-	}
-	static function endJson($content,$encode=true){
-		$alias_for = 'end_with_json';
-		return call_user_func_array([__CLASS__, $alias_for], func_get_args());
 	}
 
 	//it appears the browser parses once, then operating system, leading to the need to double escape the file name.  Use double quotes to encapsulate name
