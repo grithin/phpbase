@@ -149,7 +149,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 	*/
 	static function file_send($path,$saveAs=null,$exit=true){
 		//Might potentially remove ".." from path, but it has already been removed by the time the request gets here by server or browser.  Still removing for precaution
-		$path = \Grithin\Files::removeRelative($path);
+		$path = \Grithin\Files::remove_relative($path);
 		if(is_file($path)){
 			$mime = \Grithin\Files::mime($path);
 			header('Content-Type: '.$mime);
@@ -294,7 +294,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 					$paths_values = $traverse($hierarchy, $top_key);
 
 					foreach($paths_values as $path_value){
-						$organized_files = \Grithin\Arrays::set($path_value[0].'.'.$type, $path_value[1], $organized_files);
+						$organized_files = \Grithin\Arrays::set($organized_files, $path_value[0].'.'.$type, $path_value[1]);
 					}
 				}
 			}else{

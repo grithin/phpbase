@@ -261,4 +261,36 @@ class Dictionary{
 		}
 		return $array;
 	}
+
+	///![modifies value] if a key exists, ensure it points to an array, and append it with $value; otherwise, set the value of the key to $value
+	/* examples
+	$x = ['name'=>'bob'];
+	add_or_append('name', 'bill', $x);
+	# $x => ['name'=>['bob', 'bill']]
+
+	$x = [];
+	add_or_append('name', 'bill', $x);
+	# $x => ['name'=>'bill']
+
+	$x = ['name'=>['bob']]
+	add_or_append('name', 'bill', $x);
+	# $x => ['name'=>['bob', 'bill']]
+	*/
+	/**
+	@param	key	can be null or key or array.  If null, value added to end of array
+	@param	value	value to add to array
+	@param	array	array that will be modified
+	@param	append	if true, if keyed value already exists, ensure keyed value is array and add new value to array
+	*/
+	static function add_or_append($key, $value, &$array){
+		if(self::is_set($array, $key)){
+			if(is_array($array[$key])){
+				$array[$key][] = $value;
+			}else{
+				$array[$key] = array($array[$key],$value);
+			}
+		}else{
+			$array[$key] = $value;
+		}
+	}
 }

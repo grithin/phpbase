@@ -24,7 +24,7 @@ class Arrays{
 	static function to_array($var, $divider=',\s*'){
 		return self::from($var, $divider);
 	}
-	# alias for `from`
+	# alias for `from`.  Provided for expectancy
 	static function toArray($var, $divider=',\s*'){
 		return self::from($var, $divider);
 	}
@@ -54,8 +54,15 @@ class Arrays{
 		return (array)$x;
 	}
 
-
-
+	# Whether the keys are excluslive numeric
+	static function is_numeric($array){
+		foreach($array as $k=>$v){
+			if(!is_int($k)){
+				return false;
+			}
+		}
+		return true;
+	}
 
 
 
@@ -205,19 +212,11 @@ class Arrays{
 		return $dest;
 	}
 
-	/// lodash get.  Works with arrays and objects.  Specially handling for part which is a obj.method
-	static function get($collection, $path){
-		try{
-			$value = Arrays::got($collection, $path);
-			return $value;
-		}catch(\Exception $e){
-			return null;
-		}
-	}
+
 	/// lodash has
 	static function has($collection, $path){
 		try{
-			Arrays::got($collection, $path);
+			self::get($collection, $path, ['make'=>false]);
 			return true;
 		}catch(\Exception $e){
 			return false;
@@ -226,62 +225,58 @@ class Arrays{
 
 	# lodash get, with exception upon not found
 	static function got($collection, $path){
-		foreach(explode('.', $path) as $part){
-			if(is_object($collection)){
-				if(isset($collection->$part)){
-					$collection = $collection->$part;
-				}elseif(is_callable([$collection, $part])){
-					$collection = [$collection, $part]; # turn it into a callable form
-				}else{
-					throw new \Exception('not found');
-				}
-			}elseif(is_array($collection)){
-				if(self::is_set($collection, $part)){
-					$collection = $collection[$part];
-				}else{
-					throw new \Exception('not found');
-				}
-			}else{
-				throw new \Exception('not found');
-			}
-		}
-		return $collection;
+		return self::get($collection, $path, ['make'=>false]);
 	}
 
-	# see self::get.  Sets at path and returns collection
+	/// lodash get.  Works with arrays and objects.  Specially handling for part which is a obj.method
+	static function &get(&$collection=[], $path='', $options=[]){
+		$defaults = ['make'=>true];
+		$options = array_merge($defaults, $options);
 
-	/* Example, set existing
-	$x = ['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
-	$x = Arrays::set('bill.moe', '123', $x);
+		if($path === ''){
+			return $collection;
+		}
 
-	$x = (object)['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
-	$x = Arrays::set('bill.moe', '123', $x);
-	*/
+		if(is_string($path)){
+			$path_parts = explode('.', $path);
+		}elseif(is_numeric($path)){
+			$path_parts = [$path];
+		}else{
+			$path_parts = self::from($path);
+		}
 
-	/* Example, set new
-	$x = ['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
-	$x = Arrays::set('bill.new1.new2', '123', $x);
-
-	$x = (object)['bob'=> 'sue', 'bill'=>['moe'=>'fil']];
-	$x = Arrays::set('moe.mill', '123', $x);
-	*/
-	static function set_on_reference($path, $value, &$collection=[], $options=[]){
 		$reference_to_last =& $collection;
 		$parsed = [];
-		foreach(explode('.', $path) as $part){
+		$not_found = function($key) use ($path, $parsed){ throw new \Exception('path not found at "'.$key.'" of "'.$path.'" at "'.$parsed.'"'); };
+		foreach($path_parts as $part){
 			if(is_object($reference_to_last)){
 				if(isset($reference_to_last->$part)){
 					$reference_to_last =& $reference_to_last->$part;
 				}elseif(is_callable([$reference_to_last, $part])){
 					$reference_to_last =& [$reference_to_last, $part](); # turn it into a callable form
 				}else{
-					$reference_to_last =& $reference_to_last->$part; # attempt to create attribute
+					if($options['make']){
+						$reference_to_last =& $reference_to_last->$part; # attempt to create attribute
+					}else{
+						$not_found($part);
+					}
+
 				}
-			}elseif(is_array($reference_to_last)){
-				$reference_to_last =& $reference_to_last[$part]; # will either find or create at key
+			}elseif(is_array($reference_to_last) && $options['make']){
+				if($options['make'] || self::is_set($reference_to_last, $part)){
+					$reference_to_last =& $reference_to_last[$part]; # will either find or create at key
+				}else{
+					$not_found($part);;
+				}
+
+
 			}elseif(is_null($reference_to_last)){
-				# PHP will turn the null `reference_to_last` into an array, and then create the accessed key for referencing
-				$reference_to_last =& $reference_to_last[$part];
+				if($options['make']){
+					# PHP will turn the null `reference_to_last` into an array, and then create the accessed key for referencing
+					$reference_to_last =& $reference_to_last[$part];
+				}else{
+					$not_found($part);
+				}
 			}else{
 				if(!empty($options['path_error_handler'])){
 					$options['path_error_handler']($reference_to_last, $value, $parsed, $part, $path, $collection, $options);
@@ -292,39 +287,41 @@ class Arrays{
 			}
 			$parsed[] = $part;
 		}
-		if(!empty($options['set_handler'])){
-			$options['set_handler']($reference_to_last, $value, $path, $collection, $options);
-		}else{
-			$reference_to_last = $value;
-		}
+		return $reference_to_last;
+	}
+	# set($path, $value, $collection=[], $options=[]){
+	static function &set(&$collection=[], $path='', $value=null, $options=[]){
+		$target = &self::get($collection, $path, $options);
+		$target = $value;
+		return $target;
+	}
 
-		return $collection;
-	}
-	static function set($path, $value, $collection=[], $options=[]){
-		return self::set_on_reference($path, $value, $collection, $options);
-	}
-	static function set_new_or_expand($path, $value, $collection=[], $options=[]){
-		return self::set_new_or_expand_on_reference($path, $value, $collection, $options);
-	}
-	static function set_new_or_expand_on_reference($path, $value, &$collection=[], $options=[]){
-		$options = [
+
+	# like set, but when a value exists at a path, turn it into and array and append
+	static function set_new_or_expand(&$collection=[], $path='', $value=null, $options=[]){
+		$requried_options = [
+			'make' => 'true',
 			# turn a non-expandable value into an array
 			'path_error_handler' => function(&$reference_to_last, $value){
 				$deferenced_value = $reference_to_last;
 				$reference_to_last = [$deferenced_value, $value];},
 			# turn a collided value into an array
-			'set_handler' => function(&$reference_to_last, $value){
-				if(is_array($reference_to_last)){
-					$reference_to_last[] = $value;
-				}elseif(!is_null($reference_to_last)){
-					$deferenced_value = $reference_to_last;
-					$reference_to_last = [$deferenced_value, $value];
-				}else{
-					$reference_to_last = $value;
-				}
-			}
 		];
-		return self::set_on_reference($path, $value, $collection, $options);
+		$options = array_merge($options, $requried_options);
+
+		$target = &self::get($collection, $path, $options);
+
+		$set = function(&$reference_to_last, $value){
+			if(is_array($reference_to_last)){
+				$reference_to_last[] = $value;
+			}elseif(!is_null($reference_to_last)){
+				$deferenced_value = $reference_to_last;
+				$reference_to_last = [$deferenced_value, $value];
+			}else{
+				$reference_to_last = $value;
+			}
+		};
+		return $set($target, $value);
 	}
 
 	/// change the name of some keys
@@ -334,10 +331,6 @@ class Arrays{
 			unset($src[$k]);
 		}
 		return array_merge($src,$dest);
-	}
-
-	static function each($src, $fn){
-
 	}
 
 
@@ -457,144 +450,9 @@ class Arrays{
 		return (array)$sArray;
 	}
 
-	/// Checks if element of an arbitrarily deep array is set
-	/**
-	@param	keys array comma separated list of keys to traverse
-	@param	array	array	The array which is parsed for the element
-	*/
-	static function isElement($keys,$array){
-		$keys = self::from($keys);
-		$lastKey = array_pop($keys);
-		$array = self::getElement($keys,$array);
-		return self::is_set($array, $lastKey);
-	}
-
-	/// Gets an element of an arbitrarily deep array using list of keys for levels
-	/**
-	@param	keys array comma separated list of keys to traverse
-	@param	array	array	The array which is parsed for the element
-	@param	force	string	determines whetehr to create parts of depth if they don't exist
-	*/
-	static function getElement($keys,$array,$force=false){
-		$keys = self::from($keys);
-		foreach($keys as $key){
-			if(!self::is_set($array, $key)){
-				if(!$force){
-					return;
-				}
-				$array[$key] = array();
-			}
-			$array = $array[$key];
-		}
-		return $array;
-	}
-	/// Same as getElement, but returns reference instead of value
-	/**
-	@param	keys array comma separated list of keys to traverse
-	@param	array	array	The array which is parsed for the element
-	@param	force	string	determines whether to create parts of depth if they don't exist
-	*/
-	static function &getElementReference($keys,&$array,$force=false){
-		$keys = self::from($keys);
-		foreach($keys as &$key){
-			if(!is_array($array)){
-				$array = array();
-				$array[$key] = array();
-			}elseif(!self::is_set($array, $key)){
-				if(!$force){
-					return;
-				}
-				$array[$key] = array();
-			}
-			$array = &$array[$key];
-		}
-		return $array;
-	}
-
-	/// Updates an arbitrarily deep element in an array using list of keys for levels
-	/** Traverses an array based on keys to some depth and then updates that element
-	@param	keys array comma separated list of keys to traverse
-	@param	array	array	The array which is parsed for the element
-	@param	value the new value of the element
-	*/
-	static function updateElement($keys,&$array,$value){
-		$element = &self::getElementReference($keys,$array,true);
-		$element = $value;
-	}
-	/// Same as updateElement, but sets reference instead of value
-	/** Traverses an array based on keys to some depth and then updates that element
-	@param	keys array comma separated list of keys to traverse
-	@param	array	array	The array which is parsed for the element
-	@param	reference the new reference of the element
-	*/
-	static function updateElementReference($keys,&$array,&$reference){
-		$element = &self::getElementReference($keys,$array,true);
-		$element = &$reference;
-	}
 
 
-	///finds all occurrences of value and replaces them in arbitrarily deep array
-	static function replaceAll($value,$replacement,$array,&$found=false){
-		foreach($array as &$element){
-			if(is_array($element)){
-				$element = self::replaceAll($value,$replacement,$element,$found);
-			}elseif($element == $value){
-				$found = true;
-				$element = $replacement;
-			}
-		}
-		unset($element);
-		return $array;
-	}
-	///finds all occurences of value and replaces parents (parent array of the value) in arbitrarily deep array
-	/**
-	Ex
-		$bob = ['sue'=>['jill'=>['dave'=>['bill'=>'bob']]]];
-		replaceAllParents('bob','bill',$bob);
-		#	['sue'=>['jill'=>['dave'=>'bill']]]
-		replaceAllParents('bob','bill',$bob,2);
-		#	['sue'=>['jill'=>'bill']];
 
-	*/
-	static function replaceAllParents($value,$replacement,$array,$parentDepth=1,&$found=false){
-		foreach($array as &$element){
-			if(is_array($element)){
-				$newValue = self::replaceAllParents($value,$replacement,$element,$parentDepth,$found);
-				if(is_int($newValue)){
-					if($newValue == 1){
-						$element = $replacement;
-					}else{
-						return $newValue - 1;
-					}
-				}else{
-					$element = $newValue;
-				}
-			}elseif($element == $value){
-				$found = true;
-				return (int)$parentDepth;
-			}
-		}
-		unset($element);
-		return $array;
-	}
-
-	#++ }
-
-
-	///Takes an arary of arbitrary deepness and turns the keys into tags and values into data
-	/**
-	@param	array	array to be turned into xml
-	@param	depth	internal use
-	*/
-	static function toXml($array,$depth=0){
-		foreach($array as $k=>$v){
-			if(is_array($v)){
-				$v = arrayToXml($v);
-			}
-			$ele[] = str_repeat("\t",$depth).'<'.$k.'>'.$v.'</'.$k.'>';
-		}
-		return implode("\n",$ele);
-	}
 	///Set the keys equal to the values or vice versa
 	/**
 	@param array the array to be used
@@ -616,19 +474,6 @@ class Arrays{
 		return $newA;
 	}
 
-	///php collapses numbered or number string indexes on merge, this does not
-	static function indexMerge($x,$y){
-		if(is_array($x)){
-			if(is_array($y)){
-				foreach($y as $k=>$v){
-					$x[$k] = $v;
-				}
-				return $x;
-			}else{
-				return $x;	}
-		}else{
-			return $y;	}
-	}
 
 	# merges class instances and arrays.  Ignores scalars.  Later parameters take precedence
 	# different from array_merge in that it merges class instances as arrays
@@ -656,10 +501,19 @@ class Arrays{
 		}
 		return $result;
 	}
-	# merges/replaces objects/arrays.  Ignores scalars.  Later parameters take precedence
-	/* @note	merge vs replace
-		generally, replace acts as expected, replacing matching keys whether numeric or not.  Merge will append on numeric keys, and consequently, not maintain key offsets during such.
+	# merges/replaces objects/arrays.  Does no resquence numeric keys or make linear sequence appends (like array_merge does)
+	/* example
+	$x = [3=>3, 4=>4];
+	$y = [5=>5, 6=>6];
 
+	$r = :this($x, $y);
+	{"3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6}
+	*/
+	/* @about, merge vs replace
+		generally, replace acts as expected, replacing matching keys whether numeric or not.  Merge will append on numeric keys, even if the arrays have non-numeric keys (array is a dictionary).
 		-	different on numeric keys
 				array_merge([1,2,3], [5,1]);
 					#> [1,2,3,5,1]
@@ -689,8 +543,8 @@ class Arrays{
 	}
 
 
-	///for an incremented key array, find first gap in key numbers, or use end of array
-	static function firstAvailableKey($array){
+	///for a sequential array, find first gap in key numbers
+	static function first_available_key($array){
 		if(!is_array($array)){
 			return 0;
 		}
@@ -704,121 +558,9 @@ class Arrays{
 		}
 		return $key;
 	}
-	/// if no key (false or null), append, otherwise, use the key.  Account for collisions with optional append.
-	/**
-	@param	key	can be null or key or array.  If null, value added to end of array
-	@param	value	value to add to array
-	@param	array	array that will be modified
-	@param	append	if true, if keyed value already exists, ensure keyed value is array and add new value to array
-	*/
-	static function addOnKey($key,$value,&$array,$append=false){
-		if($key !== null && $key !== false){
-			if($append && self::is_set($array, $key)){
-				if(is_array($array[$key])){
-					$array[$key][] = $value;
-				}else{
-					$array[$key] = array($array[$key],$value);
-				}
-			}else{
-				$array[$key] = $value;
-			}
-			return $key;
-		}else{
-			$array[] = $value;
-			return count($array) - 1;
-		}
-	}
-	/// adds to the array and overrides duplicate elements
-	/**removes all instances of some value in an array then adds the value according to the key
-	@param	value	the value to be removed then added
-	@param	array	the array to be modified
-	@param	key	the key to be used in the addition of the value to the array; if null, value added to end of array
-	*/
-	static function addOverride($value,&$array,$key=null){
-		self::remove($value);
-		self::addOnKey($key,$value,$array);
-		return $array;
-	}
 
-	///separate certain keys from an array and put them into another, returned array
-	static function separate($keys,&$array){
-		$separated = array();
-		foreach($keys as $key){
-			$separated[$key] = $array[$key];
-			unset($array[$key]);
-		}
-		return $separated;
-	}
-	/// Take some normal list of rows and make it a id-keyed list pointing to either a value or the row remainder
-	/**
-	Ex
-		1
-			[
-				['id'=>3,'email'=>'bob@bob.com'],
-				['id'=>4,'email'=>'bob2@bob.com']	]
-			becomes
-				[3 => 'bob@bob.com', 4 => 'bob2@bob.com']
-		2
-			[['id'=>3,'email'=>'bob@bob.com','name'=>'bob'],['id'=>4,'email'=>'bob2@bob.com','name'=>'bill']]
-			becomes (note, since remain array has more than one part, key points to an array instead of a value
-			[
-				3 : [
-					'email' : 'bob@bob.com'
-					'name' : 'bob'
-				]
-				4 : [
-					'email' : 'bob2@bob.com'
-					'name' : 'bill'
-				]	]
-	@param	array	array used to make the return array
-	@param	key	key to use in the sub arrays of input array to be used as the keys of the output array
-	@param	name	value to be used in the output array.  If not specified, the value defaults to the rest of the array apart from the key
-	@return	key to name mapped array
-	*/
-	#**deprecated** use key_on_sub_key_to_remaining
-	static function subsOnKey($array,$key = 'id',$name=null){
-		if(is_array($array)){
-			$newArray = array();
-			foreach($array as $part){
-				$keyValue = $part[$key];
-				if($name){
-					$newArray[$keyValue] = $part[$name];
-				}else{
-					unset($part[$key]);
-					if(count($part) > 1 ){
-						$newArray[$keyValue] = $part;
-					}else{
-						$newArray[$keyValue] = array_pop($part);
-					}
-				}
-			}
-			return $newArray;
-		}
-		return array();
-	}
-	/// same as subsOnKey, but combines duplicate keys into arrays; keyed value is always and array
-	#**deprecated** use key_on_sub_key_to_compiled_remaining
-	static function compileSubsOnKey($array,$key = 'id',$name=null){
-		if(is_array($array)){
-			$newArray = array();
-			foreach($array as $part){
-				$keyValue = $part[$key];
-				if($name){
-					$newArray[$keyValue][] = $part[$name];
-				}else{
-					unset($part[$key]);
-					if(count($part) > 1 ){
-						$newArray[$keyValue][] = $part;
-					}else{
-						$newArray[$keyValue][] = array_pop($part);
-					}
-				}
-			}
-			return $newArray;
-		}
-		return array();
-	}
 
+	# see `key_on_sub_key_to_remaining` and `key_on_sub_key_to_compiled`
 	static function key_on_sub_key_to_compiled_remaining($arrays, $sub_key='id', $options=[]){
 		$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
 			if(is_array($previous_value) && self::is_numeric($previous_value)){
@@ -831,18 +573,45 @@ class Arrays{
 		return self::key_on_sub_key_to_remaining($arrays, $sub_key, $options);
 	}
 
-	static function is_numeric($array){
-		return self::is_numerically_keyed($array);
-	}
-	static function is_numerically_keyed($array){
-		foreach($array as $k=>$v){
-			if(!is_int($k)){
-				return false;
-			}
-		}
-		return true;
-	}
-	# like `key_on_sub_key`, but exclude key value from sub array
+	# like `key_on_sub_key`, but exclude the key from the value array
+	# @caution if a single value remains in the value array, the key will point directly to the value instead of the array.  See examples.
+
+	/* example
+	\Grithin\GlobalFunctions::init('pretty');
+
+	$x = [
+		['id'=>555, 'name'=>'bob', 'age'=> 1],
+		['id'=>777, 'name'=>'bill', 'age'=> 2],
+	];
+	=> {
+		"555": {
+        "name": "bob",
+        "age": 1},
+    	"777": {
+        "name": "bill",
+        "age": 2}}
+	*/
+	/* example, if single value remains, use value instead of [value]
+	$x = [
+		['id'=>555, 'name'=>'bob'],
+		['id'=>777, 'name'=>'bill'],
+	];
+
+	$r = Arrays::key_on_sub_key_to_remaining($x, 'id');
+	=> {"555": "bob", "777": "bill"}
+	*/
+	/* example, `only` option
+	$x = [
+		['id'=>555, 'name'=>'bob', 'age'=> 1],
+		['id'=>777, 'name'=>'bill', 'age'=> 2],
+	];
+
+	$r = Arrays::key_on_sub_key_to_remaining($x, 'id', ['name'=>'only']);
+	*/
+	/* params
+	< options >:
+		only: < a key to be used as the only value in the array of values >
+	*/
 	static function key_on_sub_key_to_remaining($arrays, $sub_key='id', $options=[]){
 		$arrays = (array)$arrays;
 		$new_arrays = [];
@@ -853,10 +622,10 @@ class Arrays{
 			};
 		}
 
-		if(!empty($options['name'])){
+		if(!empty($options['only'])){
 			foreach($arrays as $array){
 				$sub_key_value = $array[$sub_key];
-				$value = $array[$options['name']];
+				$value = $array[$options['only']];
 				if(array_key_exists($sub_key_value, $new_arrays)){
 					$value = $options['collision_handler']($sub_key_value, $new_arrays[$sub_key_value], $value);
 				}
@@ -889,6 +658,25 @@ class Arrays{
 		}
 		return $new_arrays;
 	}
+
+	// like key_on_sub_key, but compiled colliding rows into an array
+	/* example
+	$x = [
+		['id'=>555, 'name'=>'bob'],
+		['id'=>777, 'name'=>'bill'],
+		['id'=>777, 'name'=>'moe'],
+	];
+
+	$r = Arrays::key_on_sub_key_to_compiled($x, 'id');
+	=>	{"555": {
+	        "id": 555,
+	        "name": "bob"},
+	    "777": [
+	        {"id": 777,
+	            "name": "bill"},
+	        {"id": 777,
+	            "name": "moe"}]}
+	*/
 	static function key_on_sub_key_to_compiled($arrays, $sub_key='id', $options=[]){
 		$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
 			if(is_array($previous_value) && self::is_numeric($previous_value)){
@@ -901,9 +689,32 @@ class Arrays{
 		return self::key_on_sub_key($arrays, $sub_key, $options);
 	}
 	# take a subkey (ex 'bob' of [1=>['bob'=>'sue', 'bill'=>'moe']]) and make that the primary key
-	/* Ex:
-			{1:		{	"bob": "sue",	"bill": "moe"}}
-	#>		{"sue":	{	"bob": "sue",	"bill": "moe"}}
+	/* example
+		$x = [
+			['id'=>555, 'name'=>'bob'],
+			['id'=>777, 'name'=>'bill'],
+		];
+		::key_on_sub_key($x, 'id');
+
+		=> [
+			'555'=> ['id'=>555, 'name'=>'bob'],
+			'777' => ['id'=>777, 'name'=>'bill']
+		]
+	*/
+	/* example
+	$x = [
+		['id'=>555, 'name'=>'bob'],
+		['id'=>777, 'name'=>'bill'],
+		['id'=>777, 'name'=>'moe'],
+	];
+
+	$r = Arrays::key_on_sub_key($x, 'id');
+	=> Exception, key collision
+	*/
+	/* params
+	sub_key:
+	options:
+		collision_handler: < function(key, existing_value, new_value) => (new value)  >
 	*/
 	static function key_on_sub_key($arrays, $sub_key='id', $options=[]){
 		$new_arrays = [];
@@ -931,30 +742,6 @@ class Arrays{
 		return implode($separator,$array);
 	}
 
-	///checks if $subset is a sub set of $set starting at $start
-	/*
-
-		ex 1: returns true
-			$subset = array('sue');
-			$set = array('sue','bill');
-		ex 2: returns false
-			$subset = array('sue','bill','moe');
-			$set = array('sue','bill');
-
-	*/
-	static function isOrderedSubset($subset,$set,$start=0){
-		for($i=0;$i<$start;$i++){
-			next($set);
-		}
-		while($v1 = current($subset)){
-			if($v1 != current($set)){
-				return false;
-			}
-			next($subset);
-			next($set);
-		}
-		return true;
-	}
 	///count how many times a value is in an array
 	static function countIn($value,$array,$max=null){
 		$count = 0;

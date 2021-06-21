@@ -17,16 +17,16 @@ class Url{
 			$key = urldecode($key);
 			$value = urldecode($value);
 			if($specialSyntax && ($matches = self::special_syntax_keys($key))){
-				if(Arrays::isElement($matches,$array)){
-					$currentValue = Arrays::getElement($matches,$array);
+				if(Arrays::has($array, $matches)){
+					$currentValue = Arrays::get($array, $matches);
 					if(is_array($currentValue)){
 						$currentValue[] = $value;
 					}else{
 						$currentValue = array($currentValue,$value);
 					}
-					Arrays::updateElement($matches,$array,$currentValue);
+					Arrays::set($array, $matches, $currentValue);
 				}else{
-					Arrays::updateElement($matches,$array,$value);
+					Arrays::set($array, $matches, $value);
 				}
 				unset($match,$matches);
 			}else{

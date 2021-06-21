@@ -188,12 +188,8 @@ class Files{
 		self::$currentInclude['result'] = $result;
 		self::$included[] = self::$currentInclude;
 	}
-	# standard-naming alias
-	static function get_included($path_parts){
-		return call_user_func_array([__CLASS__, 'getIncluded'], func_get_arg());
-	}
 	///get all the included files included by functions from this class
-	static function getIncluded(){
+	static function get_included(){
 		return self::$included;
 	}
 
@@ -280,12 +276,8 @@ class Files{
 		}
 		return $mime;
 	}
-	# standard-naming alias
-	static function mime_ext($path_parts){
-		return call_user_func_array([__CLASS__, 'mimeExt'], func_get_arg());
-	}
 	///take a mimetype and return the extension for it
-	static function mimeExt($mime){
+	static function mime_ext($mime){
 		$mime = explode('/',$mime);
 		$mimes = array(
 				'jpeg'=>'jpg',
@@ -305,15 +297,12 @@ class Files{
 		file_put_contents($location,$content);
 	}
 
-	# standard-naming alias
-	static function dir_size($path_parts){
-		return call_user_func_array([__CLASS__, 'dirSize'], func_get_arg());
-	}
+
 	///get the size of a directory
 	/**
 	@param	dir	path to a directory
 	*/
-	static function dirSize($dir){//directory size
+	static function dir_size($dir){//directory size
 		if(is_array($subs=scandir($dir))){
 			$size = 0;
 			$subs=array_slice($subs,2,count($subs)-2);
@@ -321,7 +310,7 @@ class Files{
 				for($i=0;$i<$sub_count;$i++){
 					$temp_sub=$dir.'/'.$subs[$i];
 					if(is_dir($temp_sub)){
-						$size+=self::dirSize($temp_sub);
+						$size+=self::dir_size($temp_sub);
 					}else{
 						$size+=filesize($temp_sub);
 					}
@@ -330,19 +319,13 @@ class Files{
 			return $size;
 		}
 	}
-	# standard-naming alias
-	static function remove_relative($path_parts){
-		return call_user_func_array([__CLASS__, 'removeRelative'], func_get_arg());
-	}
+	
 	///remove relative parts of a path that could be used for exploits
-	static function removeRelative($path){
+	static function remove_relative($path){
 		return preg_replace(array('@((\.\.)(/|$))+@','@//+@'),'/',$path);
 	}
 
-	# standard-naming alias
-	static function absolute_path($path_parts){
-		return call_user_func([__CLASS__, 'absolutePath'], $path_parts);
-	}
+
 	///does not care whether relative folders exist (unlike file include functions)
 	///Found here b/c can be applied to HTTP paths, not just file paths
 	static function resolve_relative($pathParts, $relative = false, $separator = DIRECTORY_SEPARATOR){

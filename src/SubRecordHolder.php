@@ -53,7 +53,7 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 			$this->record[$offset] = $value;
 		}
 
-		$subrecord_at_path = Arrays::set($this->path_prefix, $this->record, []);
+		$subrecord_at_path = Arrays::set([], $this->path_prefix, $this->record);
 
 		# send absolute path changes to primary Record holder
 		$this->Record->update_local($subrecord_at_path);
@@ -70,7 +70,7 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 		# does this trigger a change event?
 		unset($this->record[$offset]);
 
-		$subrecord_at_path = Arrays::set($this->path_prefix, $this->record, []);
+		$subrecord_at_path = Arrays::set([], $this->path_prefix, $this->record);
 
 		# send absolute path changes to primary Record holder
 		$this->Record->update_local($subrecord_at_path);
