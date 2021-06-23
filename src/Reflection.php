@@ -4,7 +4,7 @@ namespace Grithin;
 class Reflection{
 	///get the first file that was executed
 	static function firstFileExecuted(){
-		return array_pop(debug_backtrace())['file'];
+		return debug_backtrace()[0]['file'];
 	}
 	/// attempt to get the backtrace array for the caller existing outside the called class method
 	/**
