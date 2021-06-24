@@ -192,6 +192,7 @@ class Debug{
 			$backtrace = self::conform_backtrace($backtrace);
 		}
 
+
 		$error = [
 			'level' => self::error_level($eLevel),
 			'message' => $eStr,

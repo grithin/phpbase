@@ -127,7 +127,7 @@ trait VariedParameter{
 	#+++++++++++++++     Non Prefixed Versions     +++++++++++++++ {
 
 	static function static_id_from_string($string){
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $string;
 		}
 		$id = self::static_id_by_name($string);
@@ -159,7 +159,7 @@ trait VariedParameter{
 
 	static function static_item_by_string($string){
 		$item = false;
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			$item = self::static_item_by_id($string);
 		}else{
 			$item = self::static_item_by_name($string);
@@ -192,7 +192,7 @@ trait VariedParameter{
 	# Standard way to resolve variable input of either a id or a name identifier
 	# uses `$this->id_by_name`
 	public function id_from_string($string){
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $string;
 		}
 		$id = $this->id_by_name($string);
@@ -226,7 +226,7 @@ trait VariedParameter{
 	# uses $this->item_by_id or $this->item_by_name
 	public function item_by_string($string){
 		$item = false;
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			$item = $this->item_by_id($string);
 		}else{
 			$item = $this->item_by_name($string);
@@ -258,7 +258,7 @@ trait VariedParameter{
 
 
 	static function static_prefixed_id_from_string($prefix, $string){
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $string;
 		}
 		$id = self::static_prefixed_id_by_name($prefix, $string);
@@ -293,7 +293,7 @@ trait VariedParameter{
 
 	static function static_prefixed_item_by_string($prefix, $string){
 		$item = false;
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			$item = self::static_prefixed_item_by_id($prefix, $string);
 		}else{
 			$item = self::static_prefixed_item_by_name($prefix, $string);
@@ -327,7 +327,7 @@ trait VariedParameter{
 	# Standard way to resolve variable input of either a id or a name identifier
 	# uses `$this->prefixed_id_by_name`
 	public function prefixed_id_from_string($prefix, $string){
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $string;
 		}
 		$id = $this->prefixed_id_by_name($prefix, $string);
@@ -361,7 +361,7 @@ trait VariedParameter{
 	# uses $this->prefixed_item_by_id or $this->prefixed_item_by_name
 	public function prefixed_item_by_string($prefix, $string){
 		$item = false;
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			$item = $this->prefixed_item_by_id($prefix, $string);
 		}else{
 			$item = $this->prefixed_item_by_name($prefix, $string);

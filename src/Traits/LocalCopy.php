@@ -65,7 +65,7 @@ trait LocalCopy{
 	}
 	# get copy with string as id, or string as `name` field
 	public function local_get_by_string($type, $string){
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $this->local_get_by_id($type, $string);
 		}else{
 			return $this->local_get_by_map($type, ['name'=>$string]);

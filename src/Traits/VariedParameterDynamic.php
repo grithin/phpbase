@@ -86,7 +86,7 @@ trait VariedParameterDynamic{
 	# uses `[$that, 'id_by_name`']
 	public function id_from_string($string){
 		$that = $this ?: get_called_class();
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $string;
 		}
 		$id = [$that, 'id_by_name']($string);
@@ -123,7 +123,7 @@ trait VariedParameterDynamic{
 	public function item_by_string($string){
 		$that = $this ?: get_called_class();
 		$item = false;
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			$item = [$that, 'item_by_id']($string);
 		}else{
 			$item = [$that, 'item_by_name']($string);
@@ -161,7 +161,7 @@ trait VariedParameterDynamic{
 	# uses `[$that, 'prefixed_id_by_name`']
 	public function prefixed_id_from_string($prefix, $string){
 		$that = $this ?: get_called_class();
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			return $string;
 		}
 		$id = [$that, 'prefixed_id_by_name']($prefix, $string);
@@ -199,7 +199,7 @@ trait VariedParameterDynamic{
 	public function prefixed_item_by_string($prefix, $string){
 		$that = $this ?: get_called_class();
 		$item = false;
-		if(Tool::isInt($string)){
+		if(Tool::is_int($string)){
 			$item = [$that, 'prefixed_item_by_id']($prefix, $string);
 		}else{
 			$item = [$that, 'prefixed_item_by_name']($prefix, $string);

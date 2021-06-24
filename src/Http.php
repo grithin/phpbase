@@ -55,7 +55,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 			header('Location: '.$location,true,$code);
 		}elseif($type=='js'){
 			echo '<script type="text/javascript">';
-			if(Tool::isInt($location)){
+			if(Tool::is_int($location)){
 				if($location==0){
 					$location = $_SERVER['REQUEST_URI'];
 					echo 'window.location = '.$_SERVER['REQUEST_URI'].';';

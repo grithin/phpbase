@@ -256,10 +256,10 @@ class Arrays{
 					$not_found($part);
 				}
 			}elseif(is_object($reference_to_last)){
-				if(isset($reference_to_last->$part)){
+				if(isset($reference_to_last->$part)){ # property on object exists
 					$reference_to_last =& $reference_to_last->$part;
-				}elseif(is_callable([$reference_to_last, $part])){
-					$reference_to_last =& [$reference_to_last, $part](); # turn it into a callable form
+				}elseif(is_callable([$reference_to_last, $part])){ # it's a callable that is not a property
+					$reference_to_last = [$reference_to_last, $part]; # can't return a reference to a method, so just return a callable item
 				}else{
 					if($options['make']){
 						$reference_to_last =& $reference_to_last->$part; # attempt to create attribute

@@ -11,27 +11,23 @@ class Tool{
 		return !(is_array($x) || is_object($x));
 	}
 	///determines if string is a float
-	static function isFloat($x){
+	static function is_float($x){
 		if((string)(float)$x == $x){
 			return true;
 		}
 	}
 	///determines if a string is an integer.  Limited to php int size
-	static function isInt($x){
-		if(is_int($var)){
+	static function is_int($x){
+		if(is_int($x)){
 			return true;
 		}
 		if((string)(int)$x === (string)$x && $x !== true & $x !== false && $x !== null){
 			return true;
 		}
 	}
-	static function is_int($x){
-		$function = 'isInt';
-		return call_user_func_array([__CLASS__, $function], func_get_args());
-	}
 	///determines if a string is an integer.  Not limited to php int size
-	static function isInteger($x){
-		if(self::isInt($x)){
+	static function is_integer($x){
+		if(self::is_int($x)){
 			return true;
 		}
 		if(preg_match('@\s*[0-9]+\s*@',$x)){
@@ -54,14 +50,7 @@ class Tool{
 		}
 	}
 
-	///checks whether a package is install on the machine
-	static function checkPackage($package){
-		exec('dpkg -s '.$package.' 2>&1',$out);
-		if(preg_match('@not installed@',$out[0])){
-			return false;
-		}
-		return true;
-	}
+
 	///will encode to utf8 on failing for bad encoding
 	static function json_encode($x, $options =0, $depth = 512){
 		$x = self::deresource($x);
