@@ -4,7 +4,7 @@ namespace Grithin;
 use Grithin\Arrays;
 
 class Strings{
-	# code point to UTF-8 string
+	/** code point to UTF-8 string */
 	static function unicode_char($i) {
 		return iconv('UCS-4LE', 'UTF-8', pack('V', $i));
 	}
@@ -130,18 +130,15 @@ class Strings{
 
 
 
-	# deprecated
-	static $regexExpandCache;
-	# simpler version of regex_expand
-	static function regexExpand($regex){
-		$delimter = $regex[0];
-		if(empty(self::$regexExpandCache[$regex])){
-			self::$regexExpandCache[$regex] = self::regex_expand($regex, null, ['delimited'=>true]);
-		}
-		return self::$regexExpandCache[$regex];
-	}
-
 	# expand a range based regex into the actual characters
+	/* params
+	< regex > < regular expression to expand >
+	< set > < a set of characters on which the regex should match for expansion > < defaults to ascii >
+	< options >
+		delimtied: < whether the regex comes pre-delimited > < example: '/bob/' would be delimited, 'bob' would not be >
+		bound: < whether the regex comes pre-bound > < example: '/[a-z]/' would be bound and delimited >
+		invert: < whether to invert the unbound match.  This allows providing 'abe93' as what not to match >
+	*/
 	static function regex_expand($regex, $set=null, $options=[]){
 		if(!$set){
 			if(!empty($options['utf8'])){
@@ -217,7 +214,7 @@ class Strings{
 		if(!$match){
 			$match = '@[a-z0-9]@i';
 		}
-		$allowedChars = self::regexExpand($match);
+		$allowedChars = self::regex_expand($match, null, ['delimited'=>true]);
 		$range = mb_strlen($allowedChars) - 1;
 		for($i=0;$i<$length;$i++){
 			$string .= $allowedChars[mt_rand(0,$range)];
@@ -265,7 +262,7 @@ class Strings{
 	@param	separater	string used to separate
 	@return	underscope separated string
 	*/
-	static function camelToSeparater($string,$separater='_', $except_start=true){
+	static function camel_to_separater($string,$separater='_', $except_start=true){
 		if($except_start){
 			$string = preg_replace_callback('@^[A-Z]@',
 				function($matches) use ($separater){return strtolower($matches[0]);},
@@ -281,7 +278,7 @@ class Strings{
 	/**
 	@param	string	string to camelCase
 	*/
-	static function toCamel($string,$upperCamel=false,$separaters=' _-'){
+	static function to_camel($string,$upperCamel=false,$separaters=' _-'){
 		$separaters = preg_quote($separaters);
 		$string = strtolower($string);
 		preg_match('@['.$separaters.']*[^'.$separaters.']*@',$string,$match);
@@ -307,50 +304,62 @@ class Strings{
 	static function preg_quote($string, $delimiter='/'){
 		return self::preg_quote_delimiter(preg_quote($string), $delimiter);
 	}
+	# quote the delimiter from the string representing the inner part of a regex
 	static function preg_quote_delimiter($string, $delimiter='/'){
 		return preg_replace('/\\'.$delimiter.'/', '\\\\\0', $string);
 	}
 
 	///escapes the delimiter and delimits the regular expression.
-	/**If you already have an expression which has been preg_quoted in all necessary parts but without concern for the delimiter
-	@string	string to delimit
-	@delimiter	delimiter to use.  Don't use a delimiter quoted by preg_quote
+	/* params
+	< string > < the inner part of a regular express, not delimited >
+	< delimter > < the delimiter to use for the expression returned >
 	*/
-	static function pregDelimit($string,$delimiter='@'){
-		return $delimiter.preg_replace('/\\'.$delimiter.'/', '\\\\\0', $string).$delimiter;
-	}
-	///checks if there is a regular expression error in a string
 	/**
-	@regex	regular expression including delimiters
+	@return string	the delimited regex
+	*/
+	static function preg_delimit($string,$delimiter='@'){
+		$inner = self::preg_quote_delimiter($string, $delimiter);
+		return $delimiter.$inner.$delimiter;
+	}
+
+
+	# whether a regex has an error
+	/**
+	@return	bool	whether a regex has an error
+	*/
+	static function regex_has_error($regex){
+		return self::regex_error($regex) !== false;
+	}
+
+	/// returns the error that results from compiling a regex
+	/**
+	@param	string	regex	regular expression including delimiters
 	@return	false if no error, else string error
 	*/
-	static $regexError;
-	static function regexError($regex){
+	static function regex_error($regex){
+		$error = false;
+		$capture = function ($code,$string) use(&$error) {
+			$error = $string;
+		};
+
 		$currentErrorReporting = error_reporting();
-		error_reporting($current & ~E_WARNING);
+		error_reporting(E_WARNING); # regex errors are warnings
 
-		set_error_handler(array('self','captureRegexError'));
+		set_error_handler($capture);
 
-		preg_match($regex,'test');
+		preg_match($regex,'x');
 
 		error_reporting($currentErrorReporting);
 		restore_error_handler();
 
-		if(self::$regexError){
-			$return = self::$regexError;
-			self::$regexError == null;
-			return $return;
-		}
+		return $error;
 	}
-	///temporary error catcher used with regexError
-	static function captureRegexError($code,$string){
-		self::$regexError = $string;
-	}
-	///quote a preg replace string
-	static function pregQuoteReplaceString($str) {
+	# quote a string that will be used for replacement in preg replace
+	# prevent the accidental interpretation of special syntax within a replace string
+	static function preg_quote_replace_string($str) {
 		return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
 	}
-	///test matches against subsequent regex
+	# test matches against subsequent regex
 	/**
 	@param	subject	text to be searched
 	@param	regexes	patterns to be matched.  A "!" first character, before the delimiter, negates the match on all but first pattern
