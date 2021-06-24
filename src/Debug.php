@@ -26,7 +26,7 @@ class Debug{
 			$type='Exception';
 		}
 		if(!is_scalar($message)){
-			$message = json_encode($message);
+			$message = json_encode($message, JSON_UNESCAPED_SLASHES);
 		}
 		throw new $type($message,$code,$previous);
 	}
@@ -251,7 +251,7 @@ class Debug{
 		return $string;
 	}
 	static function json_pretty($data){
-		$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT);
+		$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 		return self::json_format_pretty($json);
 	}
 	# spacing adjustments on standard prettied json (non-breaking)

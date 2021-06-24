@@ -249,7 +249,13 @@ class Arrays{
 		$parsed = [];
 		$not_found = function($key) use ($path, $parsed){ throw new \Exception('path not found at "'.$key.'" of "'.$path.'" at "'.$parsed.'"'); };
 		foreach($path_parts as $part){
-			if(is_object($reference_to_last)){
+			if(is_array($reference_to_last) || (is_object($reference_to_last) && ($reference_to_last instanceof \ArrayAccess))){
+				if($options['make'] || self::is_set($reference_to_last, $part)){
+					$reference_to_last =& $reference_to_last[$part]; # will either find or create at key
+				}else{
+					$not_found($part);
+				}
+			}elseif(is_object($reference_to_last)){
 				if(isset($reference_to_last->$part)){
 					$reference_to_last =& $reference_to_last->$part;
 				}elseif(is_callable([$reference_to_last, $part])){
@@ -262,14 +268,6 @@ class Arrays{
 					}
 
 				}
-			}elseif(is_array($reference_to_last) && $options['make']){
-				if($options['make'] || self::is_set($reference_to_last, $part)){
-					$reference_to_last =& $reference_to_last[$part]; # will either find or create at key
-				}else{
-					$not_found($part);;
-				}
-
-
 			}elseif(is_null($reference_to_last)){
 				if($options['make']){
 					# PHP will turn the null `reference_to_last` into an array, and then create the accessed key for referencing
