@@ -8,7 +8,7 @@ use \Grithin\Strings;
 /// used for basic debuging
 /** For people other than me, things don't always go perfectly.  As such, this class is exclusively for you.  Measure things.  Find new and unexpected features.  Explore the error messages*/
 class Debug{
-	///throws variable class exception
+	/** throws variable class exception */
 	/**
 	Useful if you either want a variable-new-class exception, or if you want a non-scalar message
 
@@ -31,7 +31,7 @@ class Debug{
 		throw new $type($message,$code,$previous);
 	}
 
-	# in multithreading, the fork will have a separate process id.  It can be helpful to know if two separate process ids are within the same run id in logs
+	/** in multithreading, the fork will have a separate process id.  It can be helpful to know if two separate process ids are within the same run id in logs */
 	static function getRunId(){
 		if(empty($GLOBALS['_run_id'])){
 			$GLOBALS['_run_id'] = Strings::random(10);
@@ -39,7 +39,7 @@ class Debug{
 		return $GLOBALS['_run_id'];
 	}
 
-	///get a line from a file
+	/** get a line from a file */
 	/**
 	@param	file	file path
 	@param	line	line number
@@ -164,7 +164,7 @@ class Debug{
 			return $level_code;
 		}
 
-	/*	params
+	/**	params
 	< excrption >
 	< additional > < array of additional stacks from chained exceptions (exceptions called within exception handling) >
 	*/
@@ -176,7 +176,7 @@ class Debug{
 		return self::conform_error(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),$exception->getTrace(), $options);
 	}
 
-	///print a boatload of information to the load so that even your grandma could fix that bug
+	/** print a boatload of information to the load so that even your grandma could fix that bug */
 	/**
 	@param	eLevel	error level
 	@param	eStr	error string
@@ -237,7 +237,7 @@ class Debug{
 		}
 	}
 	static $pretty_increment = 0;
-	# data as a pretty, identifying string
+	/** data as a pretty, identifying string */
 	static function pretty($data, $caller=false){
 		if(!$caller){
 			$caller = self::caller();
@@ -255,7 +255,7 @@ class Debug{
 		$json = Tool::flat_json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 		return self::json_format_pretty($json);
 	}
-	# spacing adjustments on standard prettied json (non-breaking)
+	/** spacing adjustments on standard prettied json (non-breaking) */
 	static function json_format_pretty($json_string){
 		$start_bracket = '[\[\{]+';
 		$end_bracket = '[\]\}]+';

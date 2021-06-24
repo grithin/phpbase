@@ -6,14 +6,14 @@ namespace Grithin{
 
 class GlobalFunctions{
 	static $silence = false; # whether to silence output functions
-	/* params
+	/** params
 	< additional_functions > < functions to include in addition to the defaults >
 	*/
-	/* examples
+	/** examples
 	\Grithin\GlobalFunctions::init('pretty');
 	\Grithin\GlobalFunctions::init(['pretty', 'json_pretty']);
 	*/
-	# used to force inclusion of this file, which then sets global functions
+	/** used to force inclusion of this file, which then sets global functions */
 	static function init($additional_functions=[]){
 		if($additional_functions){
 			\Grithin\Files::req(__DIR__.'/GlobalFunctionsAdditional.php', ['functions'=>(array)$additional_functions]);
@@ -30,7 +30,7 @@ use \Grithin\Debug;
 use \Grithin\Tool;
 
 if(!function_exists('pp')){
-	# pretty print
+	/** pretty print */
 	function pp($data){
 		if(\Grithin\GlobalFunctions::$silence){
 			return;
@@ -41,7 +41,7 @@ if(!function_exists('pp')){
 	}
 }
 if(!function_exists('ppe')){
-	# pretty print and exit
+	/** pretty print and exit */
 	function ppe($data=''){
 		if(\Grithin\GlobalFunctions::$silence){
 			return;
@@ -59,7 +59,7 @@ if(!function_exists('stderr')){
 }
 
 if(!function_exists('sepp')){
-	# standard error pretty print
+	/** standard error pretty print */
 	function sepp($data){
 		if(\Grithin\GlobalFunctions::$silence){
 			return;

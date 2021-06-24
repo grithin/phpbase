@@ -21,7 +21,7 @@ trait VariedParameterDynamic{
 	}
 
 
-	# assuming the thing is either the id or contains it
+	/** assuming the thing is either the id or contains it */
 	function id_from_thing($thing, $id_column='id'){
 		$that = $this ?: get_called_class();
 		if(!Tool::is_scalar($thing)){
@@ -29,7 +29,7 @@ trait VariedParameterDynamic{
 		}
 		return [$that, 'id_from_string']($thing);
 	}
-	# assuming the thing is either the id or contains it
+	/** assuming the thing is either the id or contains it */
 	function id_from_thing_or_error($thing, $id_column='id'){
 		$that = $this ?: get_called_class();
 		if(!Tool::is_scalar($thing)){
@@ -41,7 +41,7 @@ trait VariedParameterDynamic{
 		}
 		return $id;
 	}
-	/*
+	/**
 	Take what could be an id or an array or an object, and turn it into an id
 	*/
 	function id_from_object($thing, $id_column='id'){
@@ -82,8 +82,8 @@ trait VariedParameterDynamic{
 
 	#+++++++++++++++     Non Prefixed Versions     +++++++++++++++ {
 
-	# Standard way to resolve variable input of either a id or a name identifier
-	# uses `[$that, 'id_by_name`']
+	/** Standard way to resolve variable input of either a id or a name identifier */
+	/** uses `[$that, 'id_by_name`'] */
 	public function id_from_string($string){
 		$that = $this ?: get_called_class();
 		if(Tool::is_int($string)){
@@ -100,7 +100,7 @@ trait VariedParameterDynamic{
 		$that = $this ?: get_called_class();
 		return [$that, 'call_guaranteed_identity']('id_by_name', $name);
 	}
-	/*	param
+	/**	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	public function id_by_thing($thing, $options=[]){
@@ -119,7 +119,7 @@ trait VariedParameterDynamic{
 	}
 
 
-	# uses [$that, 'item_by_id or $this->item_by_name']
+	/** uses [$that, 'item_by_id or $this->item_by_name'] */
 	public function item_by_string($string){
 		$that = $this ?: get_called_class();
 		$item = false;
@@ -157,8 +157,8 @@ trait VariedParameterDynamic{
 	#+++++++++++++++     Prefixed Versions     +++++++++++++++ {
 
 
-	# Standard way to resolve variable input of either a id or a name identifier
-	# uses `[$that, 'prefixed_id_by_name`']
+	/** Standard way to resolve variable input of either a id or a name identifier */
+	/** uses `[$that, 'prefixed_id_by_name`'] */
 	public function prefixed_id_from_string($prefix, $string){
 		$that = $this ?: get_called_class();
 		if(Tool::is_int($string)){
@@ -176,7 +176,7 @@ trait VariedParameterDynamic{
 		$function = $prefix.'_id_by_name';
 		return [$that, 'call_guaranteed_identity']($function, $name);
 	}
-	/*	param
+	/**	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	public function prefixed_id_by_thing($prefix, $thing, $options=[]){
@@ -195,7 +195,7 @@ trait VariedParameterDynamic{
 	}
 
 
-	# uses [$that, 'prefixed_item_by_id or $this->prefixed_item_by_name']
+	/** uses [$that, 'prefixed_item_by_id or $this->prefixed_item_by_name'] */
 	public function prefixed_item_by_string($prefix, $string){
 		$that = $this ?: get_called_class();
 		$item = false;

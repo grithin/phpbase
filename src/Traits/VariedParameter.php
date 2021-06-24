@@ -22,7 +22,7 @@ use \Grithin\Tool;
 use \Exception;
 
 trait VariedParameter{
-	/*	Notes on PHP failures affecting the design of the `guaranteed` functions
+	/**	Notes on PHP failures affecting the design of the `guaranteed` functions
 		-	`forward_static_call_array` does not work.
 		-	Turning errors into exceptions does not allow for catching method not found error
 		-	not way to execute a call_user_function([static,'fn_name'])
@@ -46,14 +46,14 @@ trait VariedParameter{
 
 	#+++++++++++++++     Static Versions     +++++++++++++++ {
 
-	# assuming the thing is either the id or contains it
+	/** assuming the thing is either the id or contains it */
 	static function static_id_from_thing($thing, $id_column='id'){
 		if(!Tool::is_scalar($thing)){
 			return self::static_id_from_object($thing, $id_column);
 		}
 		return $thing;
 	}
-	# assuming the thing is either the id or contains it
+	/** assuming the thing is either the id or contains it */
 	static function static_id_from_thing_or_error($thing, $id_column='id'){
 		if(!Tool::is_scalar($thing)){
 			return self::static_id_from_object_or_error($thing, $id_column);
@@ -63,7 +63,7 @@ trait VariedParameter{
 		}
 		return $thing;
 	}
-	/*
+	/**
 	Take what could be an id or an array or an object, and turn it into an id
 	*/
 	static function static_id_from_object($thing, $id_column='id'){
@@ -141,7 +141,7 @@ trait VariedParameter{
 		$function = 'id_by_name';
 		return self::static_call_guaranteed_identity($function, $name);
 	}
-	/*	param
+	/**	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	static function static_id_by_thing($thing, $options=[]){
@@ -189,8 +189,8 @@ trait VariedParameter{
 
 
 
-	# Standard way to resolve variable input of either a id or a name identifier
-	# uses `$this->id_by_name`
+	/** Standard way to resolve variable input of either a id or a name identifier */
+	/** uses `$this->id_by_name` */
 	public function id_from_string($string){
 		if(Tool::is_int($string)){
 			return $string;
@@ -206,7 +206,7 @@ trait VariedParameter{
 		$function = 'id_by_name';
 		return self::call_guaranteed_identity($this, $function, $name);
 	}
-	/*	param
+	/**	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	public function id_by_thing($thing, $options=[]){
@@ -223,7 +223,7 @@ trait VariedParameter{
 	}
 
 
-	# uses $this->item_by_id or $this->item_by_name
+	/** uses $this->item_by_id or $this->item_by_name */
 	public function item_by_string($string){
 		$item = false;
 		if(Tool::is_int($string)){
@@ -272,7 +272,7 @@ trait VariedParameter{
 		$function = $prefix.'_id_by_name';
 		return self::static_call_guaranteed_identity($function, $name);
 	}
-	/*	param
+	/**	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	static function static_prefixed_id_by_thing($prefix, $thing, $options=[]){
@@ -324,8 +324,8 @@ trait VariedParameter{
 
 
 
-	# Standard way to resolve variable input of either a id or a name identifier
-	# uses `$this->prefixed_id_by_name`
+	/** Standard way to resolve variable input of either a id or a name identifier */
+	/** uses `$this->prefixed_id_by_name` */
 	public function prefixed_id_from_string($prefix, $string){
 		if(Tool::is_int($string)){
 			return $string;
@@ -341,7 +341,7 @@ trait VariedParameter{
 		$function = $prefix.'_id_by_name';
 		return $this->call_guaranteed_identity($this, $function, $name);
 	}
-	/*	param
+	/**	param
 	options	['id_column':<>, 'table':<>]
 	*/
 	public function prefixed_id_by_thing($prefix, $thing, $options=[]){
@@ -358,7 +358,7 @@ trait VariedParameter{
 	}
 
 
-	# uses $this->prefixed_item_by_id or $this->prefixed_item_by_name
+	/** uses $this->prefixed_item_by_id or $this->prefixed_item_by_name */
 	public function prefixed_item_by_string($prefix, $string){
 		$item = false;
 		if(Tool::is_int($string)){

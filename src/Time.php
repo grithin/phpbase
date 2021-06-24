@@ -5,7 +5,7 @@ use \Exception;
 ///Supplementing language time functions
 class Time extends \DateTime implements \JsonSerializable{
 	use Traits\Common;
-	///creates a DateTime object with some additional functionality
+	/** creates a DateTime object with some additional functionality */
 	/**
 
 
@@ -26,7 +26,7 @@ class Time extends \DateTime implements \JsonSerializable{
 	public function __toString(){
 		return $this->datetime();
 	}
-	///many functions do not require parameters.  These functions may just as well be dynamically generated attributes, so let them be.
+	/** many functions do not require parameters.  These functions may just as well be dynamically generated attributes, so let them be. */
 	public function __get($name){
 		if(method_exists($this,$name)){
 			return $this->$name();
@@ -35,7 +35,7 @@ class Time extends \DateTime implements \JsonSerializable{
 	public function jsonSerialize(){
 		return $this->datetime();
 	}
-	# create a Time object from input, returning null if error
+	/** create a Time object from input, returning null if error */
 	static function from($time=null,$zone=null){
 		try{
 			return new Time($time, $zone);
@@ -43,7 +43,7 @@ class Time extends \DateTime implements \JsonSerializable{
 			return null;
 		}
 	}
-	///creates a DateTimeZone object based on variable input
+	/** creates a DateTimeZone object based on variable input */
 	/**
 	@param	zone	various forms:
 		- DateTimeZone objects; will just return the object
@@ -56,12 +56,12 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 		return $zone;
 	}
-	# Get a string DateTime will accept from variable parameters
+	/** Get a string DateTime will accept from variable parameters */
 	static function getDateTimeString($time,$zone=null){
 		$Date = self::getDateTime($time,$zone);
 		return $Date->format('Y-m-d H:i:s.u'); # seems only time format with microtime.  Implementer must use same timezone as was passed in for this to work (since timezone is not in string)
 	}
-	# used to get DateTime object based on variable parameters
+	/** used to get DateTime object based on variable parameters */
 	static function getDateTime($time,$zone=null){
 		if(is_a($time,'DateTime')){
 			return $time;
@@ -81,7 +81,7 @@ class Time extends \DateTime implements \JsonSerializable{
 		# normal interpretation
 		return new \DateTime($time,$zone);
 	}
-	///Used to get format of current Time object using relative times
+	/** Used to get format of current Time object using relative times */
 	/**
 	@param	format	DateTime::format() format
 	@param	zone	The zone of the output time
@@ -97,23 +97,23 @@ class Time extends \DateTime implements \JsonSerializable{
 			return parent::format($format);
 		}
 	}
-	///Get the common dateTime format "Y-m-d H:i:s"
+	/** Get the common dateTime format "Y-m-d H:i:s" */
 	public function datetime(){
 		if(!$this){
 			return self::instance_with_args(func_get_args())->datetime();
 		}
 		return parent::format("Y-m-d H:i:s");
 	}
-	///Get the common date format "Y-m-d"
+	/** Get the common date format "Y-m-d" */
 	public function date(){
 		return parent::format("Y-m-d");
 	}
-	# interpret zone and set it
+	/** interpret zone and set it */
 	public function setZone($zone){
 		return parent::setTimezone(self::makeZone($zone));
 	}
-	# deprecated
-	///get DateInterval object based on current Time instance.
+	/** deprecated */
+	/** get DateInterval object based on current Time instance. */
 	/**
 	@param	time	see Time::__construct()
 	@param	zone	see Time::__construct(); defaults to current instance timezone
@@ -128,8 +128,8 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 		return parent::diff($time,$absolute);
 	}
-	# deprecated
-	///get DateInterval without having to separately make DateTime instances
+	/** deprecated */
+	/** get DateInterval without having to separately make DateTime instances */
 	/**
 	@param	time1	see Time::__construct()
 	@param	time2	see Time::__construct()
@@ -143,23 +143,23 @@ class Time extends \DateTime implements \JsonSerializable{
 		$Time2 = new $class($time2,$timeZone2);
 		return $Time1->diff($Time2,$absolute);
 	}
-	# get new Time instance of day start
+	/** get new Time instance of day start */
 	function dayStart(){
 		return $this->relative('now 00:00:00');
 	}
-	# alias
+	/** alias */
 	function day_start(){
 		return call_user_func_array([$this,'dayStart'], func_get_args());
 	}
-	# get new Time instance of day end
+	/** get new Time instance of day end */
 	function dayEnd(){
 		return $this->relative('now 23:59:59');
 	}
-	# alias
+	/** alias */
 	function day_end(){
 		return call_user_func_array([$this,'day_end'], func_get_args());
 	}
-	///Date validator
+	/** Date validator */
 	/**
 	@param	y	year
 	@param	m	month (numeric representation starting a 1)
@@ -192,8 +192,8 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 		return false;
 	}
-	# setTime accepting different format
-	/*
+	/** setTime accepting different format */
+	/**
 	@param	clock	"HH:MM:SS"
 	*/
 	function setClock($clock){
@@ -208,7 +208,7 @@ class Time extends \DateTime implements \JsonSerializable{
 		}
 	}
 
-	///Get Diff object comparing current object ot current time
+	/** Get Diff object comparing current object ot current time */
 	function age($format=null){
 		return $this->diff(new \Datetime(),  $format);
 	}
@@ -262,7 +262,7 @@ class Time extends \DateTime implements \JsonSerializable{
 		$copy->modify($relative);
 		return $copy;
 	}
-	///Get timezones in the USA
+	/** Get timezones in the USA */
 	static function usaTimezones(){
 		// US TimeZones based on TimeZone name
 		// format 'DateTime Timezone' => 'Human Friendly Timezone'
@@ -297,7 +297,7 @@ class Time extends \DateTime implements \JsonSerializable{
 		return array('city' => $cityBased, 'standard'=>$standard);
 	}
 
-	# offset by actual months (instead of where php will do `30d * 3` for `+3 months`), accounting for variable days in each month, and cutting down the date day-part if necessary
+	/** offset by actual months (instead of where php will do `30d * 3` for `+3 months`), accounting for variable days in each month, and cutting down the date day-part if necessary */
 	function offset_months($months){
 		return new Time(self::offset_date_by_months($this->unix, $months));
 	}
@@ -333,8 +333,8 @@ class Time extends \DateTime implements \JsonSerializable{
 
 		return strtotime($date.' '.date('H:i:s',$initial_date));
 	}
-	# return a datetime with some level of precision
-	# ensures a standard way of dealing with reduced precision datetime columns
+	/** return a datetime with some level of precision */
+	/** ensures a standard way of dealing with reduced precision datetime columns */
 	function datetime_precision($precision){
 		if(!$this){
 			$args = func_get_args();
@@ -352,8 +352,8 @@ class Time extends \DateTime implements \JsonSerializable{
 		];
 		return $this->format($map[$precision]);
 	}
-	# return a date with some level of precision
-	# ensures a standard way of dealing with reduced precision date columns
+	/** return a date with some level of precision */
+	/** ensures a standard way of dealing with reduced precision date columns */
 	function date_precision($precision){
 		if(!$this){
 			$args = func_get_args();

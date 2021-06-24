@@ -38,7 +38,7 @@ class Bench{
 		return ['intervals'=>$intervals, 'summary'=>$summary];
 	}
 
-	/*
+	/**
 	2 : |_|x|_|x|
 	3 : |_|_|x|_|_|x|
 	*/

@@ -17,17 +17,17 @@ Ex, name defaulted instance
 */
 trait SingletonDefault{
 	use testCall;
-	/// object representing the primary instance name.
-	///@note Must use name because static::$instances[$instanceName] may change, and linking primary using reference will cause change of static::$instances[$instanceName] on change of primary
+	/** object representing the primary instance name. */
+	/** @note Must use name because static::$instances[$instanceName] may change, and linking primary using reference will cause change of static::$instances[$instanceName] on change of primary */
 	static $primaryName;
 	static function className($called){
 		return $called;
 	}
-	/// array of named instances
+	/** array of named instances */
 	static $instances = array();
 	static $affix = '';
 	static $i = 0; #< default instance name incrementer
-	/*
+	/**
 	@param	instanceName	if set to null, will increment starting with 0 for each init call.
 	*/
 	static function init($instanceName=null){
@@ -63,7 +63,7 @@ trait SingletonDefault{
 		return static::$instances[$instanceName];
 	}
 
-	/// get named instance from $instance dictionary - convenience of expectation
+	/** get named instance from $instance dictionary - convenience of expectation */
 	static function instance($name=null){
 		if(!$name){
 			return static::primary();
@@ -73,16 +73,16 @@ trait SingletonDefault{
 		}
 		return self::$instances[$name];
 	}
-	# map a key to another key
+	/** map a key to another key */
 	static function instance_map($alias, $target){
 		self::$instances[$alias] = self::$instances[$target]; # instances are objects, to which variables keep references
 	}
-	/// use the default name of `0` and call init
+	/** use the default name of `0` and call init */
 	static function singleton(){
 		$args = array_merge([0], (array)func_get_args());
 		return call_user_func_array([__CLASS__,'init'], $args);
 	}
-	/// overwrite any existing primary with new construct
+	/** overwrite any existing primary with new construct */
 	static function &resetPrimary($instanceName=null){
 		$instanceName = $instanceName !== null ? $instanceName : 0;
 		$class = new \ReflectionClass(static::className(get_called_class()));
@@ -98,12 +98,12 @@ trait SingletonDefault{
 		array_unshift($args, static::$primaryName);
 		return call_user_func_array(['static', 'resetPrimary'], $args);
 	}
-	/// sets primary to some named instance
+	/** sets primary to some named instance */
 	static function setPrimary($instanceName){
 		$instanceName = $instanceName === null ? 0 : $instanceName;
 		static::$primaryName = $instanceName;
 	}
-	/// overwrite existing instance with provided instance
+	/** overwrite existing instance with provided instance */
 	static function forceInstance($instanceName,$instance){
 		static::$instances[$instanceName] = $instance;
 		static::$instances[$instanceName]->name = $instanceName;
@@ -115,7 +115,7 @@ trait SingletonDefault{
 		return static::$instances[static::$primaryName];
 	}
 
-	/// used to translate static calls to the primary instance
+	/** used to translate static calls to the primary instance */
 	static function __callStatic($fnName,$args){
 		return call_user_func(array(static::primary(),'__call'),$fnName,$args);
 	}

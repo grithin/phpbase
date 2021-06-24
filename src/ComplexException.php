@@ -53,11 +53,11 @@ class ComplexException extends \Exception{
 	public function getDetails(){
 		return $this->details;
 	}
-	# alias
+	/** alias */
 	public function get_details(){
 		return call_user_func_array([$this,'getDetails'], func_get_args());
 	}
-	# getDetails on either complex exception or regular
+	/** getDetails on either complex exception or regular */
 	static function details_extract($e){
 		if(method_exists($e, 'getDetails')){
 			return  $e->getDetails();

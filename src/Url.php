@@ -3,7 +3,7 @@ namespace Grithin;
 use Grithin\Tool;
 use Grithin\Arrays;
 class Url{
-	///parse a query string using a more standard less php specific rule (all repeated tokens turn into arrays, not just tokens with "[]")
+	/** parse a query string using a more standard less php specific rule (all repeated tokens turn into arrays, not just tokens with "[]") */
 	/**
 	You can have this function include php field special syntax along with standard parsing.
 	@param	string	string that matches form of a url query string
@@ -43,7 +43,7 @@ class Url{
 		}
 		return $array;
 	}
-	/* About
+	/** About
 	Doesn't use php array url syntax.
 	`?bob=1&bob=2` instead of `?bob[]=1&bob[]=2`
 	*/
@@ -63,7 +63,7 @@ class Url{
 		$standard = implode('&',$standard);
 		return Arrays::implode('&',array($phpquery,$standard));
 	}
-	///get all the keys invovled in a string that represents an array.  Ex: "bob[sue][joe]" yields array('bob','sue','joe')
+	/** get all the keys invovled in a string that represents an array.  Ex: "bob[sue][joe]" yields array('bob','sue','joe') */
 	static function special_syntax_keys($string){
 		if(preg_match('@^([^\[]+)((\[[^\]]*\])+)$@',$string,$match)){
 			//match[1] = array name, match[2] = all keys
@@ -80,7 +80,7 @@ class Url{
 			return $matches[1];
 		}
 	}
-	///appends multiple (key=>value)s to a url, replacing any key values that already exist
+	/** appends multiple (key=>value)s to a url, replacing any key values that already exist */
 	/**
 	@param	kvA	array of keys to values array(key1=>value1,key2=>value2)
 	@param	url	url to be appended
@@ -110,7 +110,7 @@ class Url{
 		}
 		return $url;
 	}
-	///appends name=value to query string, replacing them if they already exist
+	/** appends name=value to query string, replacing them if they already exist */
 	/**
 	@param	name	name of value
 	@param	value	value of item
@@ -159,7 +159,7 @@ class Url{
 		}
 		return $url;
 	}
-	# builds `parse_url` output into a string
+	/** builds `parse_url` output into a string */
 	static function parse_url_rebuild($url_parts){
 		# put keys in order they will be joined
 		$url_parts_with_separators = array(
@@ -181,7 +181,7 @@ class Url{
 
 		return implode(null, array_merge( $url_parts_with_separators, $url_parts));
 	}
-	//resolves relative url paths into absolute url paths
+	/**resolves relative url paths into absolute url paths */
 	static  function resolve_relative($url, $relative=null){
 		if($relative){
 			$url_relative_parts = array_merge(['path'=>''], parse_url($relative));

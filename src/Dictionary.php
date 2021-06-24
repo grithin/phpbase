@@ -11,7 +11,7 @@ Further, class instances can also act like dictionaries.
 
 class Dictionary{
 
-	# determine if parameter is dictionary by checking if it has string keys
+	/** determine if parameter is dictionary by checking if it has string keys */
 	static function is($x) {
 		if(is_object($x)){
 			$x = Arrays::from($x);
@@ -20,7 +20,7 @@ class Dictionary{
 	}
 
 
-	# merges two dictionaries.  Plain arrays will be treated like dictionaries (this won't act like array_merge)
+	/** merges two dictionaries.  Plain arrays will be treated like dictionaries (this won't act like array_merge) */
 	static function merge($x, $y){
 		$arrays = func_get_args();
 		$result = [];
@@ -34,7 +34,7 @@ class Dictionary{
 		}
 		return $result;
 	}
-	# deeply merges two dictionaries
+	/** deeply merges two dictionaries */
 	static function merge_deep($x, $y){
 		$arrays = func_get_args();
 		$result = [];
@@ -58,8 +58,8 @@ class Dictionary{
 		return $result;
 	}
 
-	# lodash find
-	/* params
+	/** lodash find */
+	/** params
 	< collection >
 	< predicate > (
 		< closure >
@@ -95,7 +95,7 @@ class Dictionary{
 			}
 		}
 	}
-	# find, but return all matches
+	/** find, but return all matches */
 	static function find_all($collection, $predicate){
 		$found = [];
 		if(is_object($predicate) && ($predicate instanceof Closure)){
@@ -124,8 +124,8 @@ class Dictionary{
 		}
 		return $found;
 	}
-	# Convert a numeric list (array) to a dictionary (key:value) by using some function that returns [key, value]
-	/* Ex
+	/** Convert a numeric list (array) to a dictionary (key:value) by using some function that returns [key, value] */
+	/** Ex
 	[ {a:b}, {x:y} ]
 	=>
 	{a:b, x:y}
@@ -144,14 +144,14 @@ class Dictionary{
 		return $dictionary;
 	}
 
-	# get ArrayObject representing diff between two arrays/objects, wherein items in $target are different than in $base, but not vice versa (existing $base items may not exist in $target)
-	/* Examples
+	/** get ArrayObject representing diff between two arrays/objects, wherein items in $target are different than in $base, but not vice versa (existing $base items may not exist in $target) */
+	/** Examples
 	self(['bob'=>'sue'], ['bob'=>'sue', 'bill'=>'joe']);
-	#> {}
+	/**> {} */
 	self(['bob'=>'suesss', 'noes'=>'bees'], ['bob'=>'sue', 'bill'=>'joe']);
-	#> {"bob": "suesss", "noes": "bees"}
+	/**> {"bob": "suesss", "noes": "bees"} */
 	*/
-	/* params
+	/** params
 	target: < what the diff will transform to >
 	base: < what the diff will transform from >
 	options: {object_comparer: < fn that takes (target_value, base_value) and returns a diff >}
@@ -215,7 +215,7 @@ class Dictionary{
 
 		return MissingValue::remove($result);
 	}
-	# apply defaults for values that appear empty (false, blank, etc)
+	/** apply defaults for values that appear empty (false, blank, etc) */
 	static function empty_default($source, $defaults){
 		foreach($defaults as $k=>$v){
 			if(!array_key_exists($k, $source) || $source[$k] === '' || $source[$k] === false || $source[$k] === null){
@@ -226,8 +226,8 @@ class Dictionary{
 	}
 
 
-	# turn a string a specially formatted string into a collection.  Format intended to provide minimal syntax description of collections.
-	/* about format
+	/** turn a string a specially formatted string into a collection.  Format intended to provide minimal syntax description of collections. */
+	/** about format
 		Key value pairs separated by new lines:
 
 		key:value
@@ -235,8 +235,8 @@ class Dictionary{
 
 		Empty newlines are not used.
 	*/
-	# if either key on either side of ':' is blank, the non-blank value will be used for both.  And, ":" can be omitted
-	/* ex
+	/** if either key on either side of ':' is blank, the non-blank value will be used for both.  And, ":" can be omitted */
+	/** ex
 		'
 			:bob
 			sue:
@@ -244,7 +244,7 @@ class Dictionary{
 			normal:normal2
 		'
 	*/
-	# @NOTE lines are trimmed.  Empty lines are ignored
+	/** @NOTE lines are trimmed.  Empty lines are ignored */
 
 	static function string_to_map(){
 		$lines = array_filter(preg_split('@[\s\n]+@', $map_string));
@@ -262,19 +262,19 @@ class Dictionary{
 		return $array;
 	}
 
-	///![modifies value] if a key exists, ensure it points to an array, and append it with $value; otherwise, set the value of the key to $value
-	/* examples
+	/** ![modifies value] if a key exists, ensure it points to an array, and append it with $value; otherwise, set the value of the key to $value */
+	/** examples
 	$x = ['name'=>'bob'];
 	add_or_append('name', 'bill', $x);
-	# $x => ['name'=>['bob', 'bill']]
+	/** $x => ['name'=>['bob', 'bill']] */
 
 	$x = [];
 	add_or_append('name', 'bill', $x);
-	# $x => ['name'=>'bill']
+	/** $x => ['name'=>'bill'] */
 
 	$x = ['name'=>['bob']]
 	add_or_append('name', 'bill', $x);
-	# $x => ['name'=>['bob', 'bill']]
+	/** $x => ['name'=>['bob', 'bill']] */
 	*/
 	/**
 	@param	key	can be null or key or array.  If null, value added to end of array

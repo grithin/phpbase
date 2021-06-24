@@ -28,7 +28,7 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 	public $record; # the current record state, with potential changes
 
 
-	/* params
+	/** params
 
 		Record: < Record instance >,
 		path_prefix: < the position of this sub record >

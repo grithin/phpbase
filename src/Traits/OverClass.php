@@ -8,7 +8,7 @@ The pattern: Pass in type to over-class, and henceforth over-class uses instance
 @note __call doesn't take arguments by reference, so don't applly to classes requiring reference args
 */
 trait OverClass{
-	/// must define on traited class static $types;
+	/** must define on traited class static $types; */
 	public $under;
 	function __construct($typePreferences=null){
 		call_user_func_array([$this,'load'],func_get_args());

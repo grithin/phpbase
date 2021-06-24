@@ -9,12 +9,12 @@ class Strings{
 		return iconv('UCS-4LE', 'UTF-8', pack('V', $i));
 	}
 
-	# UTF-8 string to code point
+	/** UTF-8 string to code point */
 	static function unicode_ord($s) {
 		return unpack('V', iconv('UTF-8', 'UCS-4LE', $s))[1];
 	}
 
-	# https://stackoverflow.com/questions/2748956/how-would-you-create-a-string-of-all-utf-8-characters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa : (I avoided the surrogate range 0xD800–0xDFFF as they aren't valid to put in UTF-8 themselves; that would be “CESU-8”.)
+	/** https://stackoverflow.com/questions/2748956/how-would-you-create-a-string-of-all-utf-8-characters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa : (I avoided the surrogate range 0xD800–0xDFFF as they aren't valid to put in UTF-8 themselves; that would be “CESU-8”.) */
 	static function utf8_chars(){
 		static $chars;
 		if(!$chars){
@@ -45,9 +45,9 @@ class Strings{
 	}
 
 
-	# https://stackoverflow.com/questions/20025030/convert-all-types-of-smart-quotes-with-php
-	# Conform some ISO-8859-1 characters present in a UTF8 encoded string to standard characters
-	/* Ex
+	/** https://stackoverflow.com/questions/20025030/convert-all-types-of-smart-quotes-with-php */
+	/** Conform some ISO-8859-1 characters present in a UTF8 encoded string to standard characters */
+	/** Ex
 	$content = iconv('ISO-8859-1', 'UTF-8', $content); # First convert to UTF-8 if the string is not already encoded as such
 	$content = Strings::unicode_conform_windows($content);
 	*/
@@ -83,9 +83,9 @@ class Strings{
 		$string = str_replace($chr, $rpl, $string);
 		return $string;
 	}
-	# https://stackoverflow.com/questions/20025030/convert-all-types-of-smart-quotes-with-php
-	# Conform some Windows-1252 characters present in a UTF8 encoded string to standard characters
-	/* Ex
+	/** https://stackoverflow.com/questions/20025030/convert-all-types-of-smart-quotes-with-php */
+	/** Conform some Windows-1252 characters present in a UTF8 encoded string to standard characters */
+	/** Ex
 	$content = iconv('Windows-1252', 'UTF-8', $content); # First convert to UTF-8 if the string is not already encoded as such
 	$content = Strings::unicode_conform_windows($content);
 	*/
@@ -130,8 +130,8 @@ class Strings{
 
 
 
-	# expand a range based regex into the actual characters
-	/* params
+	/** expand a range based regex into the actual characters */
+	/** params
 	< regex > < regular expression to expand >
 	< set > < a set of characters on which the regex should match for expansion > < defaults to ascii >
 	< options >
@@ -169,14 +169,14 @@ class Strings{
 		preg_match_all($regex, $set, $matches);
 		return implode($matches[0]);
 	}
-	# expand a regex and invert it upon a set of characters
+	/** expand a regex and invert it upon a set of characters */
 	static function regex_invert($regex, $set=null, $options=[]){
 		$chars = self::regex_expand($regex, $set, $options);
 		$options = array_merge($options, ['delimited'=>false, 'bound'=>true]);
 		return self::regex_expand('[^'.self::preg_quote($chars).']', $set, $options);
 	}
-	///generate a random string
-	/*
+	/** generate a random string */
+	/**
 	@note this function is overloaded and can take either two or three params.
 	case 1
 		@param	1	length
@@ -222,7 +222,7 @@ class Strings{
 		return $string;
 	}
 
-	///pluralized a word.  Limited abilities.
+	/** pluralized a word.  Limited abilities. */
 	/**
 	@param	word	word to pluralize
 	@return	pluralized form of the word
@@ -236,7 +236,7 @@ class Strings{
 		}
 		return $word.'s';
 	}
-	///capitalize first letter in certain words
+	/** capitalize first letter in certain words */
 	/**
 	@param	string	string to capitalize
 	@return	a string various words capitalized and some not
@@ -255,7 +255,7 @@ class Strings{
 		}unset($v);
 		return implode(' ',$words);
 	}
-	///turns a camelCased string into a character separated string
+	/** turns a camelCased string into a character separated string */
 	/**
 	@note	consecutive upper case is kept upper case
 	@param	string	string to morph
@@ -274,7 +274,7 @@ class Strings{
 			$string);
 	}
 
-	///turns a string into a lower camel cased string
+	/** turns a string into a lower camel cased string */
 	/**
 	@param	string	string to camelCase
 	*/
@@ -291,7 +291,7 @@ class Strings{
 		}
 		return $cString;
 	}
-	///take string and return the accronym
+	/** take string and return the accronym */
 	static function acronym($string,$separaterPattern='@[_ \-]+@',$seperater=''){
 		$parts = preg_split($separaterPattern,$string);
 		foreach($parts as $part){
@@ -300,17 +300,17 @@ class Strings{
 		return implode($seperater,$acronym);
 	}
 
-	# normal preg_quote, but specified delimter escaping
+	/** normal preg_quote, but specified delimter escaping */
 	static function preg_quote($string, $delimiter='/'){
 		return self::preg_quote_delimiter(preg_quote($string), $delimiter);
 	}
-	# quote the delimiter from the string representing the inner part of a regex
+	/** quote the delimiter from the string representing the inner part of a regex */
 	static function preg_quote_delimiter($string, $delimiter='/'){
 		return preg_replace('/\\'.$delimiter.'/', '\\\\\0', $string);
 	}
 
-	///escapes the delimiter and delimits the regular expression.
-	/* params
+	/** escapes the delimiter and delimits the regular expression. */
+	/** params
 	< string > < the inner part of a regular express, not delimited >
 	< delimter > < the delimiter to use for the expression returned >
 	*/
@@ -323,7 +323,7 @@ class Strings{
 	}
 
 
-	# whether a regex has an error
+	/** whether a regex has an error */
 	/**
 	@return	bool	whether a regex has an error
 	*/
@@ -331,7 +331,7 @@ class Strings{
 		return self::regex_error($regex) !== false;
 	}
 
-	/// returns the error that results from compiling a regex
+	/** returns the error that results from compiling a regex */
 	/**
 	@param	string	regex	regular expression including delimiters
 	@return	false if no error, else string error
@@ -354,12 +354,12 @@ class Strings{
 
 		return $error;
 	}
-	# quote a string that will be used for replacement in preg replace
-	# prevent the accidental interpretation of special syntax within a replace string
+	/** quote a string that will be used for replacement in preg replace */
+	/** prevent the accidental interpretation of special syntax within a replace string */
 	static function preg_quote_replace_string($str) {
 		return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
 	}
-	# test matches against subsequent regex
+	/** test matches against subsequent regex */
 	/**
 	@param	subject	text to be searched
 	@param	regexes	patterns to be matched.  A "!" first character, before the delimiter, negates the match on all but first pattern
@@ -392,7 +392,7 @@ class Strings{
 	static function matchAny($regexes,$subject){
 		return self::match_any($regexes,$subject);
 	}
-	///translate human readable size into bytes
+	/** translate human readable size into bytes */
 	static function byteSize($string){
 		preg_match('@(^|\s)([0-9]+)\s*([a-z]{1,2})@i',$string,$match);
 		$number = $match[2];
@@ -420,7 +420,7 @@ class Strings{
 			break;
 		}
 	}
-	///like the normal implode but removes empty values
+	/** like the normal implode but removes empty values */
 	static function explode($separator,$string){
 		$array = explode($separator,$string);
 		Arrays::remove($array);
@@ -428,11 +428,11 @@ class Strings{
 		return array_values($array);
 	}
 
-	///escape various characters with slashes (say, for quoted csv's)
+	/** escape various characters with slashes (say, for quoted csv's) */
 	static function slashEscape($text,$characters='\"'){
 		return preg_replace('@['.preg_quote($characters).']@','\\\$0',$text);
 	}
-	///unescape the escape function
+	/** unescape the escape function */
 	static function slashUnescape($text,$characters='\"'){
 		return preg_replace('@\\\(['.preg_quote($characters).'])@','$1',$text);
 	}

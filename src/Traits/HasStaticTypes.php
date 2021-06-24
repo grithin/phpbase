@@ -28,18 +28,18 @@ Thoughts on system_name:
 */
 
 trait HasStaticTypes{
-	/*
+	/**
 	static $id_column = 'id';
 	static $display_name_column = 'display_name';
 	static $system_name_column = 'system_name';
 	static $types_by_id = [];
 	static $type_ids_by_name = [];
 	*/
-	# access to variable, intended to be overwritten for instance to get from Db
+	/** access to variable, intended to be overwritten for instance to get from Db */
 	static function types_by_id(){
 		return static::$types_by_id;
 	}
-	# access to variable, intended to be overwritten for instance to get from Db
+	/** access to variable, intended to be overwritten for instance to get from Db */
 	static function type_ids_by_name(){
 		return static::$type_ids_by_name;
 	}
@@ -83,15 +83,15 @@ trait HasStaticTypes{
 		}
 		return $return;
 	}
-	# to be compatible with VariedParameter trait
+	/** to be compatible with VariedParameter trait */
 	static function type_id_by_name($name){
 		return static::type_by_name($name)[static::$id_column];
 	}
-	# system name by id
+	/** system name by id */
 	static function type_name_by_id($id){
 		return static::type_by_id($id)[static::$system_name_column];
 	}
-	# display name by id
+	/** display name by id */
 	static function type_display_by_id($id){
 		return static::type_by_id($id)[static::$dislpay_name_column];
 	}
@@ -103,7 +103,7 @@ trait HasStaticTypes{
 		}
 		return $return;
 	}
-	# get map of ids to display names
+	/** get map of ids to display names */
 	static function id_display_name_map($types=null){
 		if(property_exists(__CLASS__, 'display_name_column')){
 			$display_name_column = static::$display_name_column;
@@ -119,7 +119,7 @@ trait HasStaticTypes{
 		}
 		return $map;
 	}
-	# filter and order types
+	/** filter and order types */
 	static function types_ordered_shown($types=null){
 		if($types === null){
 			$types = static::types_by_id();
@@ -142,15 +142,15 @@ trait HasStaticTypes{
 		uasort($filtered_types, $ordinal_sort);
 		return $filtered_types;
 	}
-	# id display map, but only with filtered and ordered
-	# for use with `<select>` and  `$.options_fill`
+	/** id display map, but only with filtered and ordered */
+	/** for use with `<select>` and  `$.options_fill` */
 	static function id_display_name_map_ordered_shown($types=null){
 		$filtered_types = static::types_ordered_shown($types);
 		return static::id_display_name_map($filtered_types);
 	}
 
 
-	# extract types from db table and set static variables
+	/** extract types from db table and set static variables */
 	static function types_from_database($db, $table, $options=[]){
 		if(empty($options['columns'])){
 			$options['columns'] = [];
@@ -206,10 +206,10 @@ trait HasStaticTypes{
 	static function static_variables_code_get_from_db($db, $table, $options=[]){
 		return static::static_variables_code_get(static::types_from_database($db, $table, $options));
 	}
-	/*
+	/**
 	@param	map	{<id>:<name>,... }
 	*/
-	/* Ex
+	/** Ex
 	this([1=>'success', 2=>'pending', 3=>'fail']);
 	*/
 	static function types_from_map($map){

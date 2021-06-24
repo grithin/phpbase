@@ -61,7 +61,7 @@ trait Memoized{
 		self::$static_memoized[$key] = $result;
 	}
 
-	/*
+	/**
 	There is a situation in which a function can be memoized, and can also call a memoized function (ex: `get_name()` can be memoized, and can call `get()` which can also be memoized)
 	In such a situation, whether to use the memoized sub-function depends on whether the top function was requested as a memoized function.  This function indicates whether it was.
 	*/
@@ -77,14 +77,14 @@ trait Memoized{
 		}
 		return false;
 	}
-	/*
+	/**
 	Although search the is more dependable for determining whether a subsequent call should use a memoize, that which is within a memoize stack usually also uses memoize
 	*/
 	public function static_memoizing(){
 		return (bool)self::$static_memoized_count;
 	}
-	# in the case we are within a stack that includes a memoize, call using memoize, otherwise, call regularly
-	/* Examples
+	/** in the case we are within a stack that includes a memoize, call using memoize, otherwise, call regularly */
+	/** Examples
 	$this->conditional_memoized('id_by_thing', ['user_role', $role]);
 	$this->conditional_memoized('item_by_thing', ['user_role', $role]);
 	*/
@@ -103,7 +103,7 @@ trait Memoized{
 	#+ }
 
 	#+	instance functions {
-	#< these just fully mimic static functions, but use an instance
+	/**< these just fully mimic static functions, but use an instance */
 
 	public $memoized_count = 0;
 	public function __call($name, $arguments){
@@ -162,7 +162,7 @@ trait Memoized{
 		unset($this->memoized[$key]);
 	}
 
-	/*
+	/**
 	There is a situation in which a function can be memoized, and can also call a memoized function (ex: `get_name()` can be memoized, and can call `get()` which can also be memoized)
 	In such a situation, whether to use the memoized sub-function depends on whether the top function was requested as a memoized function.  This function indicate whether it was.
 	*/
@@ -183,7 +183,7 @@ trait Memoized{
 		return (bool)$this->memoized_count;
 	}
 
-	# see static
+	/** see static */
 	public function conditional_memoized($name, $args){
 		if(!is_array($name)){
 			$name = [__CLASS__, $name];

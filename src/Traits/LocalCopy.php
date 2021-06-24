@@ -39,11 +39,11 @@ trait LocalCopy{
 		return $got;
 	}
 
-	/*
+	/**
 	Reduces input array to scalar value.
 	The callback for local_get_or_set accepts ['name'=>'xyz'], but the getter may require the name as a scalar.  This solves that
 	*/
-	/* Example
+	/** Example
 	return $this->local_get_or_set('user_role', ['name'=>$name], $this->local_pipe_first([$this, 'user_role_by_name__fresh']) );
 	*/
 	public function local_pipe_first($callback){
@@ -63,7 +63,7 @@ trait LocalCopy{
 			return $this->local_get_by_string($type, $thing);
 		}
 	}
-	# get copy with string as id, or string as `name` field
+	/** get copy with string as id, or string as `name` field */
 	public function local_get_by_string($type, $string){
 		if(Tool::is_int($string)){
 			return $this->local_get_by_id($type, $string);
@@ -71,7 +71,7 @@ trait LocalCopy{
 			return $this->local_get_by_map($type, ['name'=>$string]);
 		}
 	}
-	# match a local copy with all fields contained in $map, wherein, if an don't match, it is not a correct copy
+	/** match a local copy with all fields contained in $map, wherein, if an don't match, it is not a correct copy */
 	public function local_get_by_map($type, $map){
 		foreach((array)$this->local_copies[$type] as $copy){
 			foreach($map as $k=>$v){

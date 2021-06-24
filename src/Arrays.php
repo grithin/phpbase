@@ -9,8 +9,8 @@ use \Exception;
 @NOTE	on parameter order: Following lodash wherein the operatee, the source array, is the first parameter.  To be applied to all new functions with such an operatee
 */
 class Arrays{
-	# use __toArray if exists on object
-	# @note	if it is a string, will attempt to explode it using divider, unless divider is not set
+	/** use __toArray if exists on object */
+	/** @note	if it is a string, will attempt to explode it using divider, unless divider is not set */
 	static function from($x, $divider=',\s*'){
 		if(is_string($x)){
 			return self::from_string($x, $divider);
@@ -20,11 +20,11 @@ class Arrays{
 			return (array)$x;
 		}
 	}
-	# alias for `from`
+	/** alias for `from` */
 	static function to_array($var, $divider=',\s*'){
 		return self::from($var, $divider);
 	}
-	# alias for `from`.  Provided for expectancy
+	/** alias for `from`.  Provided for expectancy */
 	static function toArray($var, $divider=',\s*'){
 		return self::from($var, $divider);
 	}
@@ -46,7 +46,7 @@ class Arrays{
 			return (array)$var;
 		}
 	}
-	# intended to replace `(array)$x` with the added feature of using __toArray if available on object
+	/** intended to replace `(array)$x` with the added feature of using __toArray if available on object */
 	static function convert(){
 		if(is_object($x) && method_exists($x, '__toArray')){
 			return $x->__toArray();
@@ -54,7 +54,7 @@ class Arrays{
 		return (array)$x;
 	}
 
-	# Whether the keys are excluslive numeric
+	/** Whether the keys are excluslive numeric */
 	static function is_numeric($array){
 		foreach($array as $k=>$v){
 			if(!is_int($k)){
@@ -67,7 +67,7 @@ class Arrays{
 
 
 
-	/// extract, if present, specified keys
+	/** extract, if present, specified keys */
 	static function pick($src, $props){
 		$props = Arrays::from($props);
 		$dest = [];
@@ -78,12 +78,12 @@ class Arrays{
 		}
 		return $dest;
 	}
-	/// extract specified keys, filling with default if not present
+	/** extract specified keys, filling with default if not present */
 	static function pick_default($src, $props, $default=null){
 		$src = self::ensure_keys($src, $props, $default); # First to ensure key order upon pick
 		return self::pick($src, $props);
 	}
-	/// ensure, by adding if necessary, keys are within an array
+	/** ensure, by adding if necessary, keys are within an array */
 	static function ensure_keys($src, $props, $fill_on_missing=null){
 		$props = Arrays::from($props);
 		foreach($props as $prop){
@@ -93,8 +93,8 @@ class Arrays{
 		}
 		return $src;
 	}
-	/// `isset` fails on nulls, however, is faster than `array_key_exists`.  So, combine.
-	//@NOTE	upon benchmarking, making this into a function instead of applying `isset` and `array_key_exists` directly adds insignificant overhead
+	/** `isset` fails on nulls, however, is faster than `array_key_exists`.  So, combine. */
+	/**@NOTE	upon benchmarking, making this into a function instead of applying `isset` and `array_key_exists` directly adds insignificant overhead */
 	static function is_set($src, $key){
 		if(isset($src[$key]) || array_key_exists($key, $src)){
 			return true;
@@ -102,14 +102,14 @@ class Arrays{
 		return false;
 	}
 
-	/*
+	/**
 	Copy array, mapping some columns to different columns - only excludes columns on collision
 	@NOTE if src contains key collision with map, map will overwrite
 
 	[ old_key => new_key ]
 
 	*/
-	/* Example
+	/** Example
 	$user_input = [
 		'first_name'=>'bob',
 		'last_name'=>'bobl'
@@ -118,7 +118,7 @@ class Arrays{
 
 	Arrays::map_with($user_input, $map);
 
-	#> 	{"FirstName": "bob",    "last_name": "bobl"}
+	/**> 	{"FirstName": "bob",    "last_name": "bobl"} */
 	*/
 
 	static function map_with($src, $map){
@@ -133,14 +133,14 @@ class Arrays{
 		return $result;
 	}
 
-	/*
+	/**
 	Map only specified keys, ignoring the rest
 	@NOTE if src contains key collision with map, map will overwrite
 
 	[ old_key => new_key ]
 
 	*/
-	/* Example
+	/** Example
 	$user_input = [
 		'first_name'=>'bob',
 		'last_name'=>'bobl'
@@ -149,7 +149,7 @@ class Arrays{
 
 	Arrays::map_only($user_input, $map);
 
-	#> 	{"FirstName": "bob"}
+	/**> 	{"FirstName": "bob"} */
 	*/
 
 	static function map_only($src, $map){
@@ -164,20 +164,20 @@ class Arrays{
 
 
 
-	/// like map_with, but does not include non-mapped columns
+	/** like map_with, but does not include non-mapped columns */
 	/**
 		@note	since this is old, it has a different parameter sequence than map_with
 		@param	map	array	{<newKey> : <oldKey>, <newKey> : <oldKey>, <straight map>}
 		@param	$interpret_numeric_keys	< true | false >< whether to use numeric keys as indication of same key mapping >
 	*/
-	/* example
+	/** example
 	$user_input = [
 		'first_name'=>'bob',
 		'last_name'=>'bobl'
 	];
 	$map = ['FirstName'=>'first_name'];
 	$x = Arrays::map($map, $user_input);
-	#> {"FirstName": "bob"}
+	/**> {"FirstName": "bob"} */
 	*/
 	static function &map($map,$extractee,$interpret_numeric_keys=true,&$extractTo=null){
 		if(!is_array($extractTo)){
@@ -200,7 +200,7 @@ class Arrays{
 		return $extractTo;
 	}
 
-	/// lodash omit
+	/** lodash omit */
 	static function omit($src, $props){
 		$props = self::from($props);
 		$dest = [];
@@ -213,7 +213,7 @@ class Arrays{
 	}
 
 
-	/// lodash has
+	/** lodash has */
 	static function has($collection, $path){
 		try{
 			self::get($collection, $path, ['make'=>false]);
@@ -223,12 +223,12 @@ class Arrays{
 		}
 	}
 
-	# lodash get, with exception upon not found
+	/** lodash get, with exception upon not found */
 	static function got($collection, $path){
 		return self::get($collection, $path, ['make'=>false]);
 	}
 
-	/// lodash get.  Works with arrays and objects.  Specially handling for part which is a obj.method
+	/** lodash get.  Works with arrays and objects.  Specially handling for part which is a obj.method */
 	static function &get(&$collection=[], $path='', $options=[]){
 		$defaults = ['make'=>true];
 		$options = array_merge($defaults, $options);
@@ -287,7 +287,7 @@ class Arrays{
 		}
 		return $reference_to_last;
 	}
-	# set($path, $value, $collection=[], $options=[]){
+	/** set($path, $value, $collection=[], $options=[]){ */
 	static function &set(&$collection=[], $path='', $value=null, $options=[]){
 		$target = &self::get($collection, $path, $options);
 		$target = $value;
@@ -295,7 +295,7 @@ class Arrays{
 	}
 
 
-	# like set, but when a value exists at a path, turn it into and array and append
+	/** like set, but when a value exists at a path, turn it into and array and append */
 	static function set_new_or_expand(&$collection=[], $path='', $value=null, $options=[]){
 		$requried_options = [
 			'make' => 'true',
@@ -322,7 +322,7 @@ class Arrays{
 		return $set($target, $value);
 	}
 
-	/// change the name of some keys
+	/** change the name of some keys */
 	static function remap($src, $remap){
 		foreach($remap as $k=>$v){
 			$dest[$v] = $src[$k];
@@ -332,7 +332,7 @@ class Arrays{
 	}
 
 
-	///removes all instances of value from an array
+	/** removes all instances of value from an array */
 	/**
 	@param	value	the value to be removed
 	@param	array	the array to be modified
@@ -348,7 +348,7 @@ class Arrays{
 		}
 		return $array;
 	}
-	# clear values equivalent to false
+	/** clear values equivalent to false */
 	static function clear_false($v){
 		return self::remove($v);
 	}
@@ -362,7 +362,7 @@ class Arrays{
 	static function ensure_value(&$array, $value){
 		return self::ensure($array, $value);
 	}
-	# ensure a value is in array.  If not, append array.
+	/** ensure a value is in array.  If not, append array. */
 	static function ensure(&$array, $value){
 		if(array_search($value, $array) === false){
 			$array[] = $value;
@@ -370,7 +370,7 @@ class Arrays{
 		return $array;
 	}
 
-	///takes an array of keys to extract out of one array and into another array
+	/** takes an array of keys to extract out of one array and into another array */
 	/**
 	@param	forceKeys	will cause keys not in extractee to be set to null in the return
 	*/
@@ -387,7 +387,7 @@ class Arrays{
 	}
 
 
-	///apply a callback to an array, returning the result, with optional arrayed parameters
+	/** apply a callback to an array, returning the result, with optional arrayed parameters */
 	/**
 	@param	callback	function($k,$v,optional params...)
 	*/
@@ -401,7 +401,7 @@ class Arrays{
 	}
 
 
-	# flatten the values of an array into non-array values by select one of the sub array items
+	/** flatten the values of an array into non-array values by select one of the sub array items */
 	static function flatten_values($array, $fn=null){
 		if(!$fn){
 			$fn = function($v, $k) use (&$fn){
@@ -422,7 +422,7 @@ class Arrays{
 
 	#++ Depth path functions {
 
-	/// takes an array and flattens it to one level using separator to indicate key deepness
+	/** takes an array and flattens it to one level using separator to indicate key deepness */
 	/**
 	@param	array	a deep array to flatten
 	@param	separator	the string used to indicate in the flat array a level of deepenss between key strings
@@ -451,7 +451,7 @@ class Arrays{
 
 
 
-	///Set the keys equal to the values or vice versa
+	/** Set the keys equal to the values or vice versa */
 	/**
 	@param array the array to be used
 	@param	type	"key" or "value".  Key sets all the values = keys, value sets all the keys = values
@@ -473,10 +473,10 @@ class Arrays{
 	}
 
 
-	# merges class instances and arrays.  Ignores scalars.  Later parameters take precedence
-	# different from array_merge in that it merges class instances as arrays
+	/** merges class instances and arrays.  Ignores scalars.  Later parameters take precedence */
+	/** different from array_merge in that it merges class instances as arrays */
 
-	/* example
+	/** example
 
 	$bob = new StdClass;
 	$bob->bill = 'no';
@@ -499,8 +499,8 @@ class Arrays{
 		}
 		return $result;
 	}
-	# merges/replaces objects/arrays.  Does no resquence numeric keys or make linear sequence appends (like array_merge does)
-	/* example
+	/** merges/replaces objects/arrays.  Does no resquence numeric keys or make linear sequence appends (like array_merge does) */
+	/** example
 	$x = [3=>3, 4=>4];
 	$y = [5=>5, 6=>6];
 
@@ -510,7 +510,7 @@ class Arrays{
     "5": 5,
     "6": 6}
 	*/
-	/* @about, merge vs replace
+	/** @about, merge vs replace
 		generally, replace acts as expected, replacing matching keys whether numeric or not.  Merge will append on numeric keys, even if the arrays have non-numeric keys (array is a dictionary).
 		-	different on numeric keys
 				array_merge([1,2,3], [5,1]);
@@ -541,7 +541,7 @@ class Arrays{
 	}
 
 
-	///for a sequential array, find first gap in key numbers
+	/** for a sequential array, find first gap in key numbers */
 	static function first_available_key($array){
 		if(!is_array($array)){
 			return 0;
@@ -558,7 +558,7 @@ class Arrays{
 	}
 
 
-	# see `key_on_sub_key_to_remaining` and `key_on_sub_key_to_compiled`
+	/** see `key_on_sub_key_to_remaining` and `key_on_sub_key_to_compiled` */
 	static function key_on_sub_key_to_compiled_remaining($arrays, $sub_key='id', $options=[]){
 		$options['collision_handler'] = function($sub_key_value, $previous_value, $new_value){
 			if(is_array($previous_value) && self::is_numeric($previous_value)){
@@ -571,10 +571,10 @@ class Arrays{
 		return self::key_on_sub_key_to_remaining($arrays, $sub_key, $options);
 	}
 
-	# like `key_on_sub_key`, but exclude the key from the value array
-	# @caution if a single value remains in the value array, the key will point directly to the value instead of the array.  See examples.
+	/** like `key_on_sub_key`, but exclude the key from the value array */
+	/** @caution if a single value remains in the value array, the key will point directly to the value instead of the array.  See examples. */
 
-	/* example
+	/** example
 	\Grithin\GlobalFunctions::init('pretty');
 
 	$x = [
@@ -589,7 +589,7 @@ class Arrays{
         "name": "bill",
         "age": 2}}
 	*/
-	/* example, if single value remains, use value instead of [value]
+	/** example, if single value remains, use value instead of [value]
 	$x = [
 		['id'=>555, 'name'=>'bob'],
 		['id'=>777, 'name'=>'bill'],
@@ -598,7 +598,7 @@ class Arrays{
 	$r = Arrays::key_on_sub_key_to_remaining($x, 'id');
 	=> {"555": "bob", "777": "bill"}
 	*/
-	/* example, `only` option
+	/** example, `only` option
 	$x = [
 		['id'=>555, 'name'=>'bob', 'age'=> 1],
 		['id'=>777, 'name'=>'bill', 'age'=> 2],
@@ -606,7 +606,7 @@ class Arrays{
 
 	$r = Arrays::key_on_sub_key_to_remaining($x, 'id', ['name'=>'only']);
 	*/
-	/* params
+	/** params
 	< options >:
 		only: < a key to be used as the only value in the array of values >
 	*/
@@ -657,8 +657,8 @@ class Arrays{
 		return $new_arrays;
 	}
 
-	// like key_on_sub_key, but compiled colliding rows into an array
-	/* example
+	/** like key_on_sub_key, but compiled colliding rows into an array */
+	/** example
 	$x = [
 		['id'=>555, 'name'=>'bob'],
 		['id'=>777, 'name'=>'bill'],
@@ -686,8 +686,8 @@ class Arrays{
 		};
 		return self::key_on_sub_key($arrays, $sub_key, $options);
 	}
-	# take a subkey (ex 'bob' of [1=>['bob'=>'sue', 'bill'=>'moe']]) and make that the primary key
-	/* example
+	/** take a subkey (ex 'bob' of [1=>['bob'=>'sue', 'bill'=>'moe']]) and make that the primary key */
+	/** example
 		$x = [
 			['id'=>555, 'name'=>'bob'],
 			['id'=>777, 'name'=>'bill'],
@@ -699,7 +699,7 @@ class Arrays{
 			'777' => ['id'=>777, 'name'=>'bill']
 		]
 	*/
-	/* example
+	/** example
 	$x = [
 		['id'=>555, 'name'=>'bob'],
 		['id'=>777, 'name'=>'bill'],
@@ -709,7 +709,7 @@ class Arrays{
 	$r = Arrays::key_on_sub_key($x, 'id');
 	=> Exception, key collision
 	*/
-	/* params
+	/** params
 	sub_key:
 	options:
 		collision_handler: < function(key, existing_value, new_value) => (new value)  >
@@ -734,13 +734,13 @@ class Arrays{
 		return $new_arrays;
 	}
 
-	///like the normal implode but ignores empty values
+	/** like the normal implode but ignores empty values */
 	static function implode($separator,$array){
 		Arrays::remove($array);
 		return implode($separator,$array);
 	}
 
-	///count how many times a value is in an array
+	/** count how many times a value is in an array */
 	static function countIn($value,$array,$max=null){
 		$count = 0;
 		foreach($array as $v){
@@ -753,7 +753,7 @@ class Arrays{
 		}
 		return $count;
 	}
-	/// Turns nested objects, at any level of depth, into arrays
+	/** Turns nested objects, at any level of depth, into arrays */
 	static function convert_deep($variable,$parseObject=true){
 		if(is_object($variable)){
 			if($parseObject){
@@ -775,7 +775,7 @@ class Arrays{
 		}
 	}
 
-	# same as self::replace, but uses array_replace_recursive
+	/** same as self::replace, but uses array_replace_recursive */
 	static function replace_recursive($x,$y){
 		$arrays = func_get_args();
 		$result = [];
@@ -792,7 +792,7 @@ class Arrays{
 
 
 
-	# filter($key,$value){ return true||false; }
+	/** filter($key,$value){ return true||false; } */
 	function filter_deep($array, $allow){
 		$result = [];
 		foreach($array as $k=>$v){
@@ -805,7 +805,7 @@ class Arrays{
 		}
 		return $result;
 	}
-	# false equivalent return removes item.  Any other return changes the value of the item
+	/** false equivalent return removes item.  Any other return changes the value of the item */
 	static function filter_morph($array, $callback){
 		$result = [];
 		foreach($array as $k=>$v){
@@ -850,7 +850,7 @@ class Arrays{
 		}
 		return $set;
 	}
-	/* About.md
+	/** About.md
 	like array_unique, but
 	-	array_unique defaults to converting comparison to string.  This uses the `SORT_REGULAR` flag to avoid that, allowing comparison of values that are complex, like subarrays
 	-	the return does not preserve the keys, so this will not cause json_encode to create an object instead of an array

@@ -24,11 +24,11 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	const EVENT_NEW_KEY = 64; # ?
 	const EVENT_REFRESH = 128;
 
-	# By default, the diff function will turn objects into arrays.  This is not desired for something like a Time object, so, instead, use a equals comparison comparer
+	/** By default, the diff function will turn objects into arrays.  This is not desired for something like a Time object, so, instead, use a equals comparison comparer */
 	public $diff_options = ['object_comparer'=>[\Grithin\Dictionary::class, 'diff_comparer_equals']];
 
 
-	/* params
+	/** params
 
 		getter: < function(identifier, this, refresh) > < refresh indicates whether to not use cache (ex, some other part of code has memoized the record ) >
 		setter: < function(changes, this) returns record >
@@ -60,7 +60,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		return new \ArrayIterator($this->record);
 	}
 
-	/* update stored and local without notifying listeners */
+	/** update stored and local without notifying listeners */
 	public function bypass_set($changes){
 		$this->record = Arrays::replace($this->record, $changes);
 		$this->local_record = $this->record;
@@ -86,7 +86,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		return $this->record[$offset];
 	}
 
-	# only json encode non-null values
+	/** only json encode non-null values */
 	static function static_json_decode_value($v){
 		if($v === null){
 			return null;
@@ -101,7 +101,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		}
 		return $record;
 	}
-	/*
+	/**
 	JSON column will only ever store something that is non-scalar (it would be pointless otherwise)
 	*/
 	static function static_json_encode_value($v){
@@ -127,7 +127,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public function detach($observer) {
 		$this->observers->detach($observer);
 	}
-	# return an callback for use as an observer than only responds to particular events
+	/** return an callback for use as an observer than only responds to particular events */
 	static function event_callback_wrap($event, $observer){
 		if(is_int($event)){
 			return function($that, $type, $details) use ($event, $observer){
@@ -148,7 +148,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		}
 
 	}
-	# wrapper for observers single-event-dedicated observers
+	/** wrapper for observers single-event-dedicated observers */
 	public function before_change($observer){
 		$wrapped = $this->event_callback_wrap(self::EVENT_CHANGE_BEFORE, $observer);
 		$this->attach($wrapped);
@@ -175,7 +175,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 			$observer($this, $type, $details);
 		}
 	}
-	# create a observer that only listens to one event
+	/** create a observer that only listens to one event */
 	public function single_event_observer($observer, $event){
 		return function($incoming_event, $details) use ($observer, $event){
 			if($incoming_event == $event){
@@ -184,7 +184,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		};
 	}
 
-	# re-pulls record and returns differences, if any
+	/** re-pulls record and returns differences, if any */
 	public function refresh(){
 		$previous = $this->record;
 		$this->record = $this->stored_record = $this->options['getter']($this);
@@ -197,7 +197,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		$this->notify(self::EVENT_REFRESH, $changes);
 		return $changes;
 	}
-	# does not apply changes, just calculates potential
+	/** does not apply changes, just calculates potential */
 	public function calculate_changes($target){
 		return Dictionary::diff($target, $this->record, $this->diff_options);
 	}
@@ -205,7 +205,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 	public function stored_record_calculate_changes(){
 		return Dictionary::diff($this->record, $this->stored_record, $this->diff_options);
 	}
-	# alias `stored_record_calculate_changes`
+	/** alias `stored_record_calculate_changes` */
 	public function changes(){
 		return call_user_func_array([$this, 'stored_record_calculate_changes'], func_get_args());
 	}
@@ -242,7 +242,7 @@ class Record implements \ArrayAccess, \IteratorAggregate, \Countable, \JsonSeria
 		}
 	}
 
-	# replace update the record to be the new
+	/** replace update the record to be the new */
 	public function replace($new_record){
 		$this->replace_local($new_record);
 		$changes = $this->apply();

@@ -11,7 +11,7 @@ class Files{
 	static private $included;///<an array of included files along with other arguments
 	static private $currentInclude;///<internal use
 
-	///used to factor out common functionality
+	/** used to factor out common functionality */
 	static function __callStatic($name,$arguments){
 		self::$currentInclude = array(
 				'file'=>$arguments[0],
@@ -26,8 +26,8 @@ class Files{
 		}
 
 	}
-	///include a file
-	/*
+	/** include a file */
+	/**
 	@param	_file	file path
 	@param	_vars	[ < name > : < value >, ...]  < array of keyed variables to extract into the file >
 	@param	_options	[
@@ -88,7 +88,7 @@ class Files{
 		self::log_included(false);
 		return false;
 	}
-	///include a file once
+	/** include a file once */
 	/**
 	@param	file	file path
 	@param	globalize	list of strings representing variables to globalize for the included file
@@ -122,7 +122,7 @@ class Files{
 		self::log_included(false);
 		return false;
 	}
-	///require a file
+	/** require a file */
 	/**
 	see self::inc
 	@return	on failure, runs Debug::toss
@@ -153,7 +153,7 @@ class Files{
 		self::log_included(false);
 		Debug::toss('Could not include file "'.$_file.'"');
 	}
-	///require a file once
+	/** require a file once */
 	/**
 	see self::inc
 	@return	on failure, runs Debug::toss
@@ -188,16 +188,16 @@ class Files{
 		self::$currentInclude['result'] = $result;
 		self::$included[] = self::$currentInclude;
 	}
-	///get all the included files included by functions from this class
+	/** get all the included files included by functions from this class */
 	static function get_included(){
 		return self::$included;
 	}
 
-	///backwards compatibility
+	/** backwards compatibility */
 	static function fileList(){
 		return call_user_func_array(['self','scan'],func_get_args());
 	}
-	///prefix in case desire to use relative path or absolute path
+	/** prefix in case desire to use relative path or absolute path */
 	/**
 	@param	options {
 		mimic:<return paths prefixes with @:dir>,
@@ -276,7 +276,7 @@ class Files{
 		}
 		return $mime;
 	}
-	///take a mimetype and return the extension for it
+	/** take a mimetype and return the extension for it */
 	static function mime_ext($mime){
 		$mime = explode('/',$mime);
 		$mimes = array(
@@ -288,7 +288,7 @@ class Files{
 		}
 		return $mime[1];
 	}
-	///to handle various contents and to allow writing to folders that don't previously exist
+	/** to handle various contents and to allow writing to folders that don't previously exist */
 	static function write($location,$content){
 		$directory = dirname($location);
 		if(!is_dir($directory)){
@@ -298,7 +298,7 @@ class Files{
 	}
 
 
-	///get the size of a directory
+	/** get the size of a directory */
 	/**
 	@param	dir	path to a directory
 	*/
@@ -320,14 +320,14 @@ class Files{
 		}
 	}
 	
-	///remove relative parts of a path that could be used for exploits
+	/** remove relative parts of a path that could be used for exploits */
 	static function remove_relative($path){
 		return preg_replace(array('@((\.\.)(/|$))+@','@//+@'),'/',$path);
 	}
 
 
-	///does not care whether relative folders exist (unlike file include functions)
-	///Found here b/c can be applied to HTTP paths, not just file paths
+	/** does not care whether relative folders exist (unlike file include functions) */
+	/** Found here b/c can be applied to HTTP paths, not just file paths */
 	static function resolve_relative($pathParts, $relative = false, $separator = DIRECTORY_SEPARATOR){
 		# if relative path is absolute, use it
 		if($relative && $relative[0] == DIRECTORY_SEPARATOR){
@@ -366,8 +366,8 @@ class Files{
 		}
 		return implode($separator, $path_parts_resolved);
 	}
-	# affix, before the extension
-	# ex: ('bob.mp3', '.150') => 'bob.150.mp4'
+	/** affix, before the extension */
+	/** ex: ('bob.mp3', '.150') => 'bob.150.mp4' */
 	static function affix($name, $affix){
 		return substr_replace($name, $affix, strrpos($name, '.'), 0);
 	}

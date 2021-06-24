@@ -2,11 +2,11 @@
 namespace Grithin;
 
 class Reflection{
-	///get the first file that was executed
+	/** get the first file that was executed */
 	static function firstFileExecuted(){
 		return debug_backtrace()[0]['file'];
 	}
-	/// attempt to get the backtrace array for the caller existing outside the called class method
+	/** attempt to get the backtrace array for the caller existing outside the called class method */
 	/**
 	The backtrace does not include whether the code point is within a class, so this function only flags as outside if either:
 		1.	class of frame does not match origin class

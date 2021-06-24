@@ -6,17 +6,17 @@ use \Exception;
 use Grithin\Debug;
 ///General tools for use anywhere, either contexted by Tool or not (see bottom of file)
 class Tool{
-	# only consider array and objects non-scalars
+	/** only consider array and objects non-scalars */
 	static function is_scalar($x){
 		return !(is_array($x) || is_object($x));
 	}
-	///determines if string is a float
+	/** determines if string is a float */
 	static function is_float($x){
 		if((string)(float)$x == $x){
 			return true;
 		}
 	}
-	///determines if a string is an integer.  Limited to php int size
+	/** determines if a string is an integer.  Limited to php int size */
 	static function is_int($x){
 		if(is_int($x)){
 			return true;
@@ -25,7 +25,7 @@ class Tool{
 			return true;
 		}
 	}
-	///determines if a string is an integer.  Not limited to php int size
+	/** determines if a string is an integer.  Not limited to php int size */
 	static function is_integer($x){
 		if(self::is_int($x)){
 			return true;
@@ -35,8 +35,8 @@ class Tool{
 		}
 	}
 
-	///runs callable in fork.  Returns on parent, exits on fork.
-	///@note watch out for objects having __destroy() methods.  The closed fork will call those methods (and close resources in the parent)
+	/** runs callable in fork.  Returns on parent, exits on fork. */
+	/** @note watch out for objects having __destroy() methods.  The closed fork will call those methods (and close resources in the parent) */
 	static function fork($callable){
 		$pid = pcntl_fork();
 		if ($pid == -1) {
@@ -51,7 +51,7 @@ class Tool{
 	}
 
 
-	///will encode to utf8 on failing for bad encoding
+	/** will encode to utf8 on failing for bad encoding */
 	static function json_encode($x, $options =0, $depth = 512){
 		$x = self::deresource($x);
 		$json = json_encode($x, $options, $depth);
@@ -65,7 +65,7 @@ class Tool{
 
 		return $json;
 	}
-	# return data array of json string, throwing error if failure
+	/** return data array of json string, throwing error if failure */
 	static function json_decode($x, $options=[]){
 		$options = array_merge(['array'=>true, 'default'=>[]], (array)$options);
 		if(!$x){
@@ -93,7 +93,7 @@ class Tool{
 	}
 
 
-	# turn a value into a non circular value
+	/** turn a value into a non circular value */
 	static function decirculate($source, $options=[], $parents=[]){
 
 		#+ set the default circular value handler if not provided {
@@ -143,7 +143,7 @@ class Tool{
 		}
 	}
 
-	# remove resource varaibles by replacing them with a string returned by get_resource_type
+	/** remove resource varaibles by replacing them with a string returned by get_resource_type */
 	static function deresource($source){
 		if(is_array($source)){
 			$return = [];
@@ -160,7 +160,7 @@ class Tool{
 		}
 	}
 
-	/// remove circular references
+	/** remove circular references */
 	static function flat_json_encode($v, $json_options=0, $max_depth=512, $decirculate_options=[]){
 		return self::json_encode(self::decirculate($v, $decirculate_options), $json_options, $max_depth);
 	}
@@ -172,7 +172,7 @@ class Tool{
 		}
 	}
 
-	///utf8 encode keys and values of variably deep array
+	/** utf8 encode keys and values of variably deep array */
 	static function &utf8_encode(&$x){
 		if(!is_array($x)){
 			$x = Strings::utf8_encode($x);
@@ -186,15 +186,15 @@ class Tool{
 		return $x;
 	}
 
-	/// turn a value into a reference
+	/** turn a value into a reference */
 	static function &reference($v){
 		return $v;
 	}
 
 
 	#+	MaterializedPaths {
-	#< @NOTE	this expects collation to something that uses case sensitivity, like `alter table licenses change path path varchar(250) default '' collate latin1_bin;`
-	/* Example
+	/**< @NOTE	this expects collation to something that uses case sensitivity, like `alter table licenses change path path varchar(250) default '' collate latin1_bin;` */
+	/** Example
 	$x = Tool::hierarchy_to_path([5,23,1,49]);
 	$x = Tool::path_to_hierarchy($x);
 	*/
@@ -211,19 +211,19 @@ class Tool{
 	#+	}
 
 
-	# create a randomly salted password hash
+	/** create a randomly salted password hash */
 	function password_hash($password){
 		return password_hash($password, PASSWORD_BCRYPT);
 
 	}
-	# check a password against a randomly salted password hash
+	/** check a password against a randomly salted password hash */
 	function password_verify($password, $hash){
 		return password_verify($password, $hash);
 	}
 
 
-	# Ex: cli_parse_args($argv)
-	/*	args
+	/** Ex: cli_parse_args($argv) */
+	/**	args
 		< options >: {
 			default: < the value a flag argument should take.  Defaults to true >
 			map: {
@@ -235,22 +235,22 @@ class Tool{
 		}
 
 	*/
-	/* note, on numeric args
+	/** note, on numeric args
 	The args can be mapped like normal keys, with those keys being numeric (ex: "0", "1", "2")
 	The numeric key of an argument is the increment of unkeyed arguments.  If an argument is keyed (ex "-b bill"), it does not count towards the increment that serves as the numeric key for unkeyed arguments
 	Note that the first argument, "0", is normally the file name
 	Numeric key mapping will not overwrite values given by key.  (Ex: if "0" is mapped to "r", and both are passed in, the value passed in under "r" will remain)
 	*/
-	/* note, on quoted args
+	/** note, on quoted args
 	$argv does not distinguished quoted arguments from non quoted arguments.  Consequently, if a value starts with '-', it is always interpretted as a key.
 	To avoid this, for any key that receives a value that can start with '-', use the form `--range='-24hr'`
 	*/
 
-	/* note, on duplicate keys
+	/** note, on duplicate keys
 	the majority of the time, a repeated key is an error, and not an intended array.  And, if an array is desired, it can be done with another key to be parsed as such.
 	Consequently, duplicate keys overwrite each other instead of forming an array
 	*/
-	/* Notes
+	/** Notes
 	-	there are no outside function dependencies so that this function can be copy and pasted into a single file intended to be run on command line without the need to link this library
 	*/
 	static function cli_parse_args($args, $options=[]){ # see \Grithin\Tool::cli_parse_args
@@ -346,7 +346,7 @@ class Tool{
 		}
 		return $params;
 	}
-	# get STDIN (piped input on CLI)
+	/** get STDIN (piped input on CLI) */
 	static function cli_stdin_get(){
 		$streams = [STDIN];
 		$null = NULL;
@@ -356,11 +356,11 @@ class Tool{
 			return false;
 		}
 	}
-	# checks whether the current environment is CLI
+	/** checks whether the current environment is CLI */
 	static function is_cli(){
 		return (php_sapi_name() === 'cli');
 	}
-	# check if the caller is the file that the current process started with
+	/** check if the caller is the file that the current process started with */
 	static function is_entry_file(){
 		if(debug_backtrace()[0]['file'] == realpath($_SERVER["SCRIPT_FILENAME"])){
 			return true;

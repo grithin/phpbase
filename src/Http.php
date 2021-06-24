@@ -24,7 +24,7 @@ class Http{
 
 
 /*#from Dylan at WeDefy dot com
-	// 301 Moved Permanently
+	/** 301 Moved Permanently */
 header("Location: /foo.php",TRUE,301);
 
 // 302 Found
@@ -40,7 +40,7 @@ header("Location: /foo.php",TRUE,307);
 
 The HTTP status code changes the way browsers and robots handle redirects, so if you are using header(Location:) it's a good idea to set the status code at the same time.  Browsers typically re-request a 307 page every time, cache a 302 page for the session, and cache a 301 page for longer, or even indefinitely.  Search engines typically transfer "page rank" to the new location for 301 redirects, but not for 302, 303 or 307. If the status code is not specified, header('Location:') defaults to 302.
 	*/
-	///relocate browser
+	/** relocate browser */
 	/**
 	@param	location	location to relocate to
 	@param	type	type of relocation; head for header relocation, js for javascript relocation
@@ -69,17 +69,17 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		}
 		exit;
 	}
-	# like redirect, but forces http
+	/** like redirect, but forces http */
 	static function redirectHttp($location){
 		Http::redirect("http://$_SERVER[HTTP_HOST]".$location);
 	}
-	# like redirect, but forces https
+	/** like redirect, but forces https */
 	static function redirectHttps($location){
 		Http::redirect("https://$_SERVER[HTTP_HOST]".$location);
 	}
 
 	static $ip;
-	///Get the ip at a given point in either HTTP_X_FORWARDED_FOR or just REMOTE_ADDR
+	/** Get the ip at a given point in either HTTP_X_FORWARDED_FOR or just REMOTE_ADDR */
 	/**
 	$config['loadBalancerIps'] is removed from 	HTTP_X_FORWARDED_FOR, after which slicePoint applies
 	*/
@@ -120,7 +120,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		echo '<?xml version="1.0" encoding="UTF-8"?>';
 		echo $content;
 	}
-	# end script with xml
+	/** end script with xml */
 	static function end_with_xml($content=''){
 		self::respond_with_xml($content);
 		exit;
@@ -133,18 +133,18 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 			echo $content;
 		}
 	}
-	# end script with json
+	/** end script with json */
 	static function end_with_json($content,$encode=true){
 		self::respond_with_json($content,$encode);
 		exit;
 	}
 
-	//it appears the browser parses once, then operating system, leading to the need to double escape the file name.  Use double quotes to encapsulate name
+	/**it appears the browser parses once, then operating system, leading to the need to double escape the file name.  Use double quotes to encapsulate name */
 	static function filename_escape($name){
 		return \Grithin\Strings::slashEscape(\Grithin\Strings::slashEscape($name));
 	}
-	///send an actual file on the system via http protocol
-	/*	params
+	/** send an actual file on the system via http protocol */
+	/**	params
 	saveAs	< `true` to indicate use path filename , otherwise, the actual name desired >
 	*/
 	static function file_send($path,$saveAs=null,$exit=true){
@@ -185,7 +185,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 			exit;
 		}
 	}
-	# Use standard HTTP Header indicator or _GET['_ajax'] to determine if request is ajax based
+	/** Use standard HTTP Header indicator or _GET['_ajax'] to determine if request is ajax based */
 	static function isAjax(){
 		# general set by framework (jquery) submitting the ajax
 		return (bool)$_SERVER['HTTP_X_REQUESTED_WITH'] || (bool)$_GET['_ajax'];
@@ -200,7 +200,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		}
 	}
 
-	# Respond to an http request, but don't end the script
+	/** Respond to an http request, but don't end the script */
 	static function respond_with($response){
 		ignore_user_abort(true); # Set whether a client disconnect should abort script execution
 		set_time_limit(0); # allow script to run forever
@@ -220,7 +220,7 @@ The HTTP status code changes the way browsers and robots handle redirects, so if
 		header("Pragma: cache");
 		header("Cache-Control: max-age=".(-$time->age('seconds')));
 	}
-	/*
+	/**
 	PHP will organize $_FILES like (uploading input.file.test.bob and input.file.test.bill)
 		{"input": {
 		  "name": {
