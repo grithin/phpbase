@@ -118,7 +118,7 @@ class Arrays{
 
 	Arrays::map_with($user_input, $map);
 
-	/**> 	{"FirstName": "bob",    "last_name": "bobl"} */
+	#> 	{"FirstName": "bob",    "last_name": "bobl"}
 	*/
 
 	static function map_with($src, $map){
@@ -149,7 +149,7 @@ class Arrays{
 
 	Arrays::map_only($user_input, $map);
 
-	/**> 	{"FirstName": "bob"} */
+	#> 	{"FirstName": "bob"}
 	*/
 
 	static function map_only($src, $map){
@@ -177,7 +177,7 @@ class Arrays{
 	];
 	$map = ['FirstName'=>'first_name'];
 	$x = Arrays::map($map, $user_input);
-	/**> {"FirstName": "bob"} */
+	#> {"FirstName": "bob"}
 	*/
 	static function &map($map,$extractee,$interpret_numeric_keys=true,&$extractTo=null){
 		if(!is_array($extractTo)){

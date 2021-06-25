@@ -359,39 +359,7 @@ class Strings{
 	static function preg_quote_replace_string($str) {
 		return preg_replace('/(\$|\\\\)(?=\d)/', '\\\\\1', $str);
 	}
-	/** test matches against subsequent regex */
-	/**
-	@param	subject	text to be searched
-	@param	regexes	patterns to be matched.  A "!" first character, before the delimiter, negates the match on all but first pattern
-	*/
-	static function pregMultiMatchAll($subject,$regexes){
-		$first = array_shift($regexes);
-		preg_match_all($first,$subject,$matches,PREG_SET_ORDER);
-		foreach($matches as $k=>$match){
-			foreach($regexes as $regex){
-				if(substr($regex,0,1) == '!'){
-					if(preg_match(substr($regex,1),$match[0])){
-						unset($matches[$k]);
-					}
-				}else{
-					if(!preg_match($regex,$match[0])){
-						unset($matches[$k]);
-					}
-				}
-			}
-		}
-		return $matches;
-	}
-	static function match_any($regexes,$subject){
-		foreach($regexes as $regex){
-			if(preg_match($regex,$subject)){
-				return true;
-			}
-		}
-	}
-	static function matchAny($regexes,$subject){
-		return self::match_any($regexes,$subject);
-	}
+
 	/** translate human readable size into bytes */
 	static function byteSize($string){
 		preg_match('@(^|\s)([0-9]+)\s*([a-z]{1,2})@i',$string,$match);
@@ -428,12 +396,12 @@ class Strings{
 		return array_values($array);
 	}
 
-	/** escape various characters with slashes (say, for quoted csv's) */
-	static function slashEscape($text,$characters='\"'){
+	/** escape various characters with slashes */
+	static function slash_escape($text,$characters='\"'){
 		return preg_replace('@['.preg_quote($characters).']@','\\\$0',$text);
 	}
-	/** unescape the escape function */
-	static function slashUnescape($text,$characters='\"'){
+	/** unescape specified characters */
+	static function slash_unescape($text,$characters='\"'){
 		return preg_replace('@\\\(['.preg_quote($characters).'])@','$1',$text);
 	}
 }

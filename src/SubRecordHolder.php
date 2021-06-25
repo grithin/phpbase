@@ -32,63 +32,63 @@ class SubRecordHolder implements \ArrayAccess, \IteratorAggregate, \Countable, \
 
 		Record: < Record instance >,
 		path_prefix: < the position of this sub record >
-		record: the data representing this subrecord
+		subrecord: the data representing this subrecord
 
 	*/
-	public function __construct($Record, $path_prefix, $record) {
+	public function __construct($Record, $path_prefix, $subrecord) {
 		$this->Record = $Record;
 		$this->path_prefix = $path_prefix;
-		$this->record = $record;
+		$this->subrecord = $subrecord;
 	}
 	public function count(){
-		return count($this->record);
+		return count($this->subrecord);
 	}
 	public function getIterator() {
-		return new \ArrayIterator($this->record);
+		return new \ArrayIterator($this->subrecord);
 	}
 	public function offsetSet($offset, $value) {
-		if($offset === null && Arrays::is_numeric($this->record)){ #< in the case of something like `$bob[] = 'sue'`
-			$this->record[] = $value;
+		if($offset === null && Arrays::is_numeric($this->subrecord)){ #< in the case of something like `$bob[] = 'sue'`
+			$this->subrecord[] = $value;
 		}else{ #< in all other cases, like `$bob['monkey'] = 'sue'`
-			$this->record[$offset] = $value;
+			$this->subrecord[$offset] = $value;
 		}
 
-		$subrecord_at_path = Arrays::set([], $this->path_prefix, $this->record);
+		$blank_record = [];
+		Arrays::set($blank_record, $this->path_prefix, $this->subrecord); # make a diff by apply to a blank record
 
 		# send absolute path changes to primary Record holder
-		$this->Record->update_local($subrecord_at_path);
+		$this->Record->update_local($blank_record);
 		# get the result at the relative path representing this holder
-		$this->record = Arrays::get($this->Record->record, $this->path_prefix);
+		$this->subrecord = Arrays::get($this->Record->record, $this->path_prefix);
 	}
 
 	public function offsetExists($offset) {
-		return isset($this->record[$offset]);
+		return isset($this->subrecord[$offset]);
 	}
 
 	public function offsetUnset($offset) {
-		#$this->record[$offset] = new \Grithin\MissingValue;
-		# does this trigger a change event?
-		unset($this->record[$offset]);
+		unset($this->subrecord[$offset]);
 
-		$subrecord_at_path = Arrays::set([], $this->path_prefix, $this->record);
+		$blank_record = [];
+		Arrays::set($blank_record, $this->path_prefix, $this->subrecord); # make a diff by apply to a blank record
 
 		# send absolute path changes to primary Record holder
-		$this->Record->update_local($subrecord_at_path);
+		$this->Record->update_local($blank_record);
 		# get the result at the relative path representing this holder
-		$this->record = Arrays::get($this->Record->record, $this->path_prefix);
+		$this->subrecord = Arrays::get($this->Record->record, $this->path_prefix);
 	}
 
 	public function offsetGet($offset) {
-		if(is_array($this->record[$offset])){
-			return new static($this->Record, $this->path_prefix.'.'.$offset, $this->record[$offset]);
+		if(is_array($this->subrecord[$offset])){
+			return new static($this->Record, $this->path_prefix.'.'.$offset, $this->subrecord[$offset]);
 		}
-		return $this->record[$offset];
+		return $this->subrecord[$offset];
 	}
 
 	public function jsonSerialize(){
-		return $this->record;
+		return $this->subrecord;
 	}
 	public function __toArray(){ # hopefully PHP adds this at some point
-		return $this->record;
+		return $this->subrecord;
 	}
 }

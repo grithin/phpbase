@@ -7,7 +7,6 @@ use \Grithin\Arrays;
 use \Grithin\Record;
 use \Grithin\MissingValue;
 
-
 global $accumulation;
 $accumulation = [];
 function make_accumulator($accumulate){
@@ -149,8 +148,10 @@ class RecordClassTests extends TestCase{
 		$record->before_change('accumulate_array_changes');
 		global $accumulation;
 
+
 		# test unset works on subrecord
 		unset($record['bob']['sl']);
+
 		$this->assertEquals($accumulation[0], ( (['bob'=>['sl'=>new MissingValue]])), 'unset 1 failed');
 		# test appropriate stored record update
 		$record->apply();

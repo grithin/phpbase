@@ -147,9 +147,9 @@ class Dictionary{
 	/** get ArrayObject representing diff between two arrays/objects, wherein items in $target are different than in $base, but not vice versa (existing $base items may not exist in $target) */
 	/** Examples
 	self(['bob'=>'sue'], ['bob'=>'sue', 'bill'=>'joe']);
-	/**> {} */
+	#> {}
 	self(['bob'=>'suesss', 'noes'=>'bees'], ['bob'=>'sue', 'bill'=>'joe']);
-	/**> {"bob": "suesss", "noes": "bees"} */
+	#> {"bob": "suesss", "noes": "bees"}
 	*/
 	/** params
 	target: < what the diff will transform to >
@@ -266,15 +266,15 @@ class Dictionary{
 	/** examples
 	$x = ['name'=>'bob'];
 	add_or_append('name', 'bill', $x);
-	/** $x => ['name'=>['bob', 'bill']] */
+	# $x => ['name'=>['bob', 'bill']]
 
 	$x = [];
 	add_or_append('name', 'bill', $x);
-	/** $x => ['name'=>'bill'] */
+	# $x => ['name'=>'bill']
 
 	$x = ['name'=>['bob']]
 	add_or_append('name', 'bill', $x);
-	/** $x => ['name'=>['bob', 'bill']] */
+	# $x => ['name'=>['bob', 'bill']] 
 	*/
 	/**
 	@param	key	can be null or key or array.  If null, value added to end of array
