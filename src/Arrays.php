@@ -247,7 +247,9 @@ class Arrays{
 
 		$reference_to_last =& $collection;
 		$parsed = [];
-		$not_found = function($key) use ($path, $parsed){ throw new \Exception('path not found at "'.$key.'" of "'.$path.'" at "'.$parsed.'"'); };
+		$not_found = function($key) use ($path, $parsed){
+			throw new \Exception('path not found at "'.$key.'" of "'.$path.'" at "'.implode('.', $parsed).'"'); 
+		};
 		foreach($path_parts as $part){
 			if(is_array($reference_to_last) || (is_object($reference_to_last) && ($reference_to_last instanceof \ArrayAccess))){
 				if($options['make'] || self::is_set($reference_to_last, $part)){
