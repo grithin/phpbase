@@ -2,7 +2,10 @@
 namespace Grithin\Traits;
 
 /*
-For handling static and instance based convenient memoizing (by __call and __callStatic function name matching).  Allows handling sub-memoize calls (`static_caller_requested_memoized`), and allows re-making (`static_call_and_memoize`).
+For handling static and instance based convenient memoizing (by __call and __callStatic function name matching).
+
+
+Allows handling sub-memoize calls (`static_caller_requested_memoized`), and allows re-making (`static_call_and_memoize`).
 
 Methods are intended to be overriden as desired (ex: change the memoize get functions to use redis instead of local copy)
 */
@@ -61,10 +64,6 @@ trait Memoized{
 		self::$static_memoized[$key] = $result;
 	}
 
-	/**
-	There is a situation in which a function can be memoized, and can also call a memoized function (ex: `get_name()` can be memoized, and can call `get()` which can also be memoized)
-	In such a situation, whether to use the memoized sub-function depends on whether the top function was requested as a memoized function.  This function indicates whether it was.
-	*/
 	public function static_caller_requested_memoized(){
 		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
 
@@ -77,27 +76,9 @@ trait Memoized{
 		}
 		return false;
 	}
-	/**
-	Although search the is more dependable for determining whether a subsequent call should use a memoize, that which is within a memoize stack usually also uses memoize
-	*/
+
 	public function static_memoizing(){
 		return (bool)self::$static_memoized_count;
-	}
-	/** in the case we are within a stack that includes a memoize, call using memoize, otherwise, call regularly */
-	/** Examples
-	$this->conditional_memoized('id_by_thing', ['user_role', $role]);
-	$this->conditional_memoized('item_by_thing', ['user_role', $role]);
-	*/
-	public function static_conditional_memoized($name, $args){
-		if(!is_array($name)){
-			$name = [__CLASS__, $name];
-		}
-
-		if(self::static_memoizing()){
-			$name[1] = 'memoized_'.$name[1];
-		}
-
-		return call_user_func_array($name, $args);
 	}
 
 	#+ }
@@ -105,18 +86,17 @@ trait Memoized{
 	#+	instance functions {
 	/**< these just fully mimic static functions, but use an instance */
 
-	public $memoized_count = 0;
 	public function __call($name, $arguments){
 		if(substr($name,0,9) == 'memoized_'){
-			$this->memoized_count++;
+			self::$static_memoized_count++;
 			$return = $this->get_memoized(substr($name,9), $arguments);
-			$this->memoized_count--;
+			self::$static_memoized_count--;
 			return $return;
 		}
 		if(substr($name,0,8) == 'memoize_'){
-			$this->memoized_count++;
+			self::$static_memoized_count++;
 			$return = $this->call_and_memoize(substr($name,8), $arguments);
-			$this->memoized_count--;
+			self::$static_memoized_count--;
 			return $return;
 		}
 		if(!method_exists(__CLASS__, $name)){
@@ -180,21 +160,7 @@ trait Memoized{
 	}
 
 	public function memoizing(){
-		return (bool)$this->memoized_count;
+		return self::static_memoizing();
 	}
 
-	/** see static */
-	public function conditional_memoized($name, $args){
-		if(!is_array($name)){
-			$name = [__CLASS__, $name];
-		}
-
-		if($this->memoizing()){
-			$name[1] = 'memoized_'.$name[1];
-		}
-
-		return call_user_func_array($name, $args);
-	}
-
-	#+	}
 }
