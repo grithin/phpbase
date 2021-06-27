@@ -9,48 +9,32 @@ use \Grithin\Traits\VariedParameter;
 use \Grithin\MissingValue;
 
 
-class StaticTest{
+
+class TestCombo{
 	use \Grithin\Traits\Memoized;
-	static function test($x){
-		if(self::static_caller_requested_memoized()){
-			return self::memoized_bottom($x);
-		}else{
-			return self::bottom($x);
-		}
+	static function static_test($x){
+		return $x.microtime();
 	}
-	static function test2($x){
-		if(self::static_caller_requested_memoized()){
-			return self::memoized_bottom($x);
-		}else{
-			return self::memoize_bottom($x);
-		}
+	function instance_test($x){
+		return $x.microtime();
 	}
-
-	static function bottom($x){
-		return $x.'1 '.microtime();
+	static function static_test_sub($x){
+		return self::static_sub($x);
 	}
-}
-
-
-class InstanceTest{
-	use \Grithin\Traits\Memoized;
-	public function test($x){
-		if($this->caller_requested_memoized()){
-			return $this->memoized_bottom($x);
-		}else{
-			return $this->bottom($x);
-		}
+	static function static_test_sub_memoize($x){
+		return self::memoized_static_sub($x);
 	}
-	public function test2($x){
-		if($this->caller_requested_memoized()){
-			return $this->memoized_bottom($x);
-		}else{
-			return $this->memoize_bottom($x);
-		}
+	static function static_sub($x){
+		return [self::static_memoizing(), self::static_caller_requested_memoized(), self::static_test($x)];
 	}
-
-	public function bottom($x){
-		return $x.'1 '.microtime();
+	function instance_test_sub($x){
+		return $this->instance_sub($x);
+	}
+	function instance_test_sub_memoize($x){
+		return $this->memoized_instance_sub($x);
+	}
+	function instance_sub($x){
+		return [$this->memoizing(), $this->caller_requested_memoized(), $this->instance_test($x)];
 	}
 }
 
@@ -60,30 +44,54 @@ class InstanceTest{
 * @group Memoized
 */
 class MemoizedClassTests extends TestCase{
-	function test_static_methods(){
-		$x1 = StaticTest::memoized_test('bobs');
-		$x2 = StaticTest::memoized_test('bobs');
-		$this->assertEquals($x1, $x2, 'memoized faliure');
-		$x3 = StaticTest::memoize_test('bobs');
-		$this->assertEquals(false, $x1 == $x3, 'memoize remake faliure');
-		$x4 = StaticTest::memoized_test('bobs');
-		$this->assertEquals($x3, $x4, 'memoized faliure');
-	}
-	function test_instance_methods(){
-		$test_instance = new InstanceTest;
-		$x1 = $test_instance->memoized_test('bobs');
-		$x2 = $test_instance->memoized_test('bobs');
-		$this->assertEquals($x1, $x2, 'memoized faliure');
-		$x3 = $test_instance->memoize_test('bobs');
-		$this->assertEquals(false, $x1 == $x3, 'memoize remake faliure');
-		$x4 = $test_instance->memoized_test('bobs');
-		$this->assertEquals($x3, $x4, 'memoized faliure');
+	function test_combo(){
+		$Test = new TestCombo;
+		$x = TestCombo::memoized_static_test(1);
+		$y = TestCombo::memoized_static_test(1);
+		$this->assertEquals($x, $y, 'static memoized');
 
-		$x5 = $test_instance->memoized__unset('test', ['bobs']);
-		$this->assertEquals(false, $x4 == $x5, 'memoized faliure');
+		$x = TestCombo::memoized_static_test(1);
+		$y = TestCombo::memoize_static_test(1);
+		$this->assertFalse($x == $y, 'static memoize');
 
-		$test_instance->memoized__set('test', ['bobs'], 'test');
-		$x6 = $test_instance->memoized_test('bobs');
-		$this->assertEquals('test', $x6, 'memoized faliure');
+		$x = $Test->memoized_instance_test(1);
+		$y = $Test->memoized_instance_test(1);
+		$this->assertEquals($x, $y, 'instance memoized');
+
+		$x = $Test->memoized_instance_test(1);
+		$y = $Test->memoize_instance_test(1);
+		$this->assertFalse($x == $y, 'instance memoize');
+
+		$x = TestCombo::memoized_static_test_sub(1);
+		$this->assertTrue($x[0], 'memoizing static call');
+		$this->assertFalse($x[1], 'memoizing caller_requested_memoize');
+		$y = TestCombo::memoized_static_test_sub(1);
+		$this->assertEquals($x, $y, 'instance memoized');
+
+		$x = TestCombo::memoized_static_test_sub_memoize(1);
+		$this->assertTrue($x[0], 'memoizing static call 2');
+		$this->assertTrue($x[1], 'memoizing caller_requested_memoize 2');
+		$y = TestCombo::memoized_static_test_sub_memoize(1);
+		$this->assertEquals($x, $y, 'instance memoized');
+
+		$x = TestCombo::static_test_sub(1);
+		$this->assertFalse($x[0], 'non-memoizing static call');
+		$this->assertFalse($x[1], 'non-memoizing caller_requested_memoize');
+
+		$x = $Test->memoized_instance_test_sub(1);
+		$this->assertTrue($x[0], 'memoizing instance call');
+		$this->assertFalse($x[1], 'memoizing caller_requested_memoize');
+		$y = $Test->memoized_instance_test_sub(1);
+		$this->assertEquals($x, $y, 'instance memoized');
+
+		$x = $Test->memoized_instance_test_sub_memoize(1);
+		$this->assertTrue($x[0], 'memoizing instance call 2');
+		$this->assertTrue($x[1], 'memoizing caller_requested_memoize 2');
+		$y = $Test->memoized_instance_test_sub_memoize(1);
+		$this->assertEquals($x, $y, 'instance memoized');
+
+		$x = $Test->instance_test_sub(1);
+		$this->assertFalse($x[0], 'non-memoizing instance call');
+		$this->assertFalse($x[1], 'non-memoizing caller_requested_memoize');
 	}
 }

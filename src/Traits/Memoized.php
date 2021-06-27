@@ -1,21 +1,18 @@
 <?php
 namespace Grithin\Traits;
 
-/*
-For handling static and instance based convenient memoizing (by __call and __callStatic function name matching).
+/** For adding magic memoizing methods
 
+prefix with `memoize_` to force a memoizing of a method
+prefix with `memoized_` to use existing memoized cache, or memoize if none exists
 
-Allows handling sub-memoize calls (`static_caller_requested_memoized`), and allows re-making (`static_call_and_memoize`).
-
-Methods are intended to be overriden as desired (ex: change the memoize get functions to use redis instead of local copy)
 */
 
 use Exception;
 
 trait Memoized{
 
-	#+	static functions {
-	static $static_memoized_count = 0;
+	static protected $static_memoized_count = 0;
 	static public function __callStatic($name, $arguments){
 		if(substr($name,0,9) == 'memoized_'){
 			self::$static_memoized_count++;
@@ -33,6 +30,30 @@ trait Memoized{
 			throw new ExceptionMissingMethod($name);
 		}
 	}
+
+	#+	static functions {
+	/** determine, based on backtrace, if the current function was called with a memoize prefix
+	@return bool whether caller called with memoized prefix
+	*/
+	static public function static_caller_requested_memoized(){
+		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+
+		if(
+			$stack[2]['function'] == 'call_user_func_array'
+			&& $stack[3]['function'] == 'static_call_and_memoize'
+		){
+			return true;
+		}
+		return false;
+	}
+
+	/** whether currently in memoize stack
+	@return bool
+	 */
+	static public function static_memoizing(){
+		return (bool)self::$static_memoized_count;
+	}
+
 	static $static_memoized = [];
 	static function static_get_memoized($name, $arguments){
 		$key = self::static_memoized__make_key($name, $arguments);
@@ -54,37 +75,26 @@ trait Memoized{
 	static function static_memoized__make_key($name, $arguments){
 		return $name.'-'.md5(serialize($arguments));
 	}
+
+	/** check if memoized key exists */
 	static function static_memoized__has_key($key){
 		return array_key_exists($key, self::$static_memoized);
 	}
+	/** get memoized value */
 	static function static_memoized__get_from_key($key){
 		return self::$static_memoized[$key];
 	}
+	/** set memoized value at key */
 	static function static_memoized__set_key($key, $result){
 		self::$static_memoized[$key] = $result;
 	}
 
-	public function static_caller_requested_memoized(){
-		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
 
-		if(
-			$stack[2]['function'] == 'call_user_func_array'
-			&& $stack[3]['function'] = 'static_call_and_memoize'
-			&& $stack[4]['function'] == 'static_get_memoized'
-		){
-			return true;
-		}
-		return false;
-	}
-
-	public function static_memoizing(){
-		return (bool)self::$static_memoized_count;
-	}
 
 	#+ }
 
 	#+	instance functions {
-	/**< these just fully mimic static functions, but use an instance */
+	/*< these just fully mimic static functions, but use an instance */
 
 	public function __call($name, $arguments){
 		if(substr($name,0,9) == 'memoized_'){
@@ -103,6 +113,33 @@ trait Memoized{
 			throw new ExceptionMissingMethod($name);
 		}
 	}
+
+	/** determine, based on backtrace, if the current function was called with a memoize prefix
+	@return bool whether caller called with memoized prefix
+	*/
+	public function caller_requested_memoized(){
+		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+
+		if(
+			$stack[2]['function'] == 'call_user_func_array'
+			&& $stack[3]['function'] == 'call_and_memoize'
+		){
+			return true;
+		}
+		return false;
+	}
+
+	/** whether currently in memoize stack
+	@return bool
+	 */
+	public function memoizing(){
+		return self::static_memoizing();
+	}
+
+
+
+
+
 	public $memoized = [];
 	public function get_memoized($name, $arguments){
 		$key = $this->memoized__make_key($name, $arguments);
@@ -124,12 +161,15 @@ trait Memoized{
 	public function memoized__make_key($name, $arguments){
 		return $name.'-'.md5(serialize($arguments));
 	}
+	/** check if memoized key exists */
 	public function memoized__has_key($key){
 		return array_key_exists($key, $this->memoized);
 	}
+	/** get memoized value */
 	public function memoized__get_from_key($key){
 		return $this->memoized[$key];
 	}
+	/** set memoized value at key */
 	public function memoized__set_key($key, $result){
 		$this->memoized[$key] = $result;
 	}
@@ -142,25 +182,5 @@ trait Memoized{
 		unset($this->memoized[$key]);
 	}
 
-	/**
-	There is a situation in which a function can be memoized, and can also call a memoized function (ex: `get_name()` can be memoized, and can call `get()` which can also be memoized)
-	In such a situation, whether to use the memoized sub-function depends on whether the top function was requested as a memoized function.  This function indicate whether it was.
-	*/
-	public function caller_requested_memoized(){
-		$stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
-
-		if(
-			$stack[2]['function'] == 'call_user_func_array'
-			&& $stack[3]['function'] = 'call_and_memoize'
-			&& $stack[4]['function'] == 'get_memoized'
-		){
-			return true;
-		}
-		return false;
-	}
-
-	public function memoizing(){
-		return self::static_memoizing();
-	}
 
 }
