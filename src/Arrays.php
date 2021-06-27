@@ -248,7 +248,7 @@ class Arrays{
 		$reference_to_last =& $collection;
 		$parsed = [];
 		$not_found = function($key) use ($path, $parsed){
-			throw new \Exception('path not found at "'.$key.'" of "'.$path.'" at "'.implode('.', $parsed).'"'); 
+			throw new \Exception('path not found at "'.$key.'" of "'.$path.'" at "'.implode('.', $parsed).'"');
 		};
 		foreach($path_parts as $part){
 			if(is_array($reference_to_last) || (is_object($reference_to_last) && ($reference_to_last instanceof \ArrayAccess))){
@@ -261,7 +261,8 @@ class Arrays{
 				if(isset($reference_to_last->$part)){ # property on object exists
 					$reference_to_last =& $reference_to_last->$part;
 				}elseif(is_callable([$reference_to_last, $part])){ # it's a callable that is not a property
-					$reference_to_last = [$reference_to_last, $part]; # can't return a reference to a method, so just return a callable item
+					$callable = [$reference_to_last, $part]; # can't return a reference to a method, so just return a callable item
+					$reference_to_last = &$callable;
 				}else{
 					if($options['make']){
 						$reference_to_last =& $reference_to_last->$part; # attempt to create attribute

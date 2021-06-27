@@ -23,14 +23,21 @@ class ArraysClassTest extends TestCase{
 		$arrayObject['found'] = 123;
 		$arrayObject['array'] = ['bob'=>'bob'];
 
+		$anon_class = new class('Anon'){
+			function test(){}
+		};
+
 		$array = [
 			'object' => $object,
 			'arrayObject' => $arrayObject,
 			'array' => [
 				'test' => 'test'
 			],
-			'key' => 'key'
+			'key' => 'key',
+			'class'=> $anon_class
 		];
+
+
 
 		$value = Arrays::get($array, 'object.found');
 		$this->assertEquals($array['object']->found, $value, 'object property');
@@ -65,6 +72,9 @@ class ArraysClassTest extends TestCase{
 			$value = Arrays::get($array, 'arrayObject.bill', ['make'=>false]);
 			$this->assertEquals(true, false, 'test make=false exception on arrayObject -> unfound key');
 		}catch(\Exception $e){}
+
+		$value = &Arrays::get($array, 'class.test');
+		$this->assertEquals([$anon_class, 'test'], $value, 'testing getting class method');
 	}
 
 	function test_set(){
