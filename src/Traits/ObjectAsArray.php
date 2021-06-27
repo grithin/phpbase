@@ -22,16 +22,16 @@ trait ObjectAsArray{
 		return $this->$offset;
 	}
 	public function jsonSerialize(){
-		return object_get_vars();
+		return get_object_vars($this);
 	}
 	public function __toArray(){ # hopefully PHP adds this at some point
-		return object_get_vars();
+		return get_object_vars($this);
 	}
 	public function count(){
-		return count(object_get_vars());
+		return count(get_object_vars($this));
 	}
 	# wont work with references
 	public function getIterator() {
-		return new \ArrayIterator(object_get_vars());
+		return new \ArrayIterator(get_object_vars($this));
 	}
 }
