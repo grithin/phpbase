@@ -319,7 +319,7 @@ class Files{
 			return $size;
 		}
 	}
-	
+
 	/** remove relative parts of a path that could be used for exploits */
 	static function remove_relative($path){
 		return preg_replace(array('@((\.\.)(/|$))+@','@//+@'),'/',$path);
@@ -338,6 +338,8 @@ class Files{
 		if(!is_array($pathParts)){
 			$pathParts = explode($separator, $pathParts);
 		}
+
+		$is_absolute = false;
 		if(!$pathParts[0]){ # blank first key indicates started with '/'
 			$is_absolute = true;
 		}

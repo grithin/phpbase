@@ -164,7 +164,7 @@ class Url{
 		# put keys in order they will be joined
 		$url_parts_with_separators = array(
 			'scheme'        => null,
-			'abempty'       => isset( $url_parts['scheme'] ) ? '://' : ($url_parts['host'] ? '//' : null), # host indicates at least "//"  was present
+			'abempty'       => isset( $url_parts['scheme'] ) ? '://' : (isset($url_parts['host']) ? '//' : null), # host indicates at least "//"  was present
 			'user'          => null,
 			'authcolon'     => isset( $url_parts['pass'] ) ? ':' : null,
 			'pass'          => null,

@@ -274,7 +274,7 @@ class Dictionary{
 
 	$x = ['name'=>['bob']]
 	add_or_append('name', 'bill', $x);
-	# $x => ['name'=>['bob', 'bill']] 
+	# $x => ['name'=>['bob', 'bill']]
 	*/
 	/**
 	@param	key	can be null or key or array.  If null, value added to end of array

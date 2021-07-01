@@ -31,6 +31,10 @@ class Arrays{
 	static function from_object($x){
 		if(method_exists($x, '__toArray')){ # hopefully PHP adds this at some point
 			return $x->__toArray();
+		}elseif(method_exists($x, 'getArrayCopy')){ # ArrayObject has this
+			return $x->getArrayCopy();
+		}elseif(method_exists($x, 'jsonSerialize')){ # JsonSerializable interface has this
+			return $x->jsonSerialize();
 		}else{
 			/* get_object_vars vs (array)
 				`(array)$x` will create keys for private and protected attributes, but those keys will have special utf character prefixes to indicate their status.  They are generally not useful as plain name keys
@@ -796,7 +800,7 @@ class Arrays{
 
 
 	/** filter($key,$value){ return true||false; } */
-	function filter_deep($array, $allow){
+	static function filter_deep($array, $allow){
 		$result = [];
 		foreach($array as $k=>$v){
 			if($allow($k,$v) !== false){
@@ -834,6 +838,7 @@ class Arrays{
 		}
 		return $array;
 	}
+	/** like array_diff, but use strict comparison */
 	static function diff($one, $two, $stict=true){
 		$set = [];
 		foreach($one as $v){
@@ -843,7 +848,7 @@ class Arrays{
 		}
 		return $set;
 	}
-
+	/** like array_intersect, but uses strict comparison */
 	static function intersect($one, $two, $strict=true){
 		$set = [];
 		foreach($one as $v){
