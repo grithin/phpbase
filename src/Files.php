@@ -61,6 +61,27 @@ class Files{
 
 
 	*/
+	/** note.md
+	Reference is not maintained during extraction:
+	```php
+	$x = 'bill';
+	$a = ['y'=>&$x];
+	extract($a);
+	$y = 'bob';
+	# $x is still 'bill'
+	$a['y'] = 'bob';
+	# $x is now 'bob'
+	```
+
+	However, what can be done is re-assigning values after inclusion:
+	```php
+	$_var = ['bob'=>$x];
+	$_options = ['extract'=>array_keys($_vars)];
+
+	This will cause the return value to be the extracted vars into a returned array.  The actual return value from the file will be put into '_return'
+	```
+
+	*/
 	private static function inc($_file, $_vars=null, $_options=[]){
 		if(is_file($_file)){
 			self::log_included(true);
@@ -77,7 +98,7 @@ class Files{
 			$_return = include($_file);
 
 			if(!empty($_options['extract'])){
-				$_return = [];
+				$_return = ['_return'=>$_return];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
@@ -111,7 +132,7 @@ class Files{
 			$_return = include_once($_file);
 
 			if(!empty($_options['extract'])){
-				$_return = [];
+				$_return = ['_return'=>$_return];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
@@ -142,7 +163,7 @@ class Files{
 			$_return = include($_file);
 
 			if(!empty($_options['extract'])){
-				$_return = [];
+				$_return = ['_return'=>$_return];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}
@@ -173,7 +194,7 @@ class Files{
 			$_return = include_once($_file);
 
 			if(!empty($_options['extract'])){
-				$_return = [];
+				$_return = ['_return'=>$_return];
 				foreach($_options['extract'] as $_var){
 					$_return[$_var] = $$_var;
 				}

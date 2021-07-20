@@ -3,7 +3,7 @@ namespace Grithin;
 
 class Bench{
 	public $measures = [];
-	function __construct($name=null){
+	function __construct($name='default'){
 		$this->mark($name);
 	}
 	function mark($name=null){
@@ -14,10 +14,18 @@ class Bench{
 			$this->measures[$next]['name'] = $name;
 		}
 	}
-	function end($name=null){
+	function end($name='default'){
 		$this->mark($name);
 		return $this->measure();
 	}
+	public function loop($count, $closure, $name='loop'){
+		$this->mark($name);
+		for($i=0; $i<$count; $i++){
+			$closure();
+		}
+		$this->mark($name);
+	}
+
 	function measure(){
 		$current = current($this->measures);
 		$mem = ['start'=>$this->measures[0]['mem'], 'end'=>$this->measures[count($this->measures)-1]['mem']];
@@ -68,14 +76,13 @@ class Bench{
 		$summary = ['mem'=>$mem, 'time'=>$time];
 		return ['intervals'=>$intervals, 'summary'=>$summary];
 	}
-	function end_out($name=null){
+	function end_out($name='default'){
 		$this->mark($name);
 		return $this->measure_out();
 	}
 
-	function measure_out($name=null){
-		$end = $this->measure($name);
-		Debug::out($end);
+	function out(){
+		Debug::out($this->measure());
 	}
 	static $accumulaters = [];
 	static function accumulate($accumulater_name, $mark_name=null){
