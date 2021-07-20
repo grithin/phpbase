@@ -69,5 +69,21 @@ if(!function_exists('sepp')){
 	}
 }
 
+if(!function_exists('debug_trace')){
+	function debug_trace($limit=5){
+		if(!\Grithin\GlobalFunctions::$silence){
+			echo "\n";
+			echo \Grithin\Debug::json_pretty(\Grithin\Debug::backtrace($limit));
+			echo "\n";
+		}
+	}
+}
+if(!function_exists('debug_do')){
+	function debug_do($x){
+		if(!\Grithin\GlobalFunctions::$silence){
+			$x();
+		}
+	}
+}
 
 }

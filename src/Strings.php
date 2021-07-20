@@ -361,7 +361,7 @@ class Strings{
 	}
 
 	/** translate human readable size into bytes */
-	static function byteSize($string){
+	static function byte_size($string){
 		preg_match('@(^|\s)([0-9]+)\s*([a-z]{1,2})@i',$string,$match);
 		$number = $match[2];
 		$type = strtolower($match[3]);

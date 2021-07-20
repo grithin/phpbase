@@ -4,7 +4,7 @@ namespace Grithin;
 use \ArrayObject;
 use \Exception;
 
-/// Useful array related functions I didn't, at one time, find in php
+/** tools that apply to arrays (which can be either lists or dictionaries) */
 /*
 @NOTE	on parameter order: Following lodash wherein the operatee, the source array, is the first parameter.  To be applied to all new functions with such an operatee
 */

@@ -13,7 +13,7 @@ instantiate a public version of the class, where the main version serves as a pl
 trait SingletonDefaultPublic{
 	use SingletonDefault;
 
-	static function className($called){
+	static function class_name($called){
 		return $called.'Public';
 	}
 	static function __callStatic($fnName,$args){

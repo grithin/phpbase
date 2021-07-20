@@ -123,8 +123,8 @@ class Debug{
 	static function caller(){
 		return self::conform_backtrace_item(debug_backtrace(null,2)[1]);
 	}
-	static function backtrace(){
-		return array_slice(self::conform_backtrace(debug_backtrace()), 1);
+	static function backtrace($limit=0){
+		return array_slice(self::conform_backtrace(debug_backtrace(null, $limit)), 1);
 	}
 
 	static function error_level($level_code){

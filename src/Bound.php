@@ -1,6 +1,6 @@
 <?php
 namespace Grithin;
-/// for creating functions with preset prefixed arguments
+/** for creating functions with preset prefixed arguments */
 /**
 Addresses two issues:
 	The need for a similar functionality to javascripts .bind()
@@ -10,7 +10,7 @@ ex:
 	.bind() handling
 		function bob($firstArg, $secondArg){}
 		$bound = new Bound('bob','first argument');
-		$bound('second argument')
+		$return = $bound('second argument')
 	function-type
 		function bob(){}
 		$bound = new Bound('bob')
