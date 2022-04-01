@@ -94,16 +94,11 @@ class Tool{
 
 
 	/** turn a value into a non circular value */
-	static function decirculate($source, $options=[], $parents=[]){
-
+	static function decirculate($source, $options=[]){
 		#+ set the default circular value handler if not provided {
 		if(empty($options['circular_value']) && !array_key_exists('circular_value', $options)){
 			$options['circular_value'] = function($v){
-				if(is_object($v)){
-					return ['_circular'=>true, '_class'=>get_class($v), '_reference'=>spl_object_hash($v)];
-				}else{
-					return ['_circular'=>true,  '_keys'=>array_keys($v)];
-				}
+				return self::decirculate_circular_value($v);
 			};
 		}
 		#+ }
@@ -111,31 +106,58 @@ class Tool{
 		#+ set the default object data extraction handler if not provided {
 		if(empty($options['object_extracter']) && !array_key_exists('object_extracter', $options)){
 			$options['object_extracter'] = function($v){
-				if(method_exists($v, '__toArray')){
-					return (array)$v->__toArray();
-				}
-				return array_merge(['_class' => get_class($v)], get_object_vars($v));
+				return self::decirculate_object_extrator($v);
 			};
 		}
 		#+ }
+		if(empty($options['max_depth'])){
+			$options['max_depth'] = 10;
+		}
+		return self::decirculate_do($source, $options['circular_value'], $options['object_extracter'], $options['max_depth']);
 
+	}
+	static function decirculate_circular_value($v){
+		$v = self::dirculate_flatten($v);
+		$v['_circular'] = true;
+		return $v;
+	}
+	/** don't attempt to get deep values, just express the thing in a way that is understandable*/
+	static function dirculate_flatten($v){
+		if(is_object($v)){
+			return ['_class'=>get_class($v), '_reference'=>spl_object_hash($v)];
+		}elseif(is_array($v)){
+			return ['_keys'=>array_keys($v)];
+		}
+		return $v;
+	}
+	static function decirculate_object_extrator($v){
+		if(method_exists($v, '__toArray')){
+			return (array)$v->__toArray();
+		}
+		return array_merge(['_class' => get_class($v)], get_object_vars($v));
+	}
+	/** does the actual decirculation for `decirculate` */
+	static function decirculate_do($source, $circular_value_handler, $object_extractor, $max_depth=10, $depth=0, $parents=[]){
+		if($depth == $max_depth-1){
+			return self::dirculate_flatten($source);
+		}
 		foreach($parents as $parent){
 			if($parent === $source){
-				if(is_callable($options['circular_value'])){
-					return $options['circular_value']($source);
+				if(is_callable($circular_value_handler)){
+					return $circular_value_handler($source);
 				}else{
-					return $options['circular_value'];
+					return $circular_value_handler;
 				}
 			}
 		}
 		if(is_object($source)){
 			$parents[] = $source;
-			return self::decirculate($options['object_extracter']($source), $options, $parents);
+			return self::decirculate_do($object_extractor($source), $circular_value_handler, $object_extractor, $max_depth, $depth, $parents);
 		}elseif(is_array($source)){
 			$return = [];
 			$parents[] = $source;
 			foreach($source as $k=>$v){
-				$return[$k] = self::decirculate($v, $options, $parents);
+				$return[$k] = self::decirculate_do($v, $circular_value_handler, $object_extractor, $max_depth, $depth+1, $parents);
 			}
 			return $return;
 		}else{
@@ -143,7 +165,7 @@ class Tool{
 		}
 	}
 
-	/** remove resource varaibles by replacing them with a string returned by get_resource_type */
+	/** remove resource variables by replacing them with a string returned by get_resource_type */
 	static function deresource($source){
 		if(is_array($source)){
 			$return = [];
@@ -164,6 +186,7 @@ class Tool{
 	static function flat_json_encode($v, $json_options=0, $max_depth=512, $decirculate_options=[]){
 		return self::json_encode(self::decirculate($v, $decirculate_options), $json_options, $max_depth);
 	}
+	/** converts some value into something that can beturned into JSON */
 	static function to_jsonable($v){
 		if(is_scalar($v)){
 			return $v;

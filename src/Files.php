@@ -13,16 +13,16 @@ class Files{
 
 	/** used to factor out common functionality */
 	static function __callStatic($name,$arguments){
-		self::$currentInclude = array(
-				'file'=>$arguments[0],
-				'globals'=>$arguments[1],
-				'vars'=>isset($arguments[2]) ? $arguments[2] : [],
-				'type'=>$name
-			);
 		if(method_exists(__CLASS__,$name)){
+			self::$currentInclude = array(
+					'file'=>$arguments[0],
+					'globals'=>$arguments[1],
+					'vars'=>isset($arguments[2]) ? $arguments[2] : [],
+					'type'=>$name
+				);
 			return call_user_func_array(array(__CLASS__,$name),$arguments);
 		}else{
-			new \Exception('no such method');
+			throw new \Exception('no such method');
 		}
 
 	}
@@ -346,8 +346,20 @@ class Files{
 		return preg_replace(array('@((\.\.)(/|$))+@','@//+@'),'/',$path);
 	}
 
+	/** resolves  relative path and decaps the ending / if present*/
+	public static function path_resolve($path){
+		$path = self::resolve_relative($path);
+		return self::path_decap($path);
+	}
+	public static function path_decap($path){
+		while(substr($path, -1) == '/'){
+			$path = substr($path, 0, -1);
+		}
+		return $path;
+	}
 
-	/** does not care whether relative folders exist (unlike file include functions) */
+
+	/** does not care whether relative folders exist (unlike `realpath`) */
 	/** Found here b/c can be applied to HTTP paths, not just file paths */
 	static function resolve_relative($pathParts, $relative = false, $separator = DIRECTORY_SEPARATOR){
 		# if relative path is absolute, use it

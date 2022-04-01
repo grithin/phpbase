@@ -3,26 +3,14 @@ namespace Grithin\Traits;
 use Grithin\Debug;
 use Grithin\Traits\testCall;
 
-/*
-The convenience of acting like there is just one, with the ability to handle multiple
-Static calls default to primary instance.  If no primary instance, attempt to create one.
-
-Can access the instance name via ->singleton_name.  Ex
-$db = Db::init(...);
-$db == Db::instance($db->singleton_name);
-
-
-
-@NOTE	__construct can not be protected because the RelfectionClass call to it is not considered a relative
-@NOTE __call doesn't take arguments by reference (and func_get_args() doesn't return references), so don't apply to classes requiring reference args (unless php introduces pointers)
-
-Ex, named instance
-	Db::init('instance name', $config)
-Ex, name defaulted instance
-	Db::singleton($config)
-*/
 trait SingletonDefault{
 	use testCall;
+
+	/** use the default name of `0` and call init */
+	static function singleton(){
+		$args = array_merge([0], (array)func_get_args());
+		return call_user_func_array([__CLASS__,'init'], $args);
+	}
 
 
 	/** used to translate static calls to the primary instance */
@@ -66,10 +54,10 @@ trait SingletonDefault{
 	}
 
 	/** if no name, return increment */
-	public static function init_resolve_name($instance_name=null){
+	protected static function init_resolve_name($instance_name=null){
 		return $instance_name !== null ? $instance_name : self::$i++;
 	}
-	/** set a instance key to some  name */
+	/** construct an instance and set the key */
 	public static function init_make_instance($instance_name, $constructor_args){
 		$className = static::class_name(get_called_class());#< use of `static` to allow for override on which class is instantiated
 		$class = new \ReflectionClass($className);
@@ -90,7 +78,7 @@ trait SingletonDefault{
 		if(!$name){
 			return static::primary();
 		}
-		if(!self::$instances[$name]){
+		if(!isset(self::$instances[$name])){
 			throw new \Exception('No instance of name "'.$name.'"');
 		}
 		return self::$instances[$name];
@@ -99,11 +87,7 @@ trait SingletonDefault{
 	static function instance_map($alias, $target){
 		self::$instances[$alias] = self::$instances[$target]; # instances are objects, to which variables keep references
 	}
-	/** use the default name of `0` and call init */
-	static function singleton(){
-		$args = array_merge([0], (array)func_get_args());
-		return call_user_func_array([__CLASS__,'init'], $args);
-	}
+
 	/** sets primary to some named instance */
 	static function primary_set($instance_name){
 		$instance_name = $instance_name === null ? 0 : $instance_name;

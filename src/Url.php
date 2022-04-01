@@ -1,7 +1,10 @@
-<?
+<?php
+
 namespace Grithin;
+
 use Grithin\Tool;
 use Grithin\Arrays;
+
 class Url{
 	/** parse a query string using a more standard less php specific rule (all repeated tokens turn into arrays, not just tokens with "[]") */
 	/**

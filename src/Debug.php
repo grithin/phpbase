@@ -105,6 +105,7 @@ class Debug{
 		}
 		return $conformed;
 	}
+	/** return the context of the current process */
 	static function context(){
 		$context = [
 			'rid'=>$log['rid'] = self::getRunId(),
@@ -120,6 +121,27 @@ class Debug{
 		return date(sprintf('Y-m-d\TH:i:s%sP', substr(microtime(), 1, 8)));
 	}
 
+
+	/** prevent this method from being called at a line in code more than $limit */
+	static function run_limit($limit, $trace=5){
+		static $limits = [];
+
+		$caller = self::caller();
+		$key = $caller['file'].':'.$caller['line'];
+		if(isset($limits[$key])){
+			$limits[$key]++;
+		}else{
+			$limits[$key] = 1;
+		}
+		if($limits[$key] > $limit){
+			Debug::out('run_limit reached for "'.$key.'"');
+			if($trace !== false){
+				echo Debug::pretty(Debug::backtrace($trace));
+			}
+
+			exit;
+		}
+	}
 	static function caller(){
 		return self::conform_backtrace_item(debug_backtrace(null,2)[1]);
 	}
@@ -164,16 +186,30 @@ class Debug{
 			return $level_code;
 		}
 
+
 	/**	params
 	< excrption >
 	< additional > < array of additional stacks from chained exceptions (exceptions called within exception handling) >
 	*/
 	static function conform_exception($exception, $options=[]){
+		static $defaults = ['additional'=>[], 'limit_arg_depth'=>3];
+		$options = array_merge($defaults, $options);
+
 		$options['additional'] = isset($options['additional']) ? (array)$options['additional'] : [];
 		if($previous = $exception->getPrevious()){
-			$options['additional']['previous'] = self::conform_error(E_USER_ERROR,$previous->getMessage(),$previous->getFile(),$previous->getLine(),$previous->getTrace(), ['context'=>false]);
+			$trace = self::trace_limit_arg_depth($previous->getTrace(), $options['limit_arg_depth']);
+			$options['additional']['previous'] = self::conform_error(E_USER_ERROR,$previous->getMessage(),$previous->getFile(),$previous->getLine(), $trace, ['context'=>false]);
 		}
-		return self::conform_error(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),$exception->getTrace(), $options);
+		$trace = $trace = self::trace_limit_arg_depth($exception->getTrace(), $options['limit_arg_depth']);
+		return self::conform_error(E_USER_ERROR,$exception->getMessage(),$exception->getFile(),$exception->getLine(),$trace, $options);
+	}
+	static function trace_limit_arg_depth($trace, $depth){
+		foreach($trace as &$item){
+			if(isset($item['args'])){
+				$item['args'] = Tool::decirculate($item['args'], ['max_depth'=>$depth]);
+			}
+		}
+		return $trace;
 	}
 
 	/** print a boatload of information to the load so that even your grandma could fix that bug */
@@ -224,11 +260,11 @@ class Debug{
 		echo "\n";
 		exit; # don't really use die, since it will consider parameter exit code
 	}
-	static function out($data, $caller=false){
+	static function out($data, $caller=false, $context=true){
 		if(!$caller){
 			$caller = self::caller();
 		}
-		$output = "\n".self::pretty($data, $caller);
+		$output = "\n".self::pretty($data, $caller, $context);
 		$is_cli = php_sapi_name() === 'cli';
 		if(!$is_cli){
 			echo '<pre>'.$output.'</pre>';
@@ -238,11 +274,16 @@ class Debug{
 	}
 	static $pretty_increment = 0;
 	/** data as a pretty, identifying string */
-	static function pretty($data, $caller=false){
-		if(!$caller){
+	static function pretty($data, $caller=false, $context=true){
+		if(!$caller && $context){
 			$caller = self::caller();
 		}
-		$string = '['.$caller['file'].':'.$caller['line'].'](#'.self::$pretty_increment.') : ';
+		if($context){
+			$string = '['.$caller['file'].':'.$caller['line'].'](#'.self::$pretty_increment.') : ';
+		}else{
+			$string = '';
+		}
+
 		if(!Tool::is_scalar($data)){
 			$string .= self::json_pretty($data);
 		}else{

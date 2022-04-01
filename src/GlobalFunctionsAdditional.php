@@ -21,7 +21,7 @@ if(!function_exists('json_pretty') && in_array('json_pretty', $functions)){
 
 
 
-# improves (array) conversion to use __toArray method
+# converts into array.  uses __toArray method if present
 if(!function_exists('arr') && in_array('arr', $functions)){
 	function arr($data){
 		return \Grithin\Arrays::convert($data);

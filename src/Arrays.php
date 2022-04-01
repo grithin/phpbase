@@ -50,6 +50,7 @@ class Arrays{
 			return (array)$var;
 		}
 	}
+	
 	/** intended to replace `(array)$x` with the added feature of using __toArray if available on object */
 	static function convert(){
 		if(is_object($x) && method_exists($x, '__toArray')){
